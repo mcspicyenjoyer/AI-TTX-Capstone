@@ -1,0 +1,37 @@
+# Credentials; retain safe template.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+github_token.txt
+github_tokens.txt
+
+# Generated output when the application exists.
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+*.log
+
+# Live data belongs outside the synced repository.
+runtime-data/
+uploads/
+exports/
+secrets/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+
+# Machine-local files.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

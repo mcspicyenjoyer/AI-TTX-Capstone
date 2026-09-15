@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="description" content="Self-contained, interactive HTML architecture diagram for an AI-assisted Technical TTX platform."/>
+<title>AI-assisted Technical TTX · Architecture</title>
+<style>
+:root { --ink:#19324a; --muted:#64788b; --line:#dce5ee; --paper:#fff; --bg:#f3f6fa; --blue:#4c6e99; --teal:#146b63; --purple:#8060ac; --amber:#a57631; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:'Segoe UI',Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+main { width:min(1520px,100%); padding:36px 40px 30px; margin:0 auto; }
+header { display:flex; justify-content:space-between; gap:24px; align-items:center; margin-bottom:24px; }
+.eyebrow { margin:0 0 9px; color:var(--teal); font-size:11px; letter-spacing:1.6px; font-weight:750; }
+h1 { margin:0; font-size:clamp(24px,2.4vw,34px); font-weight:670; letter-spacing:-1px; line-height:1.2; }
+.subtitle { color:var(--muted); font-size:14px; margin:11px 0 0; line-height:1.6; }
+.doc-mark { display:flex; gap:8px; align-items:center; background:#e7f1ed; color:#27675f; border:1px solid #cedeD6; padding:9px 12px; border-radius:7px; font-size:11px; font-weight:700; white-space:nowrap; }
+.doc-mark svg { width:15px; height:15px; }
+.diagram-shell { background:white; border:1px solid var(--line); border-radius:15px; box-shadow:0 8px 30px #19324a05; overflow:hidden; }
+.toolbar { padding:15px 19px; display:flex; justify-content:space-between; align-items:center; gap:14px; border-bottom:1px solid #e8edf3; flex-wrap:wrap; }
+.modes { display:flex; gap:4px; padding:4px; background:#f2f5f9; border-radius:9px; flex-wrap:wrap; }
+button { font:inherit; cursor:pointer; border:1px solid transparent; }
+.mode { color:#5d7083; background:transparent; padding:8px 12px; font-size:12px; line-height:1.2; border-radius:6px; font-weight:600; }
+.mode[aria-pressed=true] { background:white; color:#19324a; box-shadow:0 1px 4px #19324a15; border-color:#dde6ee; }
+.mode:hover { color:var(--teal); }
+.tools { display:flex; gap:8px; }
+.tool { display:inline-flex; align-items:center; gap:7px; background:white; padding:8px 11px; border:1px solid var(--line); border-radius:7px; color:#465f76; font-size:12px; }
+.tool:hover { background:#f4f8fb; border-color:#a7bece; }
+.tool svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.65; stroke-linecap:round; stroke-linejoin:round; }
+button:focus-visible, summary:focus-visible { outline:3px solid #4c6e99; outline-offset:3px; }
+.legend { display:flex; align-items:center; gap:23px; flex-wrap:wrap; padding:16px 28px 6px; font-size:11px; color:#64788b; }
+.legend-item { display:inline-flex; gap:8px; align-items:center; }
+.swatch { width:26px; height:0; border-top:2px solid; display:inline-block; }
+.flow-color { border-color:var(--teal); }.access-color { border-color:var(--blue); }.ai-color { border-color:var(--purple); border-top-style:dashed; }.ref-color { border-color:var(--amber); }
+.legend .hint { margin-left:auto; font-size:11px; color:#8293a2; }
+.canvas { padding:0 12px; overflow-x:auto; }
+#architecture { display:block; width:100%; height:auto; min-width:940px; }
+.caption { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:13px 25px 15px; border-top:1px solid #e8edf3; font-size:11px; color:#738699; line-height:1.5; }
+.caption strong { color:#4c6278; font-weight:600; }
+#status { color:#42647c; white-space:nowrap; }
+.inspector { margin-top:16px; padding:22px 25px; border:1px solid var(--line); background:white; border-radius:12px; display:grid; grid-template-columns:minmax(230px,.75fr) minmax(400px,1.7fr); gap:30px; }
+.inspector h2 { margin:0 0 8px; font-size:16px; font-weight:650; }
+.inspector p { color:#64788b; font-size:12px; line-height:1.65; margin:0; }
+.inspector .label { color:#648092; text-transform:uppercase; letter-spacing:1.4px; font-size:10px; font-weight:700; margin-bottom:9px; }
+.connections { display:flex; gap:7px; flex-wrap:wrap; align-content:start; }
+.connection { border:1px solid #e0e7ef; background:#f8fafc; border-radius:6px; padding:7px 10px; font-size:11px; line-height:1.55; color:#526a80; }
+.connection strong { color:#25455f; font-weight:600; }
+.connection .arrow { margin:0 6px; color:#7b91a4; }
+.connection .connection-label { color:#7a6a43; margin-left:5px; }
+.note { padding:0; display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.note h3 { font-size:12px; color:#36516a; margin:0 0 7px; }
+.source { margin-top:16px; border:1px solid var(--line); border-radius:10px; background:#f9fbfd; }
+summary { cursor:pointer; padding:13px 18px; font-size:12px; font-weight:600; color:#566d81; }
+.source-body { padding:0 18px 18px; }
+.source-body .tool { margin:0 0 10px; }
+pre { padding:20px; background:#eef3f8; border:1px solid #dce5ee; border-radius:8px; white-space:pre; overflow:auto; font:12px/1.65 Consolas,'Courier New',monospace; color:#324f67; margin:0; }
+footer { margin-top:20px; display:flex; justify-content:space-between; gap:15px; font-size:10px; line-height:1.7; color:#8293a2; }
+#toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1b3c54; color:white; border-radius:9px; padding:12px 20px; font-size:12px; box-shadow:0 3px 20px #17334a25; opacity:0; pointer-events:none; transition:opacity .2s; z-index:10; }
+#toast.visible { opacity:1; }
+@media(min-width:1700px) { main { padding-top:44px; } }
+@media(max-width:900px) { main { padding:22px 16px; } header { align-items:flex-start; }.doc-mark { display:none; }.inspector { grid-template-columns:1fr; gap:18px; }.legend .hint { display:none; }.caption { align-items:flex-start; }.toolbar { padding:12px; }.legend { gap:12px; padding:15px 18px 6px; }.caption { padding:12px 18px; }.canvas { padding:0 4px; } }
+@media(max-width:540px) { .modes { width:100%; }.mode { padding:8px; font-size:11px; }.tools { margin-left:auto; }.caption { flex-direction:column; }.note { grid-template-columns:1fr; }.inspector { padding:18px; }h1 { letter-spacing:-.6px; } }
+@media(prefers-reduced-motion:reduce) { * { transition:none!important; } }
+@media print { @page { size:A3 portrait; margin:12mm; } body { background:white; }main { width:100%; padding:0; }header { margin-bottom:12px; }.toolbar,.inspector,.source,footer,#toast,.legend .hint { display:none!important; }.diagram-shell { border:0; border-radius:0; box-shadow:none; }.canvas { padding:0; overflow:visible; }#architecture { width:100%; min-width:0; }.caption { padding:9px 0 0; }.legend { padding:8px 0; }.node.dim,.edge.dim { opacity:1!important; }.node.selected .card { stroke-width:1.5; }.focus-ring { opacity:0!important; }* { print-color-adjust:exact; -webkit-print-color-adjust:exact; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+ <div><p class="eyebrow">SYSTEM ARCHITECTURE / APPLICATION VIEW</p><h1>AI-assisted Technical TTX</h1><p class="subtitle">Preparation, exercise delivery and after-action review — with facilitator-controlled approvals.</p></div>
+ <div class="doc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2 21 6v6c0 5-9 10-9 10S3 17 3 12V6z"/><path d="m8 12 3 3 5-6"/></svg>HUMAN-IN-THE-LOOP</div>
+</header>
+<section class="diagram-shell" aria-label="Interactive system architecture">
+ <div class="toolbar">
+  <div class="modes" role="group" aria-label="Connection view">
+   <button class="mode" type="button" data-mode="all" aria-pressed="true">All connections</button>
+   <button class="mode" type="button" data-mode="flow" aria-pressed="false">Exercise flow</button>
+   <button class="mode" type="button" data-mode="access" aria-pressed="false">API &amp; storage</button>
+   <button class="mode" type="button" data-mode="ai" aria-pressed="false">AI &amp; references</button>
+  </div>
+  <div class="tools">
+   <button class="tool" id="reset" type="button" title="Clear selection and show all connections (Escape)"><svg viewBox="0 0 24 24"><path d="M3 10a9 9 0 1 1 2 9M3 4v6h6"/></svg>Reset</button>
+   <button class="tool" id="save-svg" type="button" title="Export the complete diagram as an editable SVG"><svg viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg>Save SVG</button>
+  </div>
+ </div>
+ <div class="legend" aria-label="Connection legend">
+  <span class="legend-item"><i class="swatch flow-color"></i>Exercise lifecycle</span>
+  <span class="legend-item"><i class="swatch access-color"></i>API / data access</span>
+  <span class="legend-item"><i class="swatch ai-color"></i>AI assistance*</span>
+  <span class="legend-item"><i class="swatch ref-color"></i>Reference input</span>
+  <span class="hint">Select a component to trace its connections</span>
+ </div>
+ <div class="canvas"><svg id="architecture" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1164" role="group" aria-labelledby="diagram-title diagram-desc">
+<title id="diagram-title">AI-assisted Technical TTX — system architecture</title>
+<desc id="diagram-desc">Twelve components and all seventeen relationships from the supplied Mermaid diagram. Web workspaces and the approved AI service are outside the application host. Preparation, design, package approval, the exercise engine and after-action review form the main lifecycle. The API, SQLite, protected file store, reference library and AI coordinator remain inside the host. Solid lines represent API, workflow or reference connections; dashed purple arrows represent requests to the AI coordinator.</desc>
+<style>
+text { font-family: 'Segoe UI', Arial, sans-serif; }
+.host { fill: #fafcfe; stroke: #bdccdc; stroke-width: 1.5; }
+.host-rule { stroke: #e3eaf1; stroke-width: 1; }
+.overline { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; fill: #607487; }
+.host-title { font-size: 15px; font-weight: 700; fill: #314b64; letter-spacing: .8px; }
+.host-tech { font-size: 13px; fill: #42627c; font-weight: 600; }
+.node { cursor: pointer; outline: none; }
+.card { fill: #ffffff; stroke: #d3dde7; stroke-width: 1.5; }
+.node-title { fill: #19324a; font-size: 18px; font-weight: 650; }
+.node-body { fill: #536a7e; font-size: 14px; }
+.node-sub { fill: #607487; font-size: 10.5px; font-weight: 650; letter-spacing: .85px; }
+.node-number { font-size: 11px; font-weight: 750; letter-spacing: 1px; fill: #146b63; }
+.node.flow .card { stroke: #bfd6d1; }
+.node.gate .card { stroke: #c9a064; stroke-width: 1.8; fill: #fffdf8; }
+.node.gate .node-number { fill: #956426; }
+.node.ai .card { fill: #faf8fe; stroke: #bfb0d7; }
+.node.reference .card { fill: #fffdf8; stroke: #d4c5a9; }
+.node.external .card { fill: #f3f7fc; stroke: #b9cbe0; }
+.node.model .card { fill: #faf8fe; stroke: #bfb0d7; }
+.icon { fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+.node-icon { color: #4c6e99; }
+.node.flow .node-icon { color: #146b63; }
+.node.gate .node-icon, .node.reference .node-icon { color: #a57631; }
+.node.ai .node-icon, .node.model .node-icon { color: #8060ac; }
+.icon-bg { fill: #edf3f9; }
+.node.flow .icon-bg { fill: #eaf4f1; }
+.node.gate .icon-bg, .node.reference .icon-bg { fill: #f8f0e1; }
+.node.ai .icon-bg, .node.model .icon-bg { fill: #efe9f8; }
+.tag-bg { fill: #eaf4f1; }
+.tag-text { font-size: 11px; font-weight: 600; fill: #246d64; }
+.node.gate .tag-bg { fill: #f6ecd9; }
+.node.gate .tag-text { fill: #916325; }
+.edge-halo { fill: none; stroke: #fafcfe; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+.edge-path { fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.edge.flow .edge-path { stroke: #146b63; stroke-width: 2.4; }
+.edge.access .edge-path { stroke: #4c6e99; }
+.edge.ai .edge-path { stroke: #8060ac; }
+.edge.reference .edge-path { stroke: #a57631; }
+.edge.dashed .edge-path { stroke-dasharray: 5 6; }
+.edge-label { fill: #506780; font-size: 12px; font-weight: 500; }
+.edge.ai .edge-label { fill: #775c9e; }
+.node.dim { opacity: .25; }
+.edge.dim { opacity: .07; }
+.node.selected .card, .node:focus-visible .card { stroke: #1b5676; stroke-width: 3; }
+.node.selected .focus-ring { opacity: 1; }
+.focus-ring { fill: none; stroke: #1b5676; stroke-width: 1; opacity: 0; }
+.node:hover .card { stroke-width: 2.4; }
+</style><defs><marker id="arrow-flow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M1 1L6 3.5 1 6" fill="none" stroke="#146b63" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="arrow-access" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M1 1L6 3.5 1 6" fill="none" stroke="#4c6e99" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="arrow-ai" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M1 1L6 3.5 1 6" fill="none" stroke="#8060ac" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="arrow-reference" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M1 1L6 3.5 1 6" fill="none" stroke="#a57631" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="0" y="0" width="1440" height="1164" fill="#ffffff"/>
+<rect class="host" x="32" y="180" width="1376" height="792" rx="18"/>
+<text class="host-title" x="64" y="212">APPROVED APPLICATION HOST</text>
+<rect x="1200" y="195" width="176" height="29" rx="14.5" fill="#eaf1f8"/>
+<text class="host-tech" x="1288" y="215" text-anchor="middle">Node.js / TypeScript</text>
+<path class="host-rule" d="M64 236H1376"/>
+<g id="connections"><g id="e11" class="edge reference" data-a="LIBRARY" data-b="DESIGN" data-group="reference"><title>Curated reference library → Exercise design</title>
+<path class="edge-halo" d="M 448 814 L 448 664"/>
+<path class="edge-path" d="M 448 814 L 448 664" marker-end="url(#arrow-reference)"/>
+</g><g id="e12" class="edge reference" data-a="LIBRARY" data-b="AI" data-group="reference"><title>Curated reference library → AI coordinator</title>
+<path class="edge-halo" d="M 572 874 L 664 874"/>
+<path class="edge-path" d="M 572 874 L 664 874" marker-end="url(#arrow-reference)"/>
+</g><g id="e01" class="edge access" data-a="UI" data-b="API" data-group="access"><title>Web workspaces ↔ Authenticated API: REST commands and role-filtered event stream</title>
+<path class="edge-halo" d="M 720 124 L 720 258"/>
+<path class="edge-path" d="M 720 124 L 720 258" marker-end="url(#arrow-access)" marker-start="url(#arrow-access)"/>
+<text class="edge-label" x="738" y="157">REST commands + role-filtered event stream</text>
+</g><g id="e02" class="edge access" data-a="API" data-b="PREP" data-group="access"><title>Authenticated API → Preparation</title>
+<path class="edge-halo" d="M 576 370 L 576 422 L 176 422 L 176 490"/>
+<path class="edge-path" d="M 576 370 L 576 422 L 176 422 L 176 490" marker-end="url(#arrow-access)"/>
+</g><g id="e07" class="edge access" data-a="API" data-b="RUN" data-group="access"><title>Authenticated API ↔ Exercise engine</title>
+<path class="edge-halo" d="M 802 370 L 802 432 L 992 432 L 992 490"/>
+<path class="edge-path" d="M 802 370 L 802 432 L 992 432 L 992 490" marker-end="url(#arrow-access)" marker-start="url(#arrow-access)"/>
+</g><g id="e08" class="edge access" data-a="API" data-b="REPORT" data-group="access"><title>Authenticated API ↔ After-action review</title>
+<path class="edge-halo" d="M 914 370 L 914 402 L 1264 402 L 1264 490"/>
+<path class="edge-path" d="M 914 370 L 914 402 L 1264 402 L 1264 490" marker-end="url(#arrow-access)" marker-start="url(#arrow-access)"/>
+</g><g id="e09" class="edge access" data-a="API" data-b="STORE" data-group="access"><title>Authenticated API ↔ SQLite</title>
+<path class="edge-halo" d="M 476 314 L 392 314"/>
+<path class="edge-path" d="M 476 314 L 392 314" marker-end="url(#arrow-access)" marker-start="url(#arrow-access)"/>
+</g><g id="e10" class="edge access" data-a="API" data-b="FILES" data-group="access"><title>Authenticated API ↔ Protected file store</title>
+<path class="edge-halo" d="M 964 314 L 1048 314"/>
+<path class="edge-path" d="M 964 314 L 1048 314" marker-end="url(#arrow-access)" marker-start="url(#arrow-access)"/>
+</g><g id="e13" class="edge ai dashed" data-a="PREP" data-b="AI" data-group="ai"><title>Preparation → AI coordinator</title>
+<path class="edge-halo" d="M 176 664 L 176 744 L 760 744 L 760 814"/>
+<path class="edge-path" d="M 176 664 L 176 744 L 760 744 L 760 814" marker-end="url(#arrow-ai)"/>
+</g><g id="e14" class="edge ai dashed" data-a="DESIGN" data-b="AI" data-group="ai"><title>Exercise design → AI coordinator</title>
+<path class="edge-halo" d="M 490 664 L 490 710 L 900 710 L 900 814"/>
+<path class="edge-path" d="M 490 664 L 490 710 L 900 710 L 900 814" marker-end="url(#arrow-ai)"/>
+</g><g id="e15" class="edge ai dashed" data-a="RUN" data-b="AI" data-group="ai"><title>Exercise engine → AI coordinator</title>
+<path class="edge-halo" d="M 992 664 L 992 752 L 1056 752 L 1056 814"/>
+<path class="edge-path" d="M 992 664 L 992 752 L 1056 752 L 1056 814" marker-end="url(#arrow-ai)"/>
+</g><g id="e16" class="edge ai dashed" data-a="REPORT" data-b="AI" data-group="ai"><title>After-action review → AI coordinator</title>
+<path class="edge-halo" d="M 1264 664 L 1264 784 L 1216 784 L 1216 814"/>
+<path class="edge-path" d="M 1264 664 L 1264 784 L 1216 784 L 1216 814" marker-end="url(#arrow-ai)"/>
+</g><g id="e17" class="edge ai" data-a="AI" data-b="MODEL" data-group="ai"><title>AI coordinator ↔ Approved AI service: Permitted context only</title>
+<path class="edge-halo" d="M 1020 934 L 1020 1036"/>
+<path class="edge-path" d="M 1020 934 L 1020 1036" marker-end="url(#arrow-ai)" marker-start="url(#arrow-ai)"/>
+<text class="edge-label" x="1038" y="1000">Permitted context only</text>
+</g><g id="e03" class="edge flow" data-a="PREP" data-b="DESIGN" data-group="flow"><title>Preparation → Exercise design: User-approved profile</title>
+<path class="edge-halo" d="M 288 578 L 336 578"/>
+<path class="edge-path" d="M 288 578 L 336 578" marker-end="url(#arrow-flow)"/>
+</g><g id="e04" class="edge flow" data-a="DESIGN" data-b="PACKAGE" data-group="flow"><title>Exercise design → Package approval</title>
+<path class="edge-halo" d="M 560 578 L 608 578"/>
+<path class="edge-path" d="M 560 578 L 608 578" marker-end="url(#arrow-flow)"/>
+</g><g id="e05" class="edge flow" data-a="PACKAGE" data-b="RUN" data-group="flow"><title>Package approval → Exercise engine: Approved definition</title>
+<path class="edge-halo" d="M 832 578 L 880 578"/>
+<path class="edge-path" d="M 832 578 L 880 578" marker-end="url(#arrow-flow)"/>
+</g><g id="e06" class="edge flow" data-a="RUN" data-b="REPORT" data-group="flow"><title>Exercise engine → After-action review</title>
+<path class="edge-halo" d="M 1104 578 L 1152 578"/>
+<path class="edge-path" d="M 1104 578 L 1152 578" marker-end="url(#arrow-flow)"/>
+</g></g>
+<g id="components"><g id="node-UI" class="node external" data-node="UI" tabindex="0" role="button" aria-label="Web workspaces: Planner / facilitator / participants" aria-pressed="false">
+<title>Web workspaces</title>
+<rect class="focus-ring" x="481" y="27" width="478" height="102" rx="17"/>
+<rect class="card" x="486" y="32" width="468" height="92" rx="12"/>
+<rect class="icon-bg" x="504" y="51" width="38" height="38" rx="10"/>
+<svg x="511" y="58" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></g></svg>
+<text class="node-title" x="556" y="75">Web workspaces</text>
+<text class="node-body" x="556" y="99">Planner / facilitator / participants</text>
+</g><g id="node-API" class="node access" data-node="API" tabindex="0" role="button" aria-label="Authenticated API: Exercise membership and role checks" aria-pressed="false">
+<title>Authenticated API</title>
+<rect class="focus-ring" x="471" y="253" width="498" height="122" rx="17"/>
+<rect class="card" x="476" y="258" width="488" height="112" rx="12"/>
+<rect class="icon-bg" x="494" y="277" width="38" height="38" rx="10"/>
+<svg x="501" y="284" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><path d="M12 2 21 6v6c0 5-9 10-9 10S3 17 3 12V6z"/><path d="m8 12 3 3 5-6"/></g></svg>
+<text class="node-title" x="546" y="301">Authenticated API</text>
+<text class="node-body" x="546" y="325">Exercise membership and role checks</text>
+</g><g id="node-STORE" class="node access" data-node="STORE" tabindex="0" role="button" aria-label="SQLite: Versioned records, jobs, inboxes and audit events" aria-pressed="false">
+<title>SQLite</title>
+<rect class="focus-ring" x="59" y="253" width="338" height="122" rx="17"/>
+<rect class="card" x="64" y="258" width="328" height="112" rx="12"/>
+<rect class="icon-bg" x="82" y="277" width="38" height="38" rx="10"/>
+<svg x="89" y="284" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><ellipse cx="12" cy="5" rx="8.5" ry="3"/><path d="M3.5 5v14c0 1.7 3.8 3 8.5 3s8.5-1.3 8.5-3V5M3.5 12c0 1.7 3.8 3 8.5 3s8.5-1.3 8.5-3"/></g></svg>
+<text class="node-title" x="134" y="301">SQLite</text>
+<text class="node-body" x="134" y="325">Versioned records, jobs, inboxes</text>
+<text class="node-body" x="134" y="344">and audit events</text>
+</g><g id="node-FILES" class="node access" data-node="FILES" tabindex="0" role="button" aria-label="Protected file store: Sources, synthetic artefacts and exports" aria-pressed="false">
+<title>Protected file store</title>
+<rect class="focus-ring" x="1043" y="253" width="338" height="122" rx="17"/>
+<rect class="card" x="1048" y="258" width="328" height="112" rx="12"/>
+<rect class="icon-bg" x="1066" y="277" width="38" height="38" rx="10"/>
+<svg x="1073" y="284" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><path d="M3 7V4h7l3 3h8v13H3z"/><path d="M3 10h18"/></g></svg>
+<text class="node-title" x="1118" y="301">Protected file store</text>
+<text class="node-body" x="1118" y="325">Sources, synthetic artefacts</text>
+<text class="node-body" x="1118" y="344">and exports</text>
+</g><g id="node-PREP" class="node flow" data-node="PREP" tabindex="0" role="button" aria-label="Preparation: Safe intake, extraction and profile review" aria-pressed="false">
+<title>Preparation</title>
+<rect class="focus-ring" x="59" y="485" width="234" height="184" rx="17"/>
+<rect class="card" x="64" y="490" width="224" height="174" rx="12"/>
+<rect class="icon-bg" x="82" y="507" width="31" height="25" rx="7"/>
+<text class="node-number" x="97.5" y="524" text-anchor="middle">01</text>
+<svg x="244" y="508" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><path d="M4 4h16v16H4zM8 14h8M12 6v7m-3-3 3 3 3-3"/></g></svg>
+<text class="node-title" x="82" y="558">Preparation</text>
+<text class="node-body" x="82" y="584">Safe intake, extraction</text>
+<text class="node-body" x="82" y="604">and profile review</text>
+<rect class="tag-bg" x="82" y="623" width="188" height="25" rx="5"/>
+<text class="tag-text" x="92" y="640">User-approved profile</text>
+</g><g id="node-DESIGN" class="node flow" data-node="DESIGN" tabindex="0" role="button" aria-label="Exercise design: Threat and impact mapping, scenario and MSEL" aria-pressed="false">
+<title>Exercise design</title>
+<rect class="focus-ring" x="331" y="485" width="234" height="184" rx="17"/>
+<rect class="card" x="336" y="490" width="224" height="174" rx="12"/>
+<rect class="icon-bg" x="354" y="507" width="31" height="25" rx="7"/>
+<text class="node-number" x="369.5" y="524" text-anchor="middle">02</text>
+<svg x="516" y="508" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><path d="m12 3 10 5-10 5L2 8zM2 12l10 5 10-5M2 16l10 5 10-5"/></g></svg>
+<text class="node-title" x="354" y="558">Exercise design</text>
+<text class="node-body" x="354" y="584">Threat and impact mapping;</text>
+<text class="node-body" x="354" y="604">scenario and MSEL</text>
+</g><g id="node-PACKAGE" class="node gate" data-node="PACKAGE" tabindex="0" role="button" aria-label="Package approval: Freeze reviewed content and branches" aria-pressed="false">
+<title>Package approval</title>
+<rect class="focus-ring" x="603" y="485" width="234" height="184" rx="17"/>
+<rect class="card" x="608" y="490" width="224" height="174" rx="12"/>
+<rect class="icon-bg" x="626" y="507" width="31" height="25" rx="7"/>
+<text class="node-number" x="641.5" y="524" text-anchor="middle">03</text>
+<svg x="788" y="508" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4m-7 5 2 2 4-4"/></g></svg>
+<text class="node-title" x="626" y="558">Package approval</text>
+<text class="node-body" x="626" y="584">Freeze reviewed content</text>
+<text class="node-body" x="626" y="604">and branches</text>
+<rect class="tag-bg" x="626" y="623" width="188" height="25" rx="5"/>
+<text class="tag-text" x="636" y="640">Approved definition</text>
+</g><g id="node-RUN" class="node flow" data-node="RUN" tabindex="0" role="button" aria-label="Exercise engine: State, branch eligibility and release approval" aria-pressed="false">
+<title>Exercise engine</title>
+<rect class="focus-ring" x="875" y="485" width="234" height="184" rx="17"/>
+<rect class="card" x="880" y="490" width="224" height="174" rx="12"/>
+<rect class="icon-bg" x="898" y="507" width="31" height="25" rx="7"/>
+<text class="node-number" x="913.5" y="524" text-anchor="middle">04</text>
+<svg x="1060" y="508" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><rect x="2" y="9" width="6" height="6" rx="1"/><rect x="16" y="2" width="6" height="6" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/><path d="M8 12h4V5h4m-4 7v7h4"/></g></svg>
+<text class="node-title" x="898" y="558">Exercise engine</text>
+<text class="node-body" x="898" y="584">State, branch eligibility</text>
+<text class="node-body" x="898" y="604">and release approval</text>
+<rect class="tag-bg" x="898" y="623" width="188" height="25" rx="5"/>
+<text class="tag-text" x="908" y="640">Release approval</text>
+</g><g id="node-REPORT" class="node flow" data-node="REPORT" tabindex="0" role="button" aria-label="After-action review: Observed evidence, findings and actions" aria-pressed="false">
+<title>After-action review</title>
+<rect class="focus-ring" x="1147" y="485" width="234" height="184" rx="17"/>
+<rect class="card" x="1152" y="490" width="224" height="174" rx="12"/>
+<rect class="icon-bg" x="1170" y="507" width="31" height="25" rx="7"/>
+<text class="node-number" x="1185.5" y="524" text-anchor="middle">05</text>
+<svg x="1332" y="508" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><path d="M5 2h10l4 4v16H5zM15 2v5h4M8 11h8M8 15h8M8 19h5"/></g></svg>
+<text class="node-title" x="1170" y="558">After-action review</text>
+<text class="node-body" x="1170" y="584">Observed evidence,</text>
+<text class="node-body" x="1170" y="604">findings and actions</text>
+</g><g id="node-LIBRARY" class="node reference" data-node="LIBRARY" tabindex="0" role="button" aria-label="Curated reference library: Guidance, incident patterns and templates" aria-pressed="false">
+<title>Curated reference library</title>
+<rect class="focus-ring" x="59" y="809" width="518" height="130" rx="17"/>
+<rect class="card" x="64" y="814" width="508" height="120" rx="12"/>
+<rect class="icon-bg" x="82" y="833" width="38" height="38" rx="10"/>
+<svg x="89" y="840" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><path d="M3 3h5v18H3zM10 3h4v18h-4zM16 4l4-1 3 17-4 1zM3 7h5m2 0h4"/></g></svg>
+<text class="node-title" x="134" y="857">Curated reference library</text>
+<text class="node-body" x="134" y="881">Guidance, incident patterns and templates</text>
+<text class="node-sub" x="134" y="911">INPUT TO EXERCISE DESIGN + AI</text>
+</g><g id="node-AI" class="node ai" data-node="AI" tabindex="0" role="button" aria-label="AI coordinator: Scoped context, structured output and validation" aria-pressed="false">
+<title>AI coordinator</title>
+<rect class="focus-ring" x="659" y="809" width="722" height="130" rx="17"/>
+<rect class="card" x="664" y="814" width="712" height="120" rx="12"/>
+<rect class="icon-bg" x="682" y="833" width="38" height="38" rx="10"/>
+<svg x="689" y="840" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5zM20 2v4m-2-2h4"/></g></svg>
+<text class="node-title" x="734" y="857">AI coordinator</text>
+<text class="node-body" x="734" y="881">Scoped context, structured output and validation</text>
+<text class="node-sub" x="734" y="911">ASSISTS PREPARATION, DESIGN, ENGINE + REVIEW</text>
+</g><g id="node-MODEL" class="node model" data-node="MODEL" tabindex="0" role="button" aria-label="Approved AI service: Internal endpoint, or explicitly approved provider" aria-pressed="false">
+<title>Approved AI service</title>
+<rect class="focus-ring" x="787" y="1031" width="466" height="106" rx="17"/>
+<rect class="card" x="792" y="1036" width="456" height="96" rx="12"/>
+<rect class="icon-bg" x="810" y="1055" width="38" height="38" rx="10"/>
+<svg x="817" y="1062" width="24" height="24" viewBox="0 0 24 24" class="node-icon" aria-hidden="true"><g class="icon"><path d="M6 19a5 5 0 0 1-1-10 7 7 0 0 1 13-2 6 6 0 0 1 0 12H6z"/><path d="m9 13 2 2 4-4"/></g></svg>
+<text class="node-title" x="862" y="1079">Approved AI service</text>
+<text class="node-body" x="862" y="1103">Internal endpoint, or explicitly approved provider</text>
+</g></g>
+</svg></div>
+ <div class="caption"><span><strong>Approval hand-offs:</strong> user-approved profile → approved definition → release approval.<br/>*Dashed arrows: module-to-coordinator requests. The approved AI service uses a solid, two-way connection.</span><span id="status" role="status" aria-live="polite">12 components · 17 connections</span></div>
+</section>
+<section class="inspector" aria-label="Component details">
+ <div><div class="label" id="detail-label">READING THE DIAGRAM</div><h2 id="detail-title">A single application host</h2><p id="detail-body">The bounded area contains your Node.js / TypeScript application and its supporting components. Web workspaces and the AI service remain outside that boundary.</p></div>
+ <div id="detail-connections" class="note"><div><h3>The exercise lifecycle is the main path</h3><p>Read the five numbered stages from left to right. The approval labels identify the two named hand-offs in the original diagram and the engine’s release-approval responsibility.</p></div><div><h3>Supporting relationships stay explicit</h3><p>All 17 original connections are shown. Select a component or a view to focus the diagram. Crossing lines are not shared buses; arrowheads identify the endpoints.</p></div></div>
+</section>
+<details class="source"><summary>Original Mermaid source</summary><div class="source-body"><button class="tool" id="copy-source" type="button">Copy Mermaid</button><pre id="mermaid-source">flowchart TB
+    UI[&quot;Web workspaces&lt;br/&gt;Planner / facilitator / participants&quot;]
+
+    subgraph APP[&quot;Approved application host - Node.js / TypeScript&quot;]
+        API[&quot;Authenticated API&lt;br/&gt;Exercise membership and role checks&quot;]
+        PREP[&quot;Preparation&lt;br/&gt;Safe intake, extraction and profile review&quot;]
+        DESIGN[&quot;Exercise design&lt;br/&gt;Threat and impact mapping, scenario and MSEL&quot;]
+        PACKAGE[&quot;Package approval&lt;br/&gt;Freeze reviewed content and branches&quot;]
+        RUN[&quot;Exercise engine&lt;br/&gt;State, branch eligibility and release approval&quot;]
+        REPORT[&quot;After-action review&lt;br/&gt;Observed evidence, findings and actions&quot;]
+        AI[&quot;AI coordinator&lt;br/&gt;Scoped context, structured output and validation&quot;]
+        STORE[(&quot;SQLite&lt;br/&gt;Versioned records, jobs, inboxes and audit events&quot;)]
+        FILES[&quot;Protected file store&lt;br/&gt;Sources, synthetic artefacts and exports&quot;]
+        LIBRARY[&quot;Curated reference library&lt;br/&gt;Guidance, incident patterns and templates&quot;]
+
+        API --&gt; PREP
+        PREP --&gt;|&quot;User-approved profile&quot;| DESIGN
+        DESIGN --&gt; PACKAGE
+        PACKAGE --&gt;|&quot;Approved definition&quot;| RUN
+        RUN --&gt; REPORT
+        API &lt;--&gt; RUN
+        API &lt;--&gt; REPORT
+        API &lt;--&gt; STORE
+        API &lt;--&gt; FILES
+        LIBRARY --&gt; DESIGN
+        LIBRARY --&gt; AI
+        PREP -.-&gt; AI
+        DESIGN -.-&gt; AI
+        RUN -.-&gt; AI
+        REPORT -.-&gt; AI
+    end
+
+    UI &lt;--&gt;|&quot;REST commands and role-filtered event stream&quot;| API
+    AI &lt;--&gt;|&quot;Permitted context only&quot;| MODEL[&quot;Approved AI service&lt;br/&gt;Internal endpoint, or explicitly approved provider&quot;]</pre></div></details>
+<footer><span>Self-contained HTML + inline SVG · No external libraries, fonts or network requests.</span><span>MSEL: Master Scenario Events List · TTX: tabletop exercise</span></footer>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script id="architecture-data" type="application/json">{"nodes": [{"id": "UI", "title": "Web workspaces", "body": "Planner / facilitator / participants", "x": 486, "y": 32, "w": 468, "h": 92, "kind": "external", "icon": "screen", "lines": ["Planner / facilitator / participants"]}, {"id": "API", "title": "Authenticated API", "body": "Exercise membership and role checks", "x": 476, "y": 258, "w": 488, "h": 112, "kind": "access", "icon": "shield", "lines": ["Exercise membership and role checks"]}, {"id": "STORE", "title": "SQLite", "body": "Versioned records, jobs, inboxes and audit events", "x": 64, "y": 258, "w": 328, "h": 112, "kind": "access", "icon": "database", "lines": ["Versioned records, jobs, inboxes", "and audit events"]}, {"id": "FILES", "title": "Protected file store", "body": "Sources, synthetic artefacts and exports", "x": 1048, "y": 258, "w": 328, "h": 112, "kind": "access", "icon": "folder", "lines": ["Sources, synthetic artefacts", "and exports"]}, {"id": "PREP", "title": "Preparation", "body": "Safe intake, extraction and profile review", "x": 64, "y": 490, "w": 224, "h": 174, "kind": "flow", "number": "01", "lines": ["Safe intake, extraction", "and profile review"], "tag": "User-approved profile", "icon": "intake"}, {"id": "DESIGN", "title": "Exercise design", "body": "Threat and impact mapping, scenario and MSEL", "x": 336, "y": 490, "w": 224, "h": 174, "kind": "flow", "number": "02", "lines": ["Threat and impact mapping;", "scenario and MSEL"], "icon": "design"}, {"id": "PACKAGE", "title": "Package approval", "body": "Freeze reviewed content and branches", "x": 608, "y": 490, "w": 224, "h": 174, "kind": "gate", "number": "03", "lines": ["Freeze reviewed content", "and branches"], "tag": "Approved definition", "icon": "check"}, {"id": "RUN", "title": "Exercise engine", "body": "State, branch eligibility and release approval", "x": 880, "y": 490, "w": 224, "h": 174, "kind": "flow", "number": "04", "lines": ["State, branch eligibility", "and release approval"], "tag": "Release approval", "icon": "route"}, {"id": "REPORT", "title": "After-action review", "body": "Observed evidence, findings and actions", "x": 1152, "y": 490, "w": 224, "h": 174, "kind": "flow", "number": "05", "lines": ["Observed evidence,", "findings and actions"], "icon": "report"}, {"id": "LIBRARY", "title": "Curated reference library", "body": "Guidance, incident patterns and templates", "x": 64, "y": 814, "w": 508, "h": 120, "kind": "reference", "icon": "library", "lines": ["Guidance, incident patterns and templates"], "sub": "INPUT TO EXERCISE DESIGN + AI"}, {"id": "AI", "title": "AI coordinator", "body": "Scoped context, structured output and validation", "x": 664, "y": 814, "w": 712, "h": 120, "kind": "ai", "icon": "spark", "lines": ["Scoped context, structured output and validation"], "sub": "ASSISTS PREPARATION, DESIGN, ENGINE + REVIEW"}, {"id": "MODEL", "title": "Approved AI service", "body": "Internal endpoint, or explicitly approved provider", "x": 792, "y": 1036, "w": 456, "h": 96, "kind": "model", "icon": "cloud", "lines": ["Internal endpoint, or explicitly approved provider"]}], "edges": [{"id": "e01", "a": "UI", "b": "API", "group": "access", "bi": true, "label": "REST commands and role-filtered event stream", "d": "M 720 124 L 720 258"}, {"id": "e02", "a": "API", "b": "PREP", "group": "access", "bi": false, "label": "", "d": "M 576 370 L 576 422 L 176 422 L 176 490"}, {"id": "e03", "a": "PREP", "b": "DESIGN", "group": "flow", "bi": false, "label": "User-approved profile", "d": "M 288 578 L 336 578"}, {"id": "e04", "a": "DESIGN", "b": "PACKAGE", "group": "flow", "bi": false, "label": "", "d": "M 560 578 L 608 578"}, {"id": "e05", "a": "PACKAGE", "b": "RUN", "group": "flow", "bi": false, "label": "Approved definition", "d": "M 832 578 L 880 578"}, {"id": "e06", "a": "RUN", "b": "REPORT", "group": "flow", "bi": false, "label": "", "d": "M 1104 578 L 1152 578"}, {"id": "e07", "a": "API", "b": "RUN", "group": "access", "bi": true, "label": "", "d": "M 802 370 L 802 432 L 992 432 L 992 490"}, {"id": "e08", "a": "API", "b": "REPORT", "group": "access", "bi": true, "label": "", "d": "M 914 370 L 914 402 L 1264 402 L 1264 490"}, {"id": "e09", "a": "API", "b": "STORE", "group": "access", "bi": true, "label": "", "d": "M 476 314 L 392 314"}, {"id": "e10", "a": "API", "b": "FILES", "group": "access", "bi": true, "label": "", "d": "M 964 314 L 1048 314"}, {"id": "e11", "a": "LIBRARY", "b": "DESIGN", "group": "reference", "bi": false, "label": "", "d": "M 448 814 L 448 664"}, {"id": "e12", "a": "LIBRARY", "b": "AI", "group": "reference", "bi": false, "label": "", "d": "M 572 874 L 664 874"}, {"id": "e13", "a": "PREP", "b": "AI", "group": "ai", "bi": false, "label": "", "d": "M 176 664 L 176 744 L 760 744 L 760 814", "dashed": true}, {"id": "e14", "a": "DESIGN", "b": "AI", "group": "ai", "bi": false, "label": "", "d": "M 490 664 L 490 710 L 900 710 L 900 814", "dashed": true}, {"id": "e15", "a": "RUN", "b": "AI", "group": "ai", "bi": false, "label": "", "d": "M 992 664 L 992 752 L 1056 752 L 1056 814", "dashed": true}, {"id": "e16", "a": "REPORT", "b": "AI", "group": "ai", "bi": false, "label": "", "d": "M 1264 664 L 1264 784 L 1216 784 L 1216 814", "dashed": true}, {"id": "e17", "a": "AI", "b": "MODEL", "group": "ai", "bi": true, "label": "Permitted context only", "d": "M 1020 934 L 1020 1036"}]}</script>
+<script>
+/* All geometry is in the inline SVG above. These data records preserve the
+   supplied graph, and drive connection highlighting and accessible details. */
+(() => {
+ 'use strict';
+ const {nodes, edges} = JSON.parse(document.getElementById('architecture-data').textContent);
+ const index = Object.fromEntries(nodes.map(node => [node.id, node]));
+ const svg = document.getElementById('architecture');
+ const controls = [...document.querySelectorAll('[data-mode]')];
+ const nodeElements = [...document.querySelectorAll('[data-node]')];
+ const edgeElements = [...document.querySelectorAll('#connections > .edge')];
+ const detailLabel = document.getElementById('detail-label');
+ const detailTitle = document.getElementById('detail-title');
+ const detailBody = document.getElementById('detail-body');
+ const detailConnections = document.getElementById('detail-connections');
+ const defaultDetails = {label:detailLabel.textContent,title:detailTitle.textContent,body:detailBody.textContent,html:detailConnections.innerHTML};
+ let mode = 'all';
+ let selected = null;
+ let timer;
+ const messages = {
+  flow: ['Exercise lifecycle', 'The user-facing entry point and the five-stage preparation-to-review path. All other connections are dimmed, not removed.'],
+  access: ['API and persistent data', 'The API’s six original connections: web workspaces, preparation, the exercise engine, after-action review, SQLite and the protected file store.'],
+  ai: ['Scoped AI assistance', 'Four modules call the AI coordinator. The curated reference library feeds exercise design and the coordinator; the coordinator exchanges permitted context with the approved AI service.']
+ };
+ function inMode(edge) {
+  if (mode === 'all') return true;
+  if (mode === 'flow') return edge.group === 'flow' || edge.id === 'e01' || edge.id === 'e02';
+  if (mode === 'ai') return edge.group === 'ai' || edge.group === 'reference';
+  return edge.group === 'access';
+ }
+ function relationChip(edge) {
+  const chip = document.createElement('div'); chip.className = 'connection';
+  const a = document.createElement('strong'); a.textContent = index[edge.a].title;
+  const arrow = document.createElement('span'); arrow.className = 'arrow'; arrow.textContent = edge.bi ? '↔' : '→';
+  const b = document.createElement('strong'); b.textContent = index[edge.b].title;
+  chip.append(a, arrow, b);
+  if (edge.label) { const label = document.createElement('span'); label.className = 'connection-label'; label.textContent = ' · ' + edge.label; chip.append(label); }
+  return chip;
+ }
+ function render() {
+  const active = edges.filter(edge => selected ? edge.a === selected || edge.b === selected : inMode(edge));
+  const activeEdges = new Set(active.map(edge => edge.id));
+  const activeNodes = new Set(active.flatMap(edge => [edge.a,edge.b]));
+  if (selected) activeNodes.add(selected);
+  for (const el of edgeElements) el.classList.toggle('dim', !activeEdges.has(el.id));
+  for (const el of nodeElements) {
+   const id = el.dataset.node;
+   el.classList.toggle('dim', !activeNodes.has(id));
+   el.classList.toggle('selected', id === selected);
+   el.setAttribute('aria-pressed', String(id === selected));
+  }
+  controls.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+  document.getElementById('status').textContent = selected ? `${index[selected].title} · ${active.length} connection${active.length===1?'':'s'}` : mode === 'all' ? '12 components · 17 connections' : `${active.length} of 17 connections highlighted`;
+  if (!selected && mode === 'all') {
+   detailLabel.textContent = defaultDetails.label; detailTitle.textContent = defaultDetails.title;
+   detailBody.textContent = defaultDetails.body; detailConnections.className = 'note'; detailConnections.innerHTML = defaultDetails.html;
+  } else {
+   detailLabel.textContent = selected ? 'COMPONENT CONNECTIONS' : 'FOCUSED VIEW';
+   detailTitle.textContent = selected ? index[selected].title : messages[mode][0];
+   detailBody.textContent = selected ? index[selected].body : messages[mode][1];
+   detailConnections.className = 'connections'; detailConnections.replaceChildren(...active.map(relationChip));
+  }
+ }
+ function choose(id) { selected = selected === id ? null : id; render(); }
+ controls.forEach(button => button.addEventListener('click', () => { mode=button.dataset.mode; selected=null; render(); }));
+ nodeElements.forEach(el => {
+  el.addEventListener('click', event => { event.stopPropagation(); choose(el.dataset.node); });
+  el.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(el.dataset.node); } });
+ });
+ svg.addEventListener('click', () => { if(selected) { selected=null; render(); } });
+ const reset = () => {mode='all'; selected=null; render();};
+ document.getElementById('reset').addEventListener('click', reset);
+ document.addEventListener('keydown', event => { if (event.key === 'Escape') reset(); });
+ function toast(message) {
+  const el=document.getElementById('toast'); el.textContent=message; el.classList.add('visible');
+  clearTimeout(timer); timer=setTimeout(()=>el.classList.remove('visible'), 2600);
+ }
+ document.getElementById('save-svg').addEventListener('click', () => {
+  try {
+   const clone=svg.cloneNode(true);
+   clone.querySelectorAll('.dim,.selected').forEach(el=>el.classList.remove('dim','selected'));
+   clone.querySelectorAll('[aria-pressed]').forEach(el=>el.setAttribute('aria-pressed','false'));
+   clone.setAttribute('width','1440'); clone.setAttribute('height','1164');
+   const content='<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(clone);
+   const url=URL.createObjectURL(new Blob([content],{type:'image/svg+xml;charset=utf-8'}));
+   const link=document.createElement('a'); link.href=url; link.download='AI_TTX_Architecture.svg';
+   document.body.append(link); link.click(); link.remove(); setTimeout(()=>URL.revokeObjectURL(url),5000);
+   toast('Complete diagram exported as SVG.');
+  } catch(error) { toast('SVG export failed. The diagram remains available in this HTML file.'); console.error(error); }
+ });
+ document.getElementById('copy-source').addEventListener('click', async () => {
+  const text=document.getElementById('mermaid-source').textContent;
+  try {
+   if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); }
+   else {
+    const temp=document.createElement('textarea'); temp.value=text; temp.style.position='fixed'; temp.style.opacity='0'; document.body.append(temp); temp.select();
+    const ok=document.execCommand('copy'); temp.remove(); if(!ok) throw new Error('Clipboard unavailable');
+   }
+   toast('Original Mermaid source copied.');
+  } catch(error) { toast('Clipboard unavailable. Select and copy the source text below.'); }
+ });
+ render();
+})();
+</script>
+</body>
+</html>
