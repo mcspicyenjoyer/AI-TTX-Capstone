@@ -16,23 +16,23 @@ Specify stable IDs and immutable profile/definition/inject revisions; run and me
 
 Release checks authority, run state, definition membership, eligibility, content revision and recipients in the authoritative transaction. Approval, release, inbox and activity changes commit consistently. A repeated successful idempotency key returns its existing result; reuse with different content fails. Concurrent requests check expected run revision. Participant projections exclude private material server-side. Restarted interrupted runs remain paused until explicitly resumed.
 
-### Two-person implementation boundary — 15 September 2026
+### Exercise-based implementation ownership
 
-Planning direction: user owns the backend, teammate owns the frontend. Retain one application and repository. The proposed stack remains subject to ADR-006; this section does not establish installed software.
+Updated 16 September 2026 under ADR-012. [PROJECT](PROJECT.md#ownership-and-exercise-scope) owns the assignment: the user implements the technical exercise end to end; the other worker handles the operational exercise. Retain one technical application in this repository. No shared runtime, repository or integration with the operational workstream is assumed. The proposed stack remains subject to ADR-006; this section does not establish installed software.
 
-| Owner | Responsibilities | Suggested locations once needed |
+| Technical area / owner | Responsibilities | Suggested locations once needed |
 | --- | --- | --- |
 | Backend / user | HTTP API, identity and membership checks, application rules, SQLite persistence, activity, AI jobs and provider adapter, integration tests | `src/server/`, `src/server/adapters/`, `tests/server/` |
-| Frontend / teammate | Profile review, facilitator and participant views, API client, loading/error states, accessible interactions and UI checks | `src/ui/`, `tests/ui/` |
-| Shared; backend coordinates | Executable request/response schemas, generated types/API description where practical, synthetic response examples, error codes and contract changes | `src/contracts/`, `tests/fixtures/` |
+| Frontend / user | Profile review, facilitator and participant views, API client, loading/error states, accessible interactions and UI checks | `src/ui/`, `tests/ui/` |
+| Contracts and integration / user | Executable request/response schemas, generated types/API description where practical, synthetic response examples, error codes, contract changes and end-to-end checks | `src/contracts/`, `tests/fixtures/` |
 
-These paths are a proposed minimal layout, not directories to create in advance. Backend-only profile evidence and facilitator records must not be bundled into participant-facing types or payloads. Share contracts, not server implementation or secrets.
+These paths are a proposed minimal layout, not directories to create in advance. Frontend and backend remain separate application boundaries despite having one owner. Backend-only profile evidence and facilitator records must not be bundled into participant-facing types or payloads. Share contracts between layers, not server implementation or secrets.
 
-Both developers use separate Git checkouts/branches and local test data. Integrate one behaviour at a time; do not edit the same OneDrive working directory from two machines. One owner coordinates root package configuration and lockfile changes. Review interface changes together before implementing incompatible fields. Frontend mocks use the same reviewed synthetic examples and schemas as backend checks; mocks are not evidence that permissions or persistence work. Run a real browser-to-server check at every checkpoint.
+The user coordinates technical root package configuration, lockfile and contract changes. Integrate one behaviour at a time. Frontend mocks use the same reviewed synthetic examples and schemas as backend checks; mocks are not evidence that permissions or persistence work. Run a real browser-to-server check at every checkpoint. If cross-workstream collaboration is agreed later, define the exact shared artefacts and interface ownership first, use separate Git checkouts/branches and local test data, and do not edit the same synchronised working directory from two machines.
 
-### Proposed browser API handoff
+### Proposed browser API contract
 
-Agree field-level contracts during TASK-001A. The following routes are a design sketch, not implemented endpoints. The frontend talks only to the TTX API. The server derives the actor from its session; request bodies cannot select authority.
+Define field-level contracts during TASK-001A. This is the internal frontend/backend boundary for the user's technical application, not an API handoff to the operational worker. The following routes are a design sketch, not implemented endpoints. The frontend talks only to the TTX API. The server derives the actor from its session; request bodies cannot select authority.
 
 | Checkpoint | Route sketch | Contract purpose |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ Subscription sign-in and API-key billing are separate access modes; an unavailab
 Application design to prove in the experiment:
 
 - Backend supervises one local process through private pipes, with bounded message sizes, correlated request IDs, timeouts, cancellation and exit handling. Windows executable resolution and process cleanup require testing.
-- Operator signs in locally through the managed flow. Keep credentials and provider history outside source control/OneDrive; teammate develops against a fake adapter or independently authorised account. Do not copy account tokens or expose Codex's general protocol to the browser.
+- Operator signs in locally through the managed flow. Keep credentials and provider history outside source control/OneDrive. Frontend development and ordinary tests use a fake adapter; this plan does not grant the operational worker access to the user's account. Do not copy account tokens or expose Codex's general protocol to the browser.
 - Use an isolated runtime configuration and working directory, not the development repository or live database directory. Audit inherited instructions, plugins, hooks and MCP configuration. Enforce no model access to shell execution, application storage, credentials or delivery tools. A prompt saying "do not use tools", a read-only filesystem setting, or declining approval requests alone does not prove this boundary. Verify supported restrictions on the selected Windows build before connecting participant-supplied text; fail the experiment if the required isolation cannot be enforced.
 - Supply only the selected synthetic profile snapshot, objective and allowed roles/assets. Start fresh context per independent generation job. Store request/profile/contract/prompt/model versions and the resulting draft provenance without logging secrets.
 - Treat model output as untrusted data. Validate schema, references, bounds and profile revision; preserve unknowns; reject unsupported references. Human review still assesses plausibility and factual support.

@@ -44,11 +44,11 @@ Not included: AI, parsing, polished dashboard, full MSEL package, external deliv
 
 Verification: not run; there is no scaffold. If necessary split scaffold from the workflow, but do not mark the workflow complete after scaffolding alone.
 
-### Two-person checkpoints
+### Technical-exercise checkpoints
 
-Ownership and the proposed API handoff are in [architecture](architecture.md#two-person-implementation-boundary--15-september-2026). The user leads backend; the teammate leads frontend. All implementation checkpoints below are not started.
+Ownership follows [PROJECT](PROJECT.md#ownership-and-exercise-scope) and ADR-012; the internal UI/API boundary is in [architecture](architecture.md#exercise-based-implementation-ownership). The user owns both backend and frontend for every checkpoint below. The other worker owns the operational exercise, not these frontend tasks. All implementation checkpoints below are not started.
 
-| Checkpoint | Backend / user | Frontend / teammate | Exit evidence |
+| Checkpoint | Backend / user | Frontend / user | Exit evidence |
 | --- | --- | --- | --- |
 | TASK-001A: scaffold and shared contracts | Resolve ADR-006/007 and storage path; implement server entry, test DB integration, shared profile contracts and synthetic fixtures | Minimal UI entry and API client; review shared contract and mock examples | Clean install, real checks, frontend reaches backend; initial schemas and errors agreed |
 | TASK-001B: profile confirmation | Known facilitator identity, profile read/confirm operations, revision validation and persistence | Profile review/confirm screen with loading, saved and error states | Browser confirmation survives reload and process restart; participant confirmation rejected |
@@ -62,13 +62,15 @@ Next coding scope: TASK-001A/B. Each checkpoint includes relevant failure tests;
 
 Status: Proposed; follows the first working deterministic exercise loop. Full document parsing is not a prerequisite. Requirements: REQ-007/011/012; this does not complete package generation.
 
-Use ADR-011 and the [adapter experiment design](architecture.md#proposed-codex-adapter-experiment). Backend owns the provider lifecycle, job API, schema/reference validation and failure handling. Frontend owns the generating/error/review experience and initially uses deterministic job fixtures. Both review the synthetic objective and generated content.
+Use ADR-011 and the [adapter experiment design](architecture.md#proposed-codex-adapter-experiment). The user owns the backend provider lifecycle, job API, schema/reference validation and failure handling, plus the frontend generating/error/review experience, initially using deterministic job fixtures. The synthetic objective and generated content still require human review; implementation ownership does not replace exercise approval.
 
 Acceptance: establish the installed protocol/model/authentication and enforceable isolation; generate one bounded synthetic inject; record latency, validity, unsupported content and reviewer corrections; display the result as a draft; exercise timeout, invalid output, usage limit, process exit and manual continuation. Normal tests use a fake provider. Live evaluation requires an explicitly bounded synthetic case and usage limit. Do not silently switch to paid API calls or widen execution permissions when integration fails.
 
 Next AI checkpoint, if feasible: one participant response produces a suggested interpretation or eligible prepared follow-up, followed by facilitator decision. Keep the full intake, package and reporting scope in PROJECT.
 
 ## Planning handover — 15 September 2026
+
+Historical record: the personnel split below was superseded by ADR-012 and the 16 September ownership update. The API design remains an internal technical-application boundary.
 
 Documented the requested backend/frontend split, proposed browser API handoff and subscription-backed local experiment. Updated PROJECT, DECISIONS, architecture, QUALITY and this file. No application code, dependency installation, account operation, model call, Git commit or teammate message was performed. Implementation choices remain proposed where indicated.
 
@@ -79,6 +81,20 @@ Verification on 15 September 2026: PowerShell strict UTF-8 decoding, final-newli
 User authorised publishing current plans to the existing GitHub remote. Scope: README, AGENTS, the five documents, editor/ignore/environment templates and the existing HTML architecture illustration. Original briefs, slides, PDFs and reference packs remain local. Both `github_token.txt` and `github_tokens.txt` are ignored; the credential file stays outside the repository and is used only for transient authentication.
 
 Authenticated fetch confirmed local `main` and `origin/main` were identical before publication. The explicit 11-file staged allowlist, exact-token exclusion, common credential-pattern scan, ignore checks for both token filenames and `git diff --cached --check` passed. The final task response records the resulting commit and remote verification. No application behaviour has been implemented or tested by this publication task.
+
+## Ownership update - 16 September 2026
+
+Applied the user's revised assignment: technical exercise frontend and backend belong to the user; operational exercise belongs to the other worker. Updated README, PROJECT, architecture, DECISIONS, QUALITY and the active checkpoints above. ADR-012 explicitly supersedes ADR-010; the earlier planning handover remains labelled as history.
+
+The technical MVP, requirements, safety boundaries and task acceptance criteria are unchanged. Operational requirements and any cross-workstream sharing/integration remain to be agreed; no operational implementation tasks or combined platform were added. TASK-001 and TASK-002 have not started. No application code, dependencies, account operation, external message, commit or publication was performed.
+
+Verification on 16 September 2026: inline PowerShell checks passed for strict UTF-8, final newlines, trailing whitespace and paired code fences across all six changed documents; 23 local links/heading targets resolved and REQ-001-012 matched the previous revision unchanged. Three pre-existing links to local source material (Form B, supervisor slides and research guide) remain unavailable in this checkout; no new broken links were introduced. `git diff --check` passed with LF-to-CRLF warnings only. Reviewed `git diff` and searched ownership references with `rg`; the old allocation remains only in explicitly historical records. Runtime tests are not applicable because this remains a documentation-only repository.
+
+## Git publication update - 16 September 2026
+
+The user authorised publishing the ownership update to the existing GitHub remote using local `token.txt`, and requested its exclusion from Git. Added `token.txt` to `.gitignore`; `git check-ignore -v -- token.txt` confirms the rule, and `git log --all --format=%h -- token.txt` found no recorded history for that path. The credential file remains local and is not part of the publication scope.
+
+Publication scope is the six ownership-update documents plus `.gitignore`. The seven-file staged allowlist, untracked-token check, common credential-pattern scan, strict UTF-8/newline/whitespace checks and `git diff --cached --check` passed. The authenticated fetch command was blocked by the execution policy before execution; no successful fetch, push or current remote verification is claimed. Do not bypass that restriction. The final task response records the local commit; GitHub publication remains pending. No runtime tests apply to this documentation/configuration change.
 
 ## Later sequence
 1. Proposed TASK-002: small AI feasibility experiment using a confirmed synthetic profile, then one bounded follow-up experiment. This refines the historical architecture sequence; deterministic play still comes first.

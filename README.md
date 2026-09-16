@@ -5,6 +5,8 @@ A capstone prototype for preparing and facilitating a technical tabletop exercis
 ## Current state
 Architectural documentation baseline established on 15 September 2026. No application, executable schemas, package manifest, database or AI integration exists yet. The existing HTML architecture illustration is a design artefact.
 
+Task ownership updated on 16 September 2026: the user owns both frontend and backend for the technical exercise; the other worker owns the operational exercise. This replaces the earlier frontend/backend split between people. See [project ownership and scope](docs/PROJECT.md#ownership-and-exercise-scope) and [current checkpoints](docs/WORK.md#technical-exercise-checkpoints).
+
 ## Start here
 | Document | Authoritative purpose |
 | --- | --- |

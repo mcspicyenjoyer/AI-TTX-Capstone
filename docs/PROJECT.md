@@ -1,9 +1,22 @@
 # Project baseline
 
-Status: working implementation-planning scope, 15 September 2026. Based on the supplied Form B and existing architecture. The user authorised this architectural setup; formal supervisor approval and organisation technology permissions are not inferred.
+Status: working implementation-planning scope, updated 16 September 2026 for exercise-based ownership. Based on the supplied Form B and existing architecture, with the user's task allocation below. The user authorised this architectural setup; formal supervisor approval and organisation technology permissions are not inferred.
 
 ## Problem and users
 Resource-constrained SMEs need help converting systems and continuity context into a bounded technical tabletop exercise. The product assists preparation, facilitated play and review. Users are a planner/profile reviewer, facilitator, participant teams and an exercise reviewer. A person may hold multiple functions, but participant access remains distinct from facilitator authority.
+
+## Ownership and exercise scope
+
+The work is divided by exercise type, not by frontend versus backend (ADR-012 in [DECISIONS](DECISIONS.md)):
+
+| Owner | Assigned scope |
+| --- | --- |
+| User | Technical exercise, including both frontend and backend, their integration and verification. |
+| Other worker | Operational exercise; no longer assigned the technical application's frontend. |
+
+This repository's requirements and acceptance criteria cover the technical exercise. It remains a discussion-based tabletop exercise about systems, dependencies and technical response/recovery decisions, not a cyber range or live execution environment. The ownership change does not remove the continuity context, functional roles or human approval controls already in scope.
+
+Operational-exercise requirements, deliverables and implementation arrangements are not defined here. A shared scenario, codebase, data model or integration between the two workstreams must be agreed explicitly before dependent work; this change does not commit either workstream to a combined platform. See [architecture](architecture.md#exercise-based-implementation-ownership) for the technical application's internal boundaries and [WORK](WORK.md#technical-exercise-checkpoints) for execution status.
 
 ## Target MVP and first slice
 Target: one representative SME and incident scenario, a validated organisation profile, 10–15 MSEL entries, 3–4 functional roles and three bounded decision points with approved follow-ups. Inputs eventually include one agreed diagram format, optional text-based continuity documents and guided answers. Outputs include a human-reviewed draft after-action report and improvement actions.

@@ -6,6 +6,7 @@
 *.key
 github_token.txt
 github_tokens.txt
+token.txt
 
 # Generated output when the application exists.
 node_modules/
