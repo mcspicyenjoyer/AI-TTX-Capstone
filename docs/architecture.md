@@ -67,9 +67,38 @@ Application design to prove in the experiment:
 - Persist an application job before requesting generation. Return `202` with a job ID; frontend polls initially. Proposed statuses: queued, running, succeeded, failed, cancelled. Success means a validated draft was stored, never approved or released. Show safe failure codes for rate limits, sign-in required, invalid output and provider unavailability.
 - Bound concurrency to one generation for the initial experiment. Prevent accidental duplicate jobs, discard late results after cancellation and mark interrupted jobs explicitly on restart. Do not automatically replay uncertain provider requests. Manual play continues in every failure case.
 
+### Five-inject coached workflow - 18 September 2026
+
+Status: confirmed planning direction under ADR-013, not implemented behaviour. [PROJECT](PROJECT.md#first-exercise-draft) owns the five-inject first-draft rules. The one-inject engineering slice, five-inject exercise draft and longer-term 10-15-entry target are distinct milestones. TASK-001's deterministic first slice and exact-revision release approval remain intact.
+
+[Editable Excalidraw diagram](diagrams/ttx-five-inject-workflow.excalidraw), [SVG](diagrams/ttx-five-inject-workflow.svg) and [PNG preview](diagrams/ttx-five-inject-workflow.png).
+
+The diagram shows five injects per selected exercise track, not five technical plus five operational in one run. The user retains technical frontend/backend ownership; the other worker retains operational ownership. A common conceptual workflow does not establish a shared implementation. Technical package generation waits for the supplied RACI, assessment rubric, risk/threat references and detailed AAR template to be reviewed. All organisation/exercise content is synthetic throughout the prototype.
+
+Planned flow:
+1. An authorised organisation owner/planner provides supported synthetic network, BCP/DRP and guided-answer inputs. Capture the SOC/MSSP operating model and role-to-participant mapping in this initial setup and generation context. Exercise participants need not have upload or profile-confirmation authority.
+2. AI proposes a source-linked profile; a human confirms facts and keeps assumptions, conflicts and unknowns distinct.
+3. Choose either the technical or operational track. Bind objectives, roles, reference versions and grading criteria before AI drafts five prepared injects. Review and freeze the package; scenario branching is deferred from this first draft.
+4. A facilitator approves each exact inject and its recipients. The application checks authority and run state at release, independently of AI assessment.
+5. Route each task using the confirmed SOC/MSSP mapping and approved RACI. Responsible roles submit; accountable/consulted/informed roles retain their distinct functions. RACI accountability does not automatically confer facilitator privileges.
+6. AI proposes criterion-level findings with response evidence. Application-owned validation and reviewed thresholds determine eligibility, with human review of ambiguous or disputed assessments. A sufficient first answer closes the inject. An insufficient first answer receives targeted guidance before one final answer. If that second answer remains insufficient, close the response path with an unresolved finding and reject a third answer; do not offer another coached retry. Record unaided and coached results separately. Continue to the next prepared inject through normal facilitator approval/release checks, not an AI-controlled release.
+7. Resolve all five slots, then draft the AAR from the activity record and approved template. A human verifies findings and improvement actions before sharing the appropriate participant report. Early termination can yield a clearly labelled partial report; unresolved gaps must not be reported as passes.
+
+Design boundaries: a risk matrix prioritises scenario risks; an assessment rubric evaluates responses. Neither is an executable user-supplied schema. Grade substantive decisions and justified alternatives, not answer length. The first draft adapts feedback, not later scenario consequences. Decision-dependent branches belong to later work and need bounded, reviewed alternatives. Freeze the rubric during a run and keep hidden criteria, future injects and facilitator evidence out of participant payloads.
+
+The backend counts accepted answer submissions for the authorised responding user/team, not HTTP retries or model calls. Persist each answer and its attempt number before evaluation. A duplicate request returns its recorded result; a provider failure leaves that answer pending evaluation instead of inventing a failed assessment or consuming a further answer. Human review reassesses the same evidence and records its rationale without resetting the two-answer limit. A terminal outcome is either sufficient (unaided/coached) or an unresolved finding; every one of the five injects needs such an outcome before normal completion. The AAR retains these outcomes and their evidence rather than collapsing completion into a pass score.
+
+For point 7, treat subscription-backed Codex as an adapter feasibility path, not an unlimited or already-working runtime. Managed ChatGPT authentication is documented separately from API-key usage; limits and data-handling arrangements still apply. Local file access depends on the host's tools and permissions, and file parsing remains a separate capability to validate. See [authentication](https://learn.chatgpt.com/docs/auth), [usage limits](https://learn.chatgpt.com/docs/pricing) and [app-server](https://learn.chatgpt.com/docs/app-server).
+
+Recommended continuity design: the backend owns versioned profiles/reference packs, run state, all attempts/hints, assessments and human decisions. Build a bounded context packet for every AI request from those records. An optional per-run `memory.md` is only a derived summary with record/version references, rebuilt or checked against authoritative data before use. Do not rely on an agent remembering to update it, global cross-chat memories or context compaction for transactional correctness. This creates no competing repository MEMORY document; live exercise data remains outside the synchronised source tree. Give the runtime selected read-only material, not unrestricted folder, credential or database access. [OpenAI's memory guidance](https://learn.chatgpt.com/docs/customization/memories) likewise distinguishes recall from required guidance.
+
+Positioning: support exercise practice and review evidence relevant to Cyber Trust, not automatic certification or proof of real recovery. The [current CSA certification page](https://www.csa.gov.sg/our-programmes/support-for-enterprises/sg-cyber-safe-programme/cybersecurity-certification-for-organisations/cyber-trust/certification-for-the-cyber-trust-mark/) points to Cyber Trust (2025); the 2022 version ceased use in February 2026. Map the selected objectives to the [2025 clauses](https://isomer-user-content.by.gov.sg/36/2cff8d23-0f79-4477-9629-377d3bccbcaf/cyber-trust-v202504.pdf), and do not treat a five-inject result as Advocate-tier attainment.
+
 ---
 
 Status: proposed design for review, 9 September 2026. No platform implementation has started.
+
+The historical sections below describe the fuller target. Where they discuss scenario branching or 10-15 entries, do not treat that as first-draft scope; the current PROJECT and five-inject workflow above take precedence.
 
 Recommendation: a web-first, single-organisation prototype with a Node.js/TypeScript modular backend. AI assists preparation and interpretation. Application rules and recorded human approvals control what becomes an organisational fact, an exercise definition, a delivered inject, or a final finding.
 
@@ -316,7 +345,7 @@ The current source repository is in OneDrive. Keep live databases, uploads, cred
 - Protect future injects, rubrics and sources server-side. Defer the participant chatbot rather than introducing another disclosure route into the MVP.
 - AI timeout, malformed output, unsupported references or ambiguous interpretation leads to a visible failure/manual-review state. Bounded retries never silently choose a branch.
 - Maintain an append-only audit trail through application operations, with corrections as new records. Do not claim it is tamper-proof against the host administrator.
-- Use synthetic or authorised redacted inputs during development. Review school-safe exports separately, including their attachments and metadata.
+- Use synthetic organisation/exercise inputs throughout development, demonstration and evaluation. Review school-safe exports separately, including their attachments and metadata.
 
 ## 9. Validation plan
 

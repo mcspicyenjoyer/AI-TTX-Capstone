@@ -30,7 +30,7 @@ This is the SME-focused AI-assisted Technical TTX-in-a-Box capstone, a discussio
 - Never invent a successful delivery or an observed action without evidence.
 
 ## Data, checks and handover
-- Use synthetic or explicitly approved fixtures. Do not commit secrets, organisation uploads or sensitive runtime records.
+- Use synthetic organisational context and exercise content throughout this prototype, as scoped in PROJECT. Do not commit secrets, organisation uploads or sensitive runtime records.
 - Store live data outside this synchronised repository. Do not log credentials or restricted content.
 - Do not send data or messages externally without applicable authorisation.
 - Run meaningful checks for changed behaviour and relevant failure paths; ordinary software tests must not depend on live AI.

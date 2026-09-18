@@ -7,6 +7,8 @@ Architectural documentation baseline established on 15 September 2026. No applic
 
 Task ownership updated on 16 September 2026: the user owns both frontend and backend for the technical exercise; the other worker owns the operational exercise. This replaces the earlier frontend/backend split between people. See [project ownership and scope](docs/PROJECT.md#ownership-and-exercise-scope) and [current checkpoints](docs/WORK.md#technical-exercise-checkpoints).
 
+The [first exercise draft](docs/PROJECT.md#first-exercise-draft), clarified on 18 September, uses five injects, two answers per inject and adaptive coaching. An insufficient second answer becomes an unresolved finding. SOC/MSSP responsibilities are established during setup; the RACI, rubric and detailed AAR template are pending. This follows the one-inject engineering slice and is distinct from the longer-term 10-15-entry target. See the [editable workflow diagram](docs/diagrams/ttx-five-inject-workflow.excalidraw) or [PNG preview](docs/diagrams/ttx-five-inject-workflow.png).
+
 ## Start here
 | Document | Authoritative purpose |
 | --- | --- |
@@ -31,4 +33,4 @@ The working product brief is the local `GPT_ICT4011_Form_B_AI_Assisted_TTX.docx`
 
 The planning publication includes the architecture illustration and repository planning/configuration files. Original briefs, supervisor slides, PDFs and research/reference packs remain local; links to those materials require a local copy and will not resolve in a plans-only checkout.
 
-Use synthetic fixtures initially. Keep credentials, uploads, session databases and sensitive exports outside Git and this OneDrive-synchronised source directory. Ignore rules are not access controls.
+Use synthetic organisational context and exercise content throughout the prototype, including demonstrations and evaluations. Keep credentials, uploads, session databases and sensitive exports outside Git and this OneDrive-synchronised source directory. Ignore rules are not access controls.

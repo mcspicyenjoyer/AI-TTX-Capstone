@@ -66,7 +66,17 @@ Use ADR-011 and the [adapter experiment design](architecture.md#proposed-codex-a
 
 Acceptance: establish the installed protocol/model/authentication and enforceable isolation; generate one bounded synthetic inject; record latency, validity, unsupported content and reviewer corrections; display the result as a draft; exercise timeout, invalid output, usage limit, process exit and manual continuation. Normal tests use a fake provider. Live evaluation requires an explicitly bounded synthetic case and usage limit. Do not silently switch to paid API calls or widen execution permissions when integration fails.
 
-Next AI checkpoint, if feasible: one participant response produces a suggested interpretation or eligible prepared follow-up, followed by facilitator decision. Keep the full intake, package and reporting scope in PROJECT.
+Next AI checkpoint, if feasible: one participant response produces a criterion-linked assessment and targeted feedback, subject to human oversight. This tests coaching, not decision-dependent scenario branching. Keep the full intake, package and reporting scope in PROJECT.
+
+## TASK-003 - Five-inject coached first draft
+
+Status: Planned, not started. Requirements: REQ-010/011/013-015 plus the inherited approval, visibility and durability requirements. The user owns the technical frontend, backend and integration; operational implementation remains the other worker's workstream.
+
+Depends on the deterministic TASK-001 workflow, a viable reviewed TASK-002 integration, an agreed synthetic intake subset and the user-supplied technical RACI, assessment rubric/thresholds, risk/threat references and detailed AAR template. Do not generate the technical package before reviewing those content dependencies.
+
+Outcome and acceptance follow [PROJECT's first exercise draft](PROJECT.md#first-exercise-draft) and [QUALITY's coached cases](QUALITY.md#coached-first-draft-cases): five prepared technical injects, upfront SOC/MSSP role mapping, at most two answers per inject, evidence-linked coaching and final outcomes, including unresolved findings, followed by a reviewed AAR. Persist attempts and guidance across failure/restart; AI assessment does not grant release authority. Ordinary tests use deterministic provider fixtures.
+
+Not included: mixed technical/operational runs, decision-dependent scenario branching, real organisation uploads or the longer-term 10-15-entry package. Verification: not run; no application exists. This milestone does not replace or mark TASK-001/002 complete.
 
 ## Planning handover — 15 September 2026
 
@@ -96,11 +106,27 @@ The user authorised publishing the ownership update to the existing GitHub remot
 
 Publication scope is the six ownership-update documents plus `.gitignore`. The seven-file staged allowlist, untracked-token check, common credential-pattern scan, strict UTF-8/newline/whitespace checks and `git diff --cached --check` passed. The authenticated fetch command was blocked by the execution policy before execution; no successful fetch, push or current remote verification is claimed. Do not bypass that restriction. The final task response records the local commit; GitHub publication remains pending. No runtime tests apply to this documentation/configuration change.
 
+## Workflow exploration - 18 September 2026
+
+Historical exploration, now refined by ADR-013 and the clarification handover below. Reviewed the user's five-inject, single-track, coached-retry idea and subscription/context questions. Added an initial [design proposal, now clarified](architecture.md#five-inject-coached-workflow---18-september-2026) plus an editable Excalidraw diagram and matching SVG/PNG exports. At that stage PROJECT, accepted decisions and task acceptance criteria were unchanged, pending reconciliation of the first draft with the fuller target and coaching/release authority. Technical RACI, assessment rubric and AAR template remain pending; no injects were generated.
+
+Checked current official OpenAI authentication, app-server, usage and memory documentation and CSA's Cyber Trust (2025) publication. Recommendations preserve per-release human approval, source-linked profile confirmation, application-owned state, recorded first/coached attempts and manual continuation. The user reports completing the earlier Git push; local `git status --short --branch` showed `main...origin/main` with no changes at the start of this task. No network Git verification or new publication was performed.
+
+Initial diagram verification: the task-local Node/Playwright renderer imported all 80 editable elements through Excalidraw 0.18.0's `restore` and `exportToSvg`; all 36 text elements fit their declared widths, element IDs/bindings were checked, and PNG pixel variance confirmed a nonblank render. Two overflowing labels and one connector-label overlap were corrected; final PNG visual review passed. The bundled Playwright browser was unavailable, so verification used installed Chrome without installing an application dependency. `git diff --check` passed with line-ending warnings only. PowerShell checked strict UTF-8, final newlines, trailing whitespace, local Markdown links/heading targets and SVG XML; the three pre-existing missing source-material links remain unchanged. Reviewed the scoped diff. No application runtime tests exist yet.
+
+## Clarification and publication handover - 18 September 2026
+
+At the user's request, aligned PROJECT, architecture, DECISIONS (ADR-013), QUALITY, README, repository data instructions and the editable diagram with the confirmed first-draft rules. Added TASK-003 without changing the one-inject engineering slice or claiming the fuller target is implemented. The two-answer limit ends in a recorded finding when unmet; progression still requires normal approval. Upfront SOC/MSSP mapping and synthetic-only prototype content are explicit. The AAR preserves unaided, coached and unresolved outcomes. Scenario branching remains later work; content templates remain pending.
+
+The user authorised committing and pushing these planning changes to `origin`. Normal `git -c credential.interactive=never fetch origin` succeeded using existing Git authentication, without reading `token.txt`, running a token wrapper or bypassing execution policy. Earlier failed-publication notes above are historical. No application code, dependencies, live AI calls or deployment were added. Publication verification is recorded in the final task response.
+
+Verification on 18 September 2026: the task-local `ttx-diagram-qa.cjs` Node/Playwright renderer used installed Chrome and Excalidraw 0.18.0 to import/export all 78 editable elements, validate IDs/bindings and check all 35 text widths; zero overflow and nonblank PNG pixel checks passed. Regenerated SVG/PNG exports and visually reviewed the final diagram. Inline PowerShell checks passed for strict UTF-8, final newlines, trailing whitespace and paired code fences across seven Markdown files; 37 local links/anchors resolved, SVG XML parsed, and the three pre-existing missing source-material links were unchanged. `git diff --check`, `git diff --cached --check`, the exact ten-file staged allowlist and token-path ignore/untracked checks passed. An initial broad credential pattern falsely matched the `task-003` heading links; the boundary-aware common credential scan passed. Reviewed the documentation diff and diagram text; `git rev-list --left-right --count HEAD...origin/main` returned `0 0` before the new commit. No application runtime tests exist yet.
+
 ## Later sequence
-1. Proposed TASK-002: small AI feasibility experiment using a confirmed synthetic profile, then one bounded follow-up experiment. This refines the historical architecture sequence; deterministic play still comes first.
-2. Intake, provenance and profile reconciliation using agreed formats.
-3. Broader constrained package generation and human review.
-4. Bounded interpretation and approved follow-ups, including outage evaluation.
-5. Evidence-grounded AAR, action register, backup/restore and school-safe handover.
+1. Complete TASK-001's deterministic one-inject workflow after resolving its environment decisions.
+2. Proposed TASK-002: bounded AI drafting and assessment/feedback feasibility using a confirmed synthetic profile.
+3. TASK-003: agreed synthetic intake and SOC/MSSP mapping, reviewed five-inject package, two-answer coaching and evidence-grounded AAR; apply QUALITY's failure and recovery cases.
+4. Later fuller target: broader intake and 10-15-entry packages, bounded decision branches and approved follow-ups, only after agreeing their details.
+5. Backup/restore, evaluation evidence and school-safe handover for the implemented scope.
 
 Known limitations: no executable contracts, application, identity system, persistence or evaluations. Historical architecture research was not independently revalidated in this baseline task. Existing reference documents remain untracked and are not automatically included in a future commit.
