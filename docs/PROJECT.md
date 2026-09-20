@@ -1,22 +1,22 @@
 # Project baseline
 
-Status: working implementation-planning scope, updated 18 September 2026 for the confirmed five-inject first draft and two-attempt coaching rules. Based on the supplied Form B and existing architecture, with the user's task allocation and clarifications below. Formal supervisor approval and organisation technology permissions are not inferred.
+Status: working implementation-planning scope, updated 19 September 2026 to distinguish the TTX Platform from its technical and operational workstreams. The confirmed five-inject first draft and two-attempt coaching rules remain unchanged. Based on the supplied Form B and existing architecture, with the user's task allocation and clarifications below. Formal supervisor approval and organisation technology permissions are not inferred.
 
 ## Problem and users
-Resource-constrained SMEs need help converting systems and continuity context into a bounded technical tabletop exercise. The product assists preparation, facilitated play and review. Users are a planner/profile reviewer, facilitator, participant teams and an exercise reviewer. A person may hold multiple functions, but participant access remains distinct from facilitator authority.
+Resource-constrained SMEs need help converting systems and continuity context into bounded tabletop exercises. The AI-assisted TTX Platform encompasses separate technical and operational exercise tracks and assists preparation, facilitated play and review. Use "TTX Platform" for the product; "technical" identifies an exercise track, not the whole platform. Users are a planner/profile reviewer, facilitator, participant teams and an exercise reviewer. A person may hold multiple functions, but participant access remains distinct from facilitator authority.
 
 ## Ownership and exercise scope
 
-The work is divided by exercise type, not by frontend versus backend (ADR-012 in [DECISIONS](DECISIONS.md)):
+The work is divided by exercise type, not by frontend versus backend (ADR-012, with product framing clarified by ADR-015 in [DECISIONS](DECISIONS.md)):
 
 | Owner | Assigned scope |
 | --- | --- |
 | User | Technical exercise, including both frontend and backend, their integration and verification. |
 | Other worker | Operational exercise; no longer assigned the technical application's frontend. |
 
-This repository's requirements and acceptance criteria cover the technical exercise. It remains a discussion-based tabletop exercise about systems, dependencies and technical response/recovery decisions, not a cyber range or live execution environment. The ownership change does not remove the continuity context, functional roles or human approval controls already in scope.
+This repository's current implementation requirements and acceptance criteria cover the technical workstream within that platform. This track remains a discussion-based tabletop exercise about systems, dependencies and technical response/recovery decisions, not a cyber range or live execution environment. The product naming correction does not remove the continuity context, functional roles or human approval controls already in scope.
 
-Operational-exercise requirements, deliverables and implementation arrangements are not defined here. A shared scenario, codebase, data model or integration between the two workstreams must be agreed explicitly before dependent work; this change does not commit either workstream to a combined platform. See [architecture](architecture.md#exercise-based-implementation-ownership) for the technical application's internal boundaries and [WORK](WORK.md#technical-exercise-checkpoints) for execution status.
+Both workstreams belong to the overarching TTX Platform. Detailed operational-exercise requirements, deliverables and implementation arrangements are not defined here; shared scenarios, code, data models and integration contracts still need agreement before dependent work. Neutral branding does not imply that the operational track, track selection or cross-track integration is already implemented, nor does it permit mixed-track runs in the first draft. See [architecture](architecture.md#exercise-based-implementation-ownership) for implementation boundaries and [WORK](WORK.md#technical-exercise-checkpoints) for execution status.
 
 ## Target MVP and first slice
 Longer-term target: one representative SME and incident scenario, a validated organisation profile, 10–15 MSEL entries, 3–4 functional roles and three bounded decision points with approved follow-ups. Inputs eventually include one agreed diagram format, optional text-based continuity documents and guided answers. Outputs include a human-reviewed draft after-action report and improvement actions. This fuller target is retained, not a requirement to generate 10-15 entries for the first exercise draft.
@@ -62,11 +62,11 @@ No cyber range, exploit/malware execution, production-system changes, autonomous
 ## Environment and open questions
 | Area | Confirmed | Open before dependent work |
 | --- | --- | --- |
-| Repository | Existing Git repository in OneDrive; initially only README tracked. | Review untracked user/reference material before staging. |
-| Current machine | Windows; PowerShell 7.6 supplied by session; Node 24.20.0 and npm 11.19.0 executed on 15 September. | Approved work-machine runtime and package policy. Availability is not permission. |
-| Stack | Form B names Node.js; existing proposal recommends TypeScript, React, Fastify, JSON Schema and SQLite. | Exact packages, versions and environment compatibility; nothing installed. |
-| Delivery | Browser workflow; synthetic local demonstration first. | Participant identity/access model; approved LAN/TLS route if multiple devices are used. |
-| Storage | Approvals, releases, responses and activity survive restart. Source is synchronised. | Approved non-synchronised data directory outside Git; backup/restore method. |
+| Repository | Existing Git repository; current checkout is under the Windows Desktop. Source may be synchronised and must never hold live data. | Review untracked user/reference material before staging. |
+| Current machine | Windows; PowerShell 7.6; Docker Desktop Linux engine. User requested Docker portability rather than per-laptop Node setup. | Git and a permitted Docker/Compose installation on each destination laptop; availability is not organisation permission. |
+| Stack | Local scaffold: Node/TypeScript, npm, React, Fastify, JSON Schema and SQLite in one Docker application (ADR-006/014). | Later parsers/provider choices are still unapproved. Exact current package/image versions are recorded with the implementation. |
+| Delivery | Localhost-only Docker publication and distinct server-validated demo identities (ADR-007/014). | Approved LAN/TLS route and stronger identity before multi-device or production use. |
+| Storage | Durable profile confirmation starts the persistence work; run/release/response persistence is still required later. Docker named volume at /data resolves the local data location (ADR-014). | Separate protected backup/restore for moving saved progress between laptops; Git does not transfer volumes. |
 | AI | User intends to use their existing OpenAI subscription; planning a local synthetic Codex integration experiment. The supplied brief prefers approved internal services. | Verify subscription-backed integration, available model, limits and isolation. Personal subscription use does not establish organisation data or deployment permission. No live integration exists; first slice remains independent of AI. |
 | Intake | Synthetic network/context and optional text-bearing continuity inputs throughout the prototype; SOC/MSSP setup precedes role-specific drafting. | draw.io XML and PDF/DOCX are proposals; confirm subset, bounds and parsers. |
 | Content/evaluation | Five injects for the first draft; two answers per inject; adaptive coaching; unresolved findings are valid final outcomes. The fuller target remains separate. | User-supplied technical RACI, reviewed rubric/thresholds, risk/threat references and detailed AAR template. Alternative-payload counting applies only to later branching work. |

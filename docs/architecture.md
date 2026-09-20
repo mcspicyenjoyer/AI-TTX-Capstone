@@ -1,14 +1,16 @@
-# AI Assisted Technical TTX Platform Architecture
+# AI-assisted TTX Platform Architecture
 
 ## Baseline integration — 15 September 2026
 
-This remains the canonical architecture document. All application components below are planned, not implemented. Only the documentation/configuration baseline exists; no runtime controls have been tested.
+This remains the canonical architecture document. TASK-001A/B now implement the bounded Docker-first scaffold and synthetic profile confirmation. Verification results belong in WORK; the remaining exercise, AI, parsing and reporting components are planned.
 
 Use [PROJECT](PROJECT.md) for working requirements and environment constraints, [DECISIONS](DECISIONS.md) for accepted versus proposed choices, [QUALITY](QUALITY.md) for verification criteria and [WORK](WORK.md) for actual state. Historical research and technology recommendations below do not establish current approval or installation.
 
 The first slice uses a synthetic profile and prepared inject. Build only the profile/definition, approval/release, participant projection, response and durable activity boundaries it needs. Intake workers, AI coordination, retrieval and reporting come later; no speculative module directories are needed now.
 
 ### Shared contract and release design
+
+The initial scaffold uses application-owned TypeBox JSON Schemas with inferred TypeScript types, strict AJV validation on the server, interpreted TypeBox validation in the browser (without weakening CSP) and explicitly projected API responses. Only profile read/confirmation, identity and profile activity are implemented in TASK-001A/B; release/run contracts remain later work.
 
 During scaffolding, define executable schemas once in an application-owned contracts module. UI, API, persistence mapping and future AI parsing consume or derive from that source. Section 6 is a conceptual inventory, not an executable schema.
 
@@ -18,7 +20,7 @@ Release checks authority, run state, definition membership, eligibility, content
 
 ### Exercise-based implementation ownership
 
-Updated 16 September 2026 under ADR-012. [PROJECT](PROJECT.md#ownership-and-exercise-scope) owns the assignment: the user implements the technical exercise end to end; the other worker handles the operational exercise. Retain one technical application in this repository. No shared runtime, repository or integration with the operational workstream is assumed. The proposed stack remains subject to ADR-006; this section does not establish installed software.
+Updated under ADR-012, ADR-014 and ADR-015. [PROJECT](PROJECT.md#ownership-and-exercise-scope) owns the assignment: the user implements the technical exercise end to end; the other worker handles the operational exercise. Both are workstreams of the TTX Platform, whose title, sign-in and shared interface branding are track-neutral. The current single-application scaffold supports the technical workstream; an explicit "Track: Technical" context label is not the product name. Operational implementation and shared integration contracts still need agreement; do not add a nonfunctional track selector or claim operational support. ADR-006/007 cover the local Docker scaffold; WORK records installed and tested behaviour.
 
 | Technical area / owner | Responsibilities | Suggested locations once needed |
 | --- | --- | --- |
@@ -30,13 +32,57 @@ These paths are a proposed minimal layout, not directories to create in advance.
 
 The user coordinates technical root package configuration, lockfile and contract changes. Integrate one behaviour at a time. Frontend mocks use the same reviewed synthetic examples and schemas as backend checks; mocks are not evidence that permissions or persistence work. Run a real browser-to-server check at every checkpoint. If cross-workstream collaboration is agreed later, define the exact shared artefacts and interface ownership first, use separate Git checkouts/branches and local test data, and do not edit the same synchronised working directory from two machines.
 
-### Proposed browser API contract
+### Screen storyboard - 20 September 2026
 
-Define field-level contracts during TASK-001A. This is the internal frontend/backend boundary for the user's technical application, not an API handoff to the operational worker. The following routes are a design sketch, not implemented endpoints. The frontend talks only to the TTX API. The server derives the actor from its session; request bodies cannot select authority.
+The [editable Excalidraw storyboard](diagrams/ttx-screen-concepts.excalidraw), [SVG](diagrams/ttx-screen-concepts.svg) and [PNG preview](diagrams/ttx-screen-concepts.png) show nine desktop screen concepts for the TTX Platform. An [editable Figma copy](https://www.figma.com/design/4oCPzxBPHnEpsp4qRz2YV3?node-id=1-2) in 2301777's team preserves the imported text/vector layers; changes there do not automatically update the local scene or exports. These are design artefacts, not screenshots, implemented navigation or approval of new requirements. The proposed shared sidebar is not present in the current application. WORK records verification, earlier integration failures and the successful upload.
+
+| Screen | Design status |
+| --- | --- |
+| 01 Workspace sign-in | Existing capability, simplified layout concept |
+| 02 Organisation intake | Planned synthetic network/BCP/DRP input and upfront SOC/MSSP context |
+| 03 Profile review | Existing evidence/confirmation capability, simplified layout concept |
+| 04 Exercise setup | Planned separate-track selection and reference/membership readiness |
+| 05 Package review | Planned five-slot review layout; no inject content generated |
+| 06 Facilitator control | Planned paused/recovered-run example with release unavailable |
+| 07 Participant response | Planned released-content-only view and initial agreed answer |
+| 08 Coached retry | Planned criterion-linked feedback and second/final answer |
+| 09 After-action review | Planned evidence-linked report layout, subject to the supplied template |
+
+The technical track is an example context within neutral product branding. Detailed operational screens and cross-workstream contracts remain unagreed. Pending RACI mappings, rubric thresholds and AAR sections are not invented. Captions distinguish illustrative state from observed activity; preparation, release and report-sharing controls are design proposals, not evidence of runtime enforcement. Mobile layouts, interactive prototypes and the full set of error/loading states remain subsequent design work.
+
+`node docs/diagrams/generate-screen-concepts.cjs` regenerates the editable scene and its screen index using only Node built-ins. SVG/PNG are separate Excalidraw exports and must be refreshed after scene changes. The generator is a documentation utility, not an application dependency or part of the container runtime. Editable native vectors keep the storyboard portable without a Figma plan upgrade; maintaining matching exports is its small additional cost.
+
+### Scaffold dependencies and runtime
+
+Exact direct versions live in package.json; package-lock.json freezes transitive resolution. Node 24.19.0 in the Debian slim image is the container baseline. Do not update the image/packages silently; rebuild and rerun verification when updating them.
+
+| Choice | Purpose and alternative | Maintenance cost |
+| --- | --- | --- |
+| React / React DOM, Vite and React plugin | Profile review UI and static build; a plain HTML UI would reduce dependencies but diverge from the planned React workflow. | Browser/build compatibility and dependency/security updates; no separate production frontend server. |
+| Fastify, static and cookie plugins | One HTTP boundary, static assets and cookie parsing; native HTTP would require more routing/validation plumbing. | Keep plugins compatible with Fastify; explicitly reject extra input fields rather than silently stripping them. |
+| TypeBox, AJV and ajv-formats | JSON Schema plus inferred types, strict boundary/stored-fixture validation; manually duplicated interfaces or a second schema library were rejected. | Pin the schema dialect and format behaviour; compile only application-owned schemas, never supplied schema/code. |
+| Node built-in SQLite | Short local transactions without native npm compilation; better-sqlite3 is the alternative if the runtime API proves unsuitable. | The SQLite API is coupled to the selected Node runtime; isolate it behind the store and test on the pinned image. Synchronous writes are appropriate only for this small single-host demonstration. |
+| Lucide React | Familiar interface icons rather than custom icon drawing. | Small UI dependency; import only used icons. |
+| TypeScript, tsx and type packages | Type checking, backend build and test execution. | TypeScript 6.0.3 is selected within typescript-eslint's supported range, rather than unsupported TypeScript 7. |
+| ESLint / typescript-eslint and Prettier | Actual lint and formatting checks. | Keep parser/compiler versions aligned; existing historical docs are not bulk reformatted. |
+| Node test runner and Playwright | Deterministic contract/API/persistence tests and real browser verification. | Browser downloads exist only in the optional browser-test image, not the runtime image. No ordinary check depends on live AI. |
+
+Docker Compose uses a named volume outside the source tree and publishes only a loopback port. No Git credentials, Docker socket or host home directory are mounted into the app. Initial generated access codes are stored with restrictive file permissions in that volume and are displayed only by an explicit local operator command, not server logs. Sessions expire and are invalidated on restart; durable profile confirmations remain. Host/container administrators still control this local prototype.
+
+Profile revisions are immutable snapshots with a content hash; confirmation names the exact revision/hash, records the server-derived actor and commits an activity event atomically. Assumptions, unknowns and conflicts remain labelled after confirmation; confirmation accepts the bounded snapshot, not the truth of missing data. Duplicate confirmation returns the existing record; stale revisions and unauthorised identities fail. No profile evidence is returned to participants.
+
+Documentation basis: [Docker Compose](https://docs.docker.com/compose/gettingstarted/), [Docker volumes](https://docs.docker.com/engine/storage/volumes/), [Fastify schemas](https://fastify.dev/docs/latest/Reference/Validation-and-Serialization/) and [Node SQLite](https://nodejs.org/api/sqlite.html). Runtime behaviour must still be checked on the pinned Node 24 image.
+
+### Browser API contract
+
+The [shared schemas](../src/contracts/profile.ts) now define the TASK-001A/B identity and profile boundary. This is the internal frontend/backend boundary, not an API handoff to the operational worker. Identity and profile routes below are implemented; release, run inbox/responses/activity and AI routes remain sketches for later checkpoints. The frontend talks only to the TTX API. The server derives the actor from its session; request bodies cannot select authority.
 
 | Checkpoint | Route sketch | Contract purpose |
 | --- | --- | --- |
-| Profile | `GET /api/me` | Current demonstration identity and permitted exercise memberships |
+| Identity | `POST /api/session`, `DELETE /api/session` | Validate generated access code or revoke the current session |
+| Profile | `GET /api/me` | Current demonstration identity; no exercise memberships are implemented yet |
+| Profile | `GET /api/profiles` | Profiles the authenticated facilitator may review |
+| Profile | `GET /api/profiles/:profileId/activity` | Authorised profile confirmation activity |
 | Profile | `GET /api/profiles/:profileId/revisions/:revisionId` | Authorised profile review projection with explicit unknowns |
 | Profile | `POST /api/profile-confirmations` | Confirm an exact profile revision; return durable confirmation |
 | Release | `POST /api/runs/:runId/approvals` | Approve exact reviewed inject revision and recipients against expected run revision |
@@ -73,7 +119,7 @@ Status: confirmed planning direction under ADR-013, not implemented behaviour. [
 
 [Editable Excalidraw diagram](diagrams/ttx-five-inject-workflow.excalidraw), [SVG](diagrams/ttx-five-inject-workflow.svg) and [PNG preview](diagrams/ttx-five-inject-workflow.png).
 
-The diagram shows five injects per selected exercise track, not five technical plus five operational in one run. The user retains technical frontend/backend ownership; the other worker retains operational ownership. A common conceptual workflow does not establish a shared implementation. Technical package generation waits for the supplied RACI, assessment rubric, risk/threat references and detailed AAR template to be reviewed. All organisation/exercise content is synthetic throughout the prototype.
+The diagram shows five injects per selected exercise track within the TTX Platform, not five technical plus five operational in one run. The user retains technical frontend/backend ownership; the other worker retains operational ownership. The common product framing does not establish implemented track selection or cross-workstream integration. Technical package generation waits for the supplied RACI, assessment rubric, risk/threat references and detailed AAR template to be reviewed. All organisation/exercise content is synthetic throughout the prototype.
 
 Planned flow:
 1. An authorised organisation owner/planner provides supported synthetic network, BCP/DRP and guided-answer inputs. Capture the SOC/MSSP operating model and role-to-participant mapping in this initial setup and generation context. Exercise participants need not have upload or profile-confirmation authority.

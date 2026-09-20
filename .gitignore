@@ -13,8 +13,11 @@ node_modules/
 dist/
 build/
 coverage/
+test-results/
+playwright-report/
 *.tsbuildinfo
 *.log
+*.backup
 
 # Live data belongs outside the synced repository.
 runtime-data/

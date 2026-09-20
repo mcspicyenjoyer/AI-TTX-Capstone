@@ -1,6 +1,6 @@
 # Repository instructions
 
-This is the SME-focused AI-assisted Technical TTX-in-a-Box capstone, a discussion exercise application.
+This is the SME-focused AI-assisted TTX Platform capstone, a discussion exercise application with separate technical and operational tracks. Use track-neutral product branding; reserve "technical" for the user's exercise workstream, its content and responsibilities. The current implementation scope is recorded in PROJECT and WORK.
 
 ## Read before work
 - Read `docs/PROJECT.md` and `docs/WORK.md` first.

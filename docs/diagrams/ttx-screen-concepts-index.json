@@ -1,0 +1,94 @@
+{
+  "screens": [
+    {
+      "index": 1,
+      "title": "Workspace sign-in",
+      "capability": "Existing capability",
+      "group": "screen-1",
+      "x": 56,
+      "y": 238,
+      "width": 1040,
+      "height": 780
+    },
+    {
+      "index": 2,
+      "title": "Organisation intake",
+      "capability": "Planned",
+      "group": "screen-2",
+      "x": 1212,
+      "y": 238,
+      "width": 1040,
+      "height": 780
+    },
+    {
+      "index": 3,
+      "title": "Profile review",
+      "capability": "Existing capability",
+      "group": "screen-3",
+      "x": 2368,
+      "y": 238,
+      "width": 1040,
+      "height": 780
+    },
+    {
+      "index": 4,
+      "title": "Exercise setup",
+      "capability": "Planned",
+      "group": "screen-4",
+      "x": 56,
+      "y": 1158,
+      "width": 1040,
+      "height": 780
+    },
+    {
+      "index": 5,
+      "title": "Package review",
+      "capability": "Planned",
+      "group": "screen-5",
+      "x": 1212,
+      "y": 1158,
+      "width": 1040,
+      "height": 780
+    },
+    {
+      "index": 6,
+      "title": "Facilitator control",
+      "capability": "Planned state example",
+      "group": "screen-6",
+      "x": 2368,
+      "y": 1158,
+      "width": 1040,
+      "height": 780
+    },
+    {
+      "index": 7,
+      "title": "Participant response",
+      "capability": "Planned",
+      "group": "screen-7",
+      "x": 56,
+      "y": 2078,
+      "width": 1040,
+      "height": 780
+    },
+    {
+      "index": 8,
+      "title": "Coached retry",
+      "capability": "Planned state example",
+      "group": "screen-8",
+      "x": 1212,
+      "y": 2078,
+      "width": 1040,
+      "height": 780
+    },
+    {
+      "index": 9,
+      "title": "After-action review",
+      "capability": "Planned",
+      "group": "screen-9",
+      "x": 2368,
+      "y": 2078,
+      "width": 1040,
+      "height": 780
+    }
+  ]
+}

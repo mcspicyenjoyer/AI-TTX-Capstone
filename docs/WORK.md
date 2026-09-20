@@ -18,16 +18,16 @@ Verification on 15 September 2026:
 No commit created; review/stage intended files explicitly because user reference material is already untracked. README, AGENTS, the five documentation files and three configuration files form the intended baseline; existing research/reference material is outside this change.
 
 ## TASK-001 — Minimal scaffold and synthetic workflow
-Status: Not started; environment decisions required before dependent implementation.
+Status: TASK-001A/B complete for the bounded local profile checkpoint on 18 September 2026. Docker-first setup resolves the initial runtime, identity and data-location decisions under ADR-006/007/014. The full one-inject workflow remains incomplete.
 Requirements: REQ-001–006, REQ-011/012.
 
 ### Outcome
 Confirm a synthetic profile, review one prepared inject, approve/release it to a participant, record an agreed response and retrieve durable activity after restart.
 
-### Resolve before implementation
-- Approved build runtime/package access and exact dependencies (ADR-006).
-- Non-synchronised data directory and local identity/access approach (ADR-005/007).
-- Minimal synthetic fixture and shared executable contracts.
+### Initial prerequisites
+- Resolved for the local Docker scaffold: pinned runtime/packages (ADR-006/014), private data volume and generated demo identities (ADR-005/007/014).
+- Hand-authored synthetic profile and executable shared profile contracts are implemented. The prepared-inject contracts and fixture remain TASK-001C work.
+- These local choices do not grant organisation hosting, provider access or real-data permission.
 
 ### Scope and acceptance
 One application and package manager with committed lockfile; only the UI, rules, contracts and storage needed for this path. Establish real checks at the beginning.
@@ -42,11 +42,11 @@ One application and package manager with committed lockfile; only the UI, rules,
 
 Not included: AI, parsing, polished dashboard, full MSEL package, external delivery, production deployment or AAR generation.
 
-Verification: not run; there is no scaffold. If necessary split scaffold from the workflow, but do not mark the workflow complete after scaffolding alone.
+Verification: see the current implementation handover below. Do not mark the whole workflow complete after profile confirmation alone; approval/release, responses and lifecycle remain unimplemented.
 
 ### Technical-exercise checkpoints
 
-Ownership follows [PROJECT](PROJECT.md#ownership-and-exercise-scope) and ADR-012; the internal UI/API boundary is in [architecture](architecture.md#exercise-based-implementation-ownership). The user owns both backend and frontend for every checkpoint below. The other worker owns the operational exercise, not these frontend tasks. All implementation checkpoints below are not started.
+Ownership follows [PROJECT](PROJECT.md#ownership-and-exercise-scope) and ADR-012; the internal UI/API boundary is in [architecture](architecture.md#exercise-based-implementation-ownership). The user owns both backend and frontend for every checkpoint below. The other worker owns the operational exercise, not these frontend tasks. TASK-001A/B are complete for the local profile scope; C/D/E are not started.
 
 | Checkpoint | Backend / user | Frontend / user | Exit evidence |
 | --- | --- | --- | --- |
@@ -56,7 +56,7 @@ Ownership follows [PROJECT](PROJECT.md#ownership-and-exercise-scope) and ADR-012
 | TASK-001D: response and activity | Authorised response storage and facilitator activity query | Agreed response form and activity display | Newly submitted response persists with author/team and accessible release reference |
 | TASK-001E: lifecycle and recovery | Pause/resume/completion rules and interrupted-run recovery | State indicators and permitted actions | Restart retains test-entered response; no duplicate releases; interrupted active run requires resume |
 
-Next coding scope: TASK-001A/B. Each checkpoint includes relevant failure tests; the full TASK-001 milestone remains incomplete until all original acceptance criteria pass. Before TASK-001E, settle whether pause also blocks participant submissions; release blocking is already required. Startup seeding must never overwrite demonstration records. Test databases are separate from demonstration data.
+Next coding scope: TASK-001C, reviewed definition/approval/release contracts and one deterministic prepared-inject fixture, not a generated technical exercise package. Each checkpoint includes relevant failure tests; the full TASK-001 milestone remains incomplete until all original acceptance criteria pass. Before TASK-001E, settle whether pause also blocks participant submissions; release blocking is already required. Startup seeding must never overwrite demonstration records. Test databases are separate from demonstration data.
 
 ## TASK-002 — One-inject AI feasibility
 
@@ -76,7 +76,7 @@ Depends on the deterministic TASK-001 workflow, a viable reviewed TASK-002 integ
 
 Outcome and acceptance follow [PROJECT's first exercise draft](PROJECT.md#first-exercise-draft) and [QUALITY's coached cases](QUALITY.md#coached-first-draft-cases): five prepared technical injects, upfront SOC/MSSP role mapping, at most two answers per inject, evidence-linked coaching and final outcomes, including unresolved findings, followed by a reviewed AAR. Persist attempts and guidance across failure/restart; AI assessment does not grant release authority. Ordinary tests use deterministic provider fixtures.
 
-Not included: mixed technical/operational runs, decision-dependent scenario branching, real organisation uploads or the longer-term 10-15-entry package. Verification: not run; no application exists. This milestone does not replace or mark TASK-001/002 complete.
+Not included: mixed technical/operational runs, decision-dependent scenario branching, real organisation uploads or the longer-term 10-15-entry package. Verification: not run for TASK-003; profile scaffolding is not a five-inject exercise. This milestone does not replace or mark TASK-001/002 complete.
 
 ## Planning handover — 15 September 2026
 
@@ -93,6 +93,8 @@ User authorised publishing current plans to the existing GitHub remote. Scope: R
 Authenticated fetch confirmed local `main` and `origin/main` were identical before publication. The explicit 11-file staged allowlist, exact-token exclusion, common credential-pattern scan, ignore checks for both token filenames and `git diff --cached --check` passed. The final task response records the resulting commit and remote verification. No application behaviour has been implemented or tested by this publication task.
 
 ## Ownership update - 16 September 2026
+
+Historical record: ADR-015 and the 19 September naming update clarify the overarching product as the TTX Platform. The exercise-based ownership below remains current; the earlier combined-platform caveat is not the current product framing.
 
 Applied the user's revised assignment: technical exercise frontend and backend belong to the user; operational exercise belongs to the other worker. Updated README, PROJECT, architecture, DECISIONS, QUALITY and the active checkpoints above. ADR-012 explicitly supersedes ADR-010; the earlier planning handover remains labelled as history.
 
@@ -129,4 +131,58 @@ Verification on 18 September 2026: the task-local `ttx-diagram-qa.cjs` Node/Play
 4. Later fuller target: broader intake and 10-15-entry packages, bounded decision branches and approved follow-ups, only after agreeing their details.
 5. Backup/restore, evaluation evidence and school-safe handover for the implemented scope.
 
-Known limitations: no executable contracts, application, identity system, persistence or evaluations. Historical architecture research was not independently revalidated in this baseline task. Existing reference documents remain untracked and are not automatically included in a future commit.
+Known limitations: TASK-001C/D/E, AI integration, parsing, five-inject assessment and AAR output remain unimplemented. Historical architecture research was not independently revalidated in the baseline task. Existing reference documents remain untracked and are not automatically included in a future commit.
+
+## Docker scaffold implementation - 18 September 2026
+
+Scope: TASK-001A/B only, following the user's request to begin work and use Docker to avoid per-laptop runtime setup. Added a pinned multi-stage build, localhost-only Compose service, private named data volume, strict shared profile schemas, a hand-authored synthetic fixture, server-validated demo sessions, revision/hash-specific profile confirmation and activity, and a responsive review UI. No RACI content, inject package, provider integration or scoring template was invented. The fixture's SOC/MSSP description is context, not an approved RACI mapping.
+
+The source build context is an allowlist excluding credentials and user source material. The runtime is non-root and read-only except its data volume. Access codes are generated in that volume and not logged; a local operator can explicitly retrieve them. Session restart requires sign-in again, while saved profile records are retained. Git migration does not transfer Docker volumes; backup/restore automation remains out of scope.
+
+Verification on 18 September 2026:
+- Local tools: Node 24.19.0 / npm 11.4.2; Docker client/server 29.7.2 and Compose 5.4.0. The initially stopped Docker Desktop Linux engine was started with `docker desktop start --timeout 120`. The pinned Linux image uses Node 24.19.0 / npm 11.17.0; its manifest digest is in Dockerfile. A host Node installation is not required by the documented Docker startup.
+- `npm.cmd install --package-lock-only --ignore-scripts --no-audit --no-fund` generated the lockfile without a host dependency install. Clean container `npm ci --no-audit --no-fund` succeeded; ordinary builds use that lock. npm warned about the unapproved esbuild postinstall script; build/test execution still succeeded using the packaged binary, without globally permitting scripts.
+- `docker compose config --quiet` passed. `docker compose up --build -d --wait` passed the complete `npm run check`: Prettier, ESLint, TypeScript, 17 deterministic tests, server compilation and Vite UI build. The service is healthy and available at localhost:3000. Initial formatting/type errors were corrected and the checks rerun; no checks were disabled.
+- `docker build --target browser-tests -t ai-ttx-browser-tests:local .` and the resulting test container passed all three Playwright tests. They covered source evidence, filtering, exact-revision confirmation, reload/activity, participant API restrictions, logout and invalid sign-in. Desktop (1440x1080) and mobile (390x844) screenshots passed overflow/row-overlap checks and visual review. Screenshots remain in ignored test-results; temporary browser data/container were removed after inspection.
+- Browser responses use interpreted TypeBox validation with the existing date-time format validator; this avoids AJV runtime compilation in the browser without adding unsafe-eval to CSP. Strict format/extra-field rejection is covered by a deterministic test. The server still uses AJV with coercion/defaulting/field stripping disabled.
+- A separately labelled test container/volume submitted a real HTTP confirmation, was restarted with `docker restart`, then retrieved the identical saved confirmation and exactly one activity entry. The prior session was rejected and unresolved facts retained. Only that temporary test container and volume were removed; the user demonstration volume was not reset.
+- Runtime inspection confirmed user=node, read-only root, all capabilities dropped, no-new-privileges, one /data named-volume mount and 127.0.0.1:3000 publication. The generated access file has mode 0600. The runtime excludes token.txt, .git, reference docs, test files, TypeScript and Playwright. `npm audit --omit=dev --audit-level=high` reported zero known vulnerabilities in production dependencies at this check; this is not a full security audit.
+- Final source/doc review: `git diff --check` passed (line-ending warnings only). PowerShell verified UTF-8, final newlines and trailing whitespace for all 39 changed/new text files, paired Markdown fences and 38 local links/anchors. The three pre-existing unavailable source links and unchanged historical HTML without a final newline were left untouched. Repository-wide common credential-pattern checks passed; token.txt and test-results remain ignored. Sharp pixel-variance checks confirmed both inspected screenshots are nonblank.
+
+Handover: use README's Docker startup and explicit local access-code command. The demonstration profile is still awaiting the user's review; automated confirmations were confined to test data. No commit, push, remote deployment or paid AI operation was performed. Remaining limitations: no upload/edit workflow, production identity/TLS, backup/restore automation, inject release, responses, run lifecycle, AI or AAR output. Container checks were performed on this Windows Docker Desktop Linux/amd64 engine, not on a second laptop or ARM host. The three existing unavailable local source-material links remain outside this implementation's scope.
+
+## Product naming and screen-design request - 19 September 2026
+
+Applied the user's correction under ADR-015: the overarching product is the AI-assisted TTX Platform, with separate technical and operational exercise workstreams. Updated the application header, sign-in, browser title, server startup message, README, repository instructions and HTML architecture illustration. PROJECT and architecture now distinguish product identity from the current technical implementation scope. Retained technical-specific ownership, content and RACI references; the profile context explicitly says "Track: Technical". No track selector, operational implementation, schema migration or new exercise functionality was added. The existing Excalidraw workflow already uses track-neutral product naming and required no change.
+
+Verification: Docker was initially stopped; the first browser-image build could not reach its engine. Started Docker Desktop with `docker desktop start --timeout 120`, then `docker build --target browser-tests -t ai-ttx-browser-tests:local .` passed formatting, lint, type checks, all 17 deterministic tests and both builds. The isolated browser-test container passed all three Playwright tests, including new assertions for neutral sign-in/header/title branding and the explicit technical-track label. Desktop and mobile screenshots passed existing overflow/overlap checks and visual review. Removed only the labelled, stopped test container; retained the demonstration data volume. `docker compose up --build -d --wait` rebuilt the app successfully; `docker compose ps` confirms healthy loopback-only service on localhost:3000. `git diff --check` passed with line-ending warnings only.
+
+Figma: the user installed the requested integration and authenticated access was verified. The account has two available teams; asked which should own the screen mockups before creating a file. No Figma file or mockup has been created at this checkpoint. Proposed mockups should clearly distinguish current screens from planned workflows and must not invent the pending RACI, rubric, AAR template or operational requirements. No commit or GitHub push was performed for this naming change; the earlier uncommitted Docker implementation is preserved.
+
+## Screen storyboard handover - 20 September 2026
+
+The user accepted the available AI TTX Project Figma team. Created [TTX Platform - Screen Concepts](https://www.figma.com/design/TD0sGwdV3tSR2FsnJveDNW) there. The integration reached its Starter-plan tool-call limit before any screen nodes could be placed; the file has no screen mockups. No plan upgrade, account workaround or paid operation was performed.
+
+Created a local [editable nine-screen storyboard](diagrams/ttx-screen-concepts.excalidraw) with matching SVG/PNG previews, a reproducible Node scene generator and a screen index. See [architecture's design notes](architecture.md#screen-storyboard---20-september-2026) for the screen inventory and design limits. Existing sign-in/profile capabilities are separated from planned intake, setup, package review, run control, participant response/retry and AAR screens. All context is synthetic; no RACI, rubric, inject content or AAR template was invented. The neutral product name and existing workstream ownership remain unchanged.
+
+Verification: the task-local Node/Playwright renderer used installed Chrome and Excalidraw 0.18.0 to restore/export all 365 editable elements, validate IDs/bindings and measure all 253 text elements; zero text-width overflow and nonblank PNG checks passed. A separate nine-panel export checked measured text bounds for overlap and PNG pixel variance; all nine passed and were visually inspected. Generator syntax, strict UTF-8/newlines/trailing whitespace, scoped local links, SVG XML and `git diff --check` were checked. The storyboard is static desktop design work, not a tested interactive or mobile implementation; application runtime tests were not rerun because no application files or dependencies changed in this turn.
+
+No commit, push, application-state change or deployment was performed. The earlier uncommitted Docker implementation and naming changes are preserved. The Figma file remains a creation checkpoint only; the usable deliverable is the local Excalidraw storyboard and its previews.
+
+## Figma upload handover - 20 September 2026
+
+At the user's request, retried using 2301777's Student-plan team after the user reconnected the integration. Account inspection confirmed the intended account and team-admin role. Created [TTX Platform - Screen Storyboard](https://www.figma.com/design/4oCPzxBPHnEpsp4qRz2YV3?node-id=1-2) in that team's drafts and uploaded the existing synthetic storyboard SVG. This is a new, populated file, not the earlier blank Starter-team file. No paid upgrade, permission change or deletion was performed.
+
+The first multipart upload was rejected because PowerShell sent application/octet-stream. A fresh single-use upload URL with an explicit image/svg+xml request succeeded and reported placement at node 1:2. Subsequent Figma metadata confirmed all nine screen headings, 264 text layers and 138 vector layers. The 3400x2914 Figma screenshot was visually inspected and preserves the complete layout. The SVG import is editable text/vector artwork, not a reusable component system, interactive prototype or implemented application behaviour.
+
+Added the working Figma link to README and architecture. Checked scoped Markdown UTF-8, final newlines and trailing whitespace, and ran git diff --check. Application code, dependencies and runtime data are unchanged, so application tests were not rerun. Existing uncommitted work is preserved; no Git commit or GitHub push was performed. Figma and the local scene/exports require deliberate reconciliation after edits; no automatic synchronisation is configured.
+
+## Git publication handover - 21 September 2026
+
+The user authorised committing and pushing the accumulated project changes before further implementation. Publication scope: the Docker-first TASK-001A/B application, shared contracts and synthetic fixture, deterministic/browser tests, safe configuration, neutral product naming, updated planning/handover documents and the nine-screen storyboard with its Figma link. The explicit scope contains 46 files. Credentials, runtime databases, browser captures and original local reference material remain excluded; token.txt is ignored and untracked.
+
+Normal Git authentication fetched origin successfully without reading token.txt. Before the new commit, HEAD and origin/main matched (left/right count 0 0). Reviewed the source, tests and scoped changes. Publication checks passed: Docker Compose configuration, diagram-generator syntax, SVG XML and 365-element scene structure, strict UTF-8/newline/whitespace checks for 45 text files, common credential-pattern scan and git diff --check. The lockfile resolves its packages only from registry.npmjs.org.
+
+Runtime re-verification limitation: Docker Desktop's Linux engine was unavailable. The desktop start/status commands remained unresponsive and were interrupted; a subsequent engine check still failed. No runtime test pass is claimed for 21 September. The last recorded application verification remains 19 September: formatting, lint, types, 17 deterministic tests, both builds and three browser tests passed. No application behaviour changed during this publication task, and no demonstration volume was reset or migrated.
+
+The commit/push result and remote equality check are recorded in the task response. Next implementation remains TASK-001C (one prepared inject's approval, release and recipient-filtered inbox), followed by response/activity and lifecycle/recovery. Subscription-backed Codex authentication and AI adapter feasibility belong to TASK-002 after that deterministic loop; participant sign-in remains separate. This handover does not start the next implementation checkpoint.

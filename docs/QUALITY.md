@@ -1,12 +1,14 @@
 # Quality and verification
 
-Status: acceptance plan, not test results. No application tests or AI evaluations exist yet.
+Status: acceptance plan; WORK records executed results. Deterministic contract/API/persistence tests and Playwright profile checks now accompany TASK-001A/B. No AI evaluations exist yet.
 
 ## Definition of done
 The bounded behaviour meets acceptance criteria, relevant failures are tested, required checks pass, the diff is reviewed and affected documents reflect reality. Outstanding required failures mean incomplete work. A successful build does not replace a browser workflow check.
 
 ## Scaffold checks
 The scaffold must establish one executable entry point, provisionally `npm run check`, covering formatting verification, linting, types, deterministic tests and build with failure propagation. Record the chosen runtime, package manifest and lockfile together. Verify a locked clean installation in an isolated copy before documenting it as working. Add CI using the same command when runner/package access are established.
+
+Branding checks under ADR-015 verify "TTX Platform" in the browser title and shared header for sign-in, facilitator and participant views. Sign-in remains track-neutral; the current facilitator profile labels its context "Track: Technical". Naming does not claim that operational screens or track selection are implemented. Check desktop and mobile layout after label changes.
 
 ## First-slice test cases
 | Case | Requirements | Evidence |
