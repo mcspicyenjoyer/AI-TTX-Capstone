@@ -1,6 +1,6 @@
 # Project baseline
 
-Status: working implementation-planning scope, updated 19 September 2026 to distinguish the TTX Platform from its technical and operational workstreams. The confirmed five-inject first draft and two-attempt coaching rules remain unchanged. Based on the supplied Form B and existing architecture, with the user's task allocation and clarifications below. Formal supervisor approval and organisation technology permissions are not inferred.
+Status: working implementation-planning scope, updated 22 September 2026 with the ENISA-adapted exercise flow under ADR-016. The user will draft the detailed readiness specification later; no checklist criteria, thresholds or question budget are approved by this update. The five-inject first draft, two-attempt coaching rules and technical/operational ownership remain unchanged. Formal supervisor approval and organisation technology permissions are not inferred.
 
 ## Problem and users
 Resource-constrained SMEs need help converting systems and continuity context into bounded tabletop exercises. The AI-assisted TTX Platform encompasses separate technical and operational exercise tracks and assists preparation, facilitated play and review. Use "TTX Platform" for the product; "technical" identifies an exercise track, not the whole platform. Users are a planner/profile reviewer, facilitator, participant teams and an exercise reviewer. A person may hold multiple functions, but participant access remains distinct from facilitator authority.
@@ -19,7 +19,7 @@ This repository's current implementation requirements and acceptance criteria co
 Both workstreams belong to the overarching TTX Platform. Detailed operational-exercise requirements, deliverables and implementation arrangements are not defined here; shared scenarios, code, data models and integration contracts still need agreement before dependent work. Neutral branding does not imply that the operational track, track selection or cross-track integration is already implemented, nor does it permit mixed-track runs in the first draft. See [architecture](architecture.md#exercise-based-implementation-ownership) for implementation boundaries and [WORK](WORK.md#technical-exercise-checkpoints) for execution status.
 
 ## Target MVP and first slice
-Longer-term target: one representative SME and incident scenario, a validated organisation profile, 10–15 MSEL entries, 3–4 functional roles and three bounded decision points with approved follow-ups. Inputs eventually include one agreed diagram format, optional text-based continuity documents and guided answers. Outputs include a human-reviewed draft after-action report and improvement actions. This fuller target is retained, not a requirement to generate 10-15 entries for the first exercise draft.
+Longer-term target: one representative SME and incident scenario, a validated organisation profile, 10–15 MSEL entries, 3–4 functional roles and three bounded decision points with approved follow-ups. Supported documents, guided answers and reused profile revisions feed the same organisation context. Network context, incident response plans/playbooks, asset inventories and continuity/recovery material are relevant according to the selected objectives; supported formats and bounds remain to be agreed. Outputs include a human-reviewed draft after-action report and improvement actions. This fuller target is retained, not a requirement to generate 10-15 entries for the first exercise draft.
 
 First slice: manually prepared synthetic profile → confirm revision → review one prepared inject → approve and release → participant views and responds → retrieve durable activity after restart. This requires no AI, document parsing or external delivery. Finishing it does not complete the target MVP.
 
@@ -31,9 +31,25 @@ Confirmed under ADR-013 in [DECISIONS](DECISIONS.md): after the engineering firs
 - Establish the synthetic SOC/MSSP operating model at the start, including which functions are internal or outsourced, and bind RACI responsibilities to the responding users/teams before preparing role-specific injects.
 - Allow at most two agreed answer submissions per inject: an initial answer and one coached retry. A sufficient first answer resolves the inject without requiring a second. An insufficient second answer is recorded as an unresolved gap/finding, with no third answer or forced pass.
 - Completion means all five injects have a recorded final outcome, which may include unresolved findings. Such findings do not prevent proceeding through the remaining prepared injects under the existing facilitator approval controls; unanswered injects are not automatically complete.
-- Preserve both answers, guidance, criterion-level assessments and final outcomes for the reviewed AAR. Distinguish unaided success, coached success and unresolved gaps, using the detailed AAR template when supplied.
+- Preserve both answers, guidance, criterion-level assessments and final outcomes for the reviewed AAR. Distinguish first-attempt success on each inject, coached success and unresolved gaps, using the detailed AAR template when supplied. Earlier coaching may influence later first attempts; these results do not establish wholly unaided organisational readiness.
 
 The technical RACI, assessment rubric/thresholds and detailed AAR template remain pending user inputs. Do not invent their contents or generate the technical exercise package before they are reviewed. These content dependencies do not replace the scaffold's environment decisions or the synthetic deterministic first slice. See [WORK](WORK.md#task-003---five-inject-coached-first-draft) for the later draft milestone.
+
+### Exercise preparation and review flow
+
+Accepted for planning under ADR-016; not implemented. Adapt ENISA's initiation, design, preparation, execution, evaluation and moving-forward structure to the bounded synthetic TTX. Both product tracks are discussion-based; ENISA's operation-based exercise category does not define this platform's operational track.
+
+1. Establish exercise purpose, one track, intended audience and initial scope before detailed exercise-specific intake. Refine objectives after reviewing the available context.
+2. Reuse a reviewed organisation profile, provide supported synthetic documents, answer guided questions, or combine these. Maintain shared organisation facts with exercise-specific objectives and assumptions; a track change must not overwrite organisation facts.
+3. Review source-linked candidate information and targeted questions. Missing uploads do not by themselves mean that a plan or capability is absent. Preserve not supplied, unknown and confirmed absent as distinct meanings.
+4. Confirm the profile revision and the exercise plan separately. Application-owned, versioned checks and recorded human decisions determine readiness for the selected objectives; profile confirmation and AI confidence alone do not establish readiness.
+5. Prepare and review a coherent five-inject package linked to objectives, approved evaluation criteria, roles and evidence. Brief participants and check run readiness before the first release.
+6. Conduct the five-inject coached exercise under the existing approval and response rules. Record final outcomes, then gather participant/facilitator debrief feedback.
+7. Draft the AAR from the recorded evidence, review it with a human, and assign improvement actions with owners, due dates and later closure evidence. Separate response/plan/capability findings from exercise-design limitations.
+
+The document-free route uses attributed guided answers. Unresolved essentials lead to an explicit choice: revise scope/objectives, approve clearly labelled exercise assumptions or a fictional training context where appropriate, or save and stop pending essential information. Questioning must have a stopping rule; reaching a question limit cannot automatically establish readiness. The user's forthcoming specification will define exact criteria, question selection and stopping rules. It will also distinguish context, package and run readiness. Do not invent those rules or implement a readiness engine before review.
+
+Profile planning includes selected business services, supporting assets/data, dependencies, ownership and business impact. AI may propose crown-jewel candidates; the reviewer confirms their criticality. A complete enterprise inventory or a particular document title is not a universal entry prerequisite. Detailed field contracts remain future implementation work.
 
 ## Requirements
 | ID | Outcome | Stage |
@@ -47,12 +63,14 @@ The technical RACI, assessment rubric/thresholds and detailed AAR template remai
 | REQ-007 | AI proposes within approved scope, can abstain/fail and never bypasses human control; manual play remains possible. | AI integration |
 | REQ-008 | Supported intake preserves source locators and surfaces missing/conflicting information for review. | Intake |
 | REQ-009 | Validate package counts, roles, bounded decisions, artefact consistency and approved alternatives. | Package generation |
-| REQ-010 | Findings distinguish observation from interpretation, cite activity evidence and separate unaided, coached and unresolved outcomes; use the reviewed AAR template and review actions. | Review output |
+| REQ-010 | Findings distinguish observation from interpretation, cite activity and debrief evidence, and separate first-attempt, coached and unresolved outcomes; use the reviewed AAR template and assign improvement ownership. | Review output |
 | REQ-011 | Use synthetic exercise data throughout the prototype, server-held credentials and approved external processing. | All stages |
 | REQ-012 | Maintain reproducible verification, controlled evaluation and school-safe handover evidence. | All stages |
 | REQ-013 | Confirm the SOC/MSSP operating model and bind RACI task responsibilities to responding users/teams before preparing role-specific injects. | First exercise draft |
 | REQ-014 | Limit each inject to two answer submissions; provide one coached retry after an insufficient first answer, then record an unresolved finding if the second remains insufficient. | First exercise draft |
 | REQ-015 | Deliver five prepared injects in one track with adaptive coaching; complete with a recorded outcome for each, including unresolved findings, without requiring scenario branching. | First exercise draft |
+| REQ-016 | Establish purpose, track and initial scope before detailed exercise-specific intake; support source-linked documents, guided answers and reused profile revisions. | Intake/design |
+| REQ-017 | Separate profile confirmation from objective-dependent context, package and run readiness; record the applicable revisions and human decisions. Detailed rules await the user's readiness specification. | Intake/package/run preparation |
 
 QUALITY owns verification criteria; WORK owns task acceptance and actual results. Executable contracts, once implemented, own field-level schemas.
 
@@ -68,7 +86,7 @@ No cyber range, exploit/malware execution, production-system changes, autonomous
 | Delivery | Localhost-only Docker publication and distinct server-validated demo identities (ADR-007/014). | Approved LAN/TLS route and stronger identity before multi-device or production use. |
 | Storage | Durable profile confirmation starts the persistence work; run/release/response persistence is still required later. Docker named volume at /data resolves the local data location (ADR-014). | Separate protected backup/restore for moving saved progress between laptops; Git does not transfer volumes. |
 | AI | User intends to use their existing OpenAI subscription; planning a local synthetic Codex integration experiment. The supplied brief prefers approved internal services. | Verify subscription-backed integration, available model, limits and isolation. Personal subscription use does not establish organisation data or deployment permission. No live integration exists; first slice remains independent of AI. |
-| Intake | Synthetic network/context and optional text-bearing continuity inputs throughout the prototype; SOC/MSSP setup precedes role-specific drafting. | draw.io XML and PDF/DOCX are proposals; confirm subset, bounds and parsers. |
+| Intake | Purpose and track precede detailed questions. Shared synthetic context may come from documents, guided answers or reviewed profile revisions; SOC/MSSP setup precedes role-specific drafting. | User-drafted readiness specification; source/asset field contracts; supported format subset, bounds and parsers. draw.io XML and PDF/DOCX remain proposals. |
 | Content/evaluation | Five injects for the first draft; two answers per inject; adaptive coaching; unresolved findings are valid final outcomes. The fuller target remains separate. | User-supplied technical RACI, reviewed rubric/thresholds, risk/threat references and detailed AAR template. Alternative-payload counting applies only to later branching work. |
 
 Open questions block their dependent stages, not baseline documentation.

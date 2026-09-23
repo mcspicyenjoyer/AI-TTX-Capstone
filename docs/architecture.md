@@ -34,6 +34,8 @@ The user coordinates technical root package configuration, lockfile and contract
 
 ### Screen storyboard - 20 September 2026
 
+Historical screen concepts: ADR-016 supersedes this storyboard's intake-before-track preparation order. For the current journey use the [revised workflow](diagrams/ttx-five-inject-workflow.svg): establish exercise intention before detailed intake, then review/refine the plan and readiness before package preparation. The nine screens and their existing Figma copy are retained for layout reference, not as the current navigation specification. Their redesign will use the user's forthcoming readiness specification; no Figma update is implied by a local planning change.
+
 The [editable Excalidraw storyboard](diagrams/ttx-screen-concepts.excalidraw), [SVG](diagrams/ttx-screen-concepts.svg) and [PNG preview](diagrams/ttx-screen-concepts.png) show nine desktop screen concepts for the TTX Platform. An [editable Figma copy](https://www.figma.com/design/4oCPzxBPHnEpsp4qRz2YV3?node-id=1-2) in 2301777's team preserves the imported text/vector layers; changes there do not automatically update the local scene or exports. These are design artefacts, not screenshots, implemented navigation or approval of new requirements. The proposed shared sidebar is not present in the current application. WORK records verification, earlier integration failures and the successful upload.
 
 | Screen | Design status |
@@ -115,26 +117,28 @@ Application design to prove in the experiment:
 
 ### Five-inject coached workflow - 18 September 2026
 
-Status: confirmed planning direction under ADR-013, not implemented behaviour. [PROJECT](PROJECT.md#first-exercise-draft) owns the five-inject first-draft rules. The one-inject engineering slice, five-inject exercise draft and longer-term 10-15-entry target are distinct milestones. TASK-001's deterministic first slice and exact-revision release approval remain intact.
+Status: confirmed planning direction under ADR-013, with flow ordering and review stages updated on 22 September 2026 under ADR-016; not implemented behaviour. [PROJECT](PROJECT.md#first-exercise-draft) owns the five-inject first-draft rules. The one-inject engineering slice, five-inject exercise draft and longer-term 10-15-entry target are distinct milestones. TASK-001's deterministic first slice and exact-revision release approval remain intact.
 
 [Editable Excalidraw diagram](diagrams/ttx-five-inject-workflow.excalidraw), [SVG](diagrams/ttx-five-inject-workflow.svg) and [PNG preview](diagrams/ttx-five-inject-workflow.png).
 
 The diagram shows five injects per selected exercise track within the TTX Platform, not five technical plus five operational in one run. The user retains technical frontend/backend ownership; the other worker retains operational ownership. The common product framing does not establish implemented track selection or cross-workstream integration. Technical package generation waits for the supplied RACI, assessment rubric, risk/threat references and detailed AAR template to be reviewed. All organisation/exercise content is synthetic throughout the prototype.
 
 Planned flow:
-1. An authorised organisation owner/planner provides supported synthetic network, BCP/DRP and guided-answer inputs. Capture the SOC/MSSP operating model and role-to-participant mapping in this initial setup and generation context. Exercise participants need not have upload or profile-confirmation authority.
-2. AI proposes a source-linked profile; a human confirms facts and keeps assumptions, conflicts and unknowns distinct.
-3. Choose either the technical or operational track. Bind objectives, roles, reference versions and grading criteria before AI drafts five prepared injects. Review and freeze the package; scenario branching is deferred from this first draft.
-4. A facilitator approves each exact inject and its recipients. The application checks authority and run state at release, independently of AI assessment.
-5. Route each task using the confirmed SOC/MSSP mapping and approved RACI. Responsible roles submit; accountable/consulted/informed roles retain their distinct functions. RACI accountability does not automatically confer facilitator privileges.
-6. AI proposes criterion-level findings with response evidence. Application-owned validation and reviewed thresholds determine eligibility, with human review of ambiguous or disputed assessments. A sufficient first answer closes the inject. An insufficient first answer receives targeted guidance before one final answer. If that second answer remains insufficient, close the response path with an unresolved finding and reject a third answer; do not offer another coached retry. Record unaided and coached results separately. Continue to the next prepared inject through normal facilitator approval/release checks, not an AI-controlled release.
-7. Resolve all five slots, then draft the AAR from the activity record and approved template. A human verifies findings and improvement actions before sharing the appropriate participant report. Early termination can yield a clearly labelled partial report; unresolved gaps must not be reported as passes.
+1. An authorised planner establishes purpose, one track, intended audience and initial scope. Both technical and operational product tracks remain discussion-based TTXs. Detailed operational requirements and integration still need agreement.
+2. Reuse a reviewed organisation profile, provide supported synthetic documents, answer guided questions, or combine these. Source categories should cover network context, IRP/playbooks, inventory and relevant continuity/recovery material when their contracts are implemented. No particular file title is a universal prerequisite. Exercise participants need not have upload or profile-confirmation authority.
+3. AI proposes source-linked information and targeted questions against the selected objectives. A human reviews facts, assumptions, conflicts and unknowns. Include relevant business services, assets/data, dependencies, impact and the SOC/MSSP operating model. Reuse shared facts; keep exercise assumptions separate. Asset criticality requires reviewer confirmation.
+4. Refine objectives and scope from the available context. Confirm the exact profile revision and exercise plan separately, including role-to-user/team mapping, relevant references and evaluation approach. Context readiness is an application-owned check with recorded human decisions, not an inference from profile confirmation. Its detailed criteria and question/stopping rules await the user's specification. Unresolved essentials lead to more available evidence, revised scope, reviewed exercise assumptions/fictional context where appropriate, or a saved draft awaiting information.
+5. Bind reviewed objectives, roles, reference versions and evaluation criteria before AI drafts one coherent scenario and five prepared injects. Review objective coverage, evidence, expected decisions and acceptable alternatives; freeze the package. Scenario branching remains deferred. Package readiness is distinct from context readiness.
+6. Brief participants with the approved context, roles and ground rules. Check run readiness, including assigned participants and the applicable package. A facilitator then approves each exact inject and its recipients. The application rechecks authority and run state at release, independently of AI assessment.
+7. Route each task using the confirmed SOC/MSSP mapping and approved RACI. Bind responsible roles to actual responding users/teams; accountable/consulted/informed roles retain their distinct functions. RACI accountability does not automatically confer facilitator privileges. Capture the agreed response and distinguish information requests from assessed answer submissions according to the later reviewed interaction contract.
+8. AI proposes criterion-level findings with response evidence. Application-owned validation and reviewed thresholds determine eligibility, with human review of ambiguous or disputed assessments. A sufficient first answer closes the inject. An insufficient first answer receives targeted guidance before one final answer. If that second answer remains insufficient, record an unresolved finding and reject a third answer. Record first-attempt success on this inject, coached success and unresolved findings separately. Continue to the next prepared inject through normal facilitator approval/release checks. Fixed progression must not imply a failed action succeeded; any required controller assumption is explicit and preserves the original outcome.
+9. Resolve all five slots, then gather attributed debrief feedback from participants and the facilitator. Draft the AAR from the activity/debrief record and approved template. A human verifies findings and improvement actions before sharing the appropriate participant report. Assign action owners and due dates; record later closure evidence rather than declaring proposed improvements complete. Early termination can yield a clearly labelled partial report; unresolved gaps must not be reported as passes.
 
 Design boundaries: a risk matrix prioritises scenario risks; an assessment rubric evaluates responses. Neither is an executable user-supplied schema. Grade substantive decisions and justified alternatives, not answer length. The first draft adapts feedback, not later scenario consequences. Decision-dependent branches belong to later work and need bounded, reviewed alternatives. Freeze the rubric during a run and keep hidden criteria, future injects and facilitator evidence out of participant payloads.
 
-The backend counts accepted answer submissions for the authorised responding user/team, not HTTP retries or model calls. Persist each answer and its attempt number before evaluation. A duplicate request returns its recorded result; a provider failure leaves that answer pending evaluation instead of inventing a failed assessment or consuming a further answer. Human review reassesses the same evidence and records its rationale without resetting the two-answer limit. A terminal outcome is either sufficient (unaided/coached) or an unresolved finding; every one of the five injects needs such an outcome before normal completion. The AAR retains these outcomes and their evidence rather than collapsing completion into a pass score.
+The backend counts accepted answer submissions for the authorised responding user/team, not HTTP retries or model calls. Persist each answer and its attempt number before evaluation. A duplicate request returns its recorded result; a provider failure leaves that answer pending evaluation instead of inventing a failed assessment or consuming a further answer. Human review reassesses the same evidence and records its rationale without resetting the two-answer limit. A terminal outcome is either sufficient (first-attempt/coached) or an unresolved finding; every one of the five injects needs such an outcome before normal completion. Earlier coaching can influence later first attempts. The AAR retains these outcomes and their evidence rather than collapsing completion into a pass score or claiming wholly unaided readiness.
 
-For point 7, treat subscription-backed Codex as an adapter feasibility path, not an unlimited or already-working runtime. Managed ChatGPT authentication is documented separately from API-key usage; limits and data-handling arrangements still apply. Local file access depends on the host's tools and permissions, and file parsing remains a separate capability to validate. See [authentication](https://learn.chatgpt.com/docs/auth), [usage limits](https://learn.chatgpt.com/docs/pricing) and [app-server](https://learn.chatgpt.com/docs/app-server).
+For AI-assisted stages, treat subscription-backed Codex as an adapter feasibility path, not an unlimited or already-working runtime. Managed ChatGPT authentication is documented separately from API-key usage; limits and data-handling arrangements still apply. Local file access depends on the host's tools and permissions, and file parsing remains a separate capability to validate. See [authentication](https://learn.chatgpt.com/docs/auth), [usage limits](https://learn.chatgpt.com/docs/pricing) and [app-server](https://learn.chatgpt.com/docs/app-server).
 
 Recommended continuity design: the backend owns versioned profiles/reference packs, run state, all attempts/hints, assessments and human decisions. Build a bounded context packet for every AI request from those records. An optional per-run `memory.md` is only a derived summary with record/version references, rebuilt or checked against authoritative data before use. Do not rely on an agent remembering to update it, global cross-chat memories or context compaction for transactional correctness. This creates no competing repository MEMORY document; live exercise data remains outside the synchronised source tree. Give the runtime selected read-only material, not unrestricted folder, credential or database access. [OpenAI's memory guidance](https://learn.chatgpt.com/docs/customization/memories) likewise distinguishes recall from required guidance.
 
@@ -142,7 +146,48 @@ Positioning: support exercise practice and review evidence relevant to Cyber Tru
 
 ---
 
-Status: proposed design for review, 9 September 2026. No platform implementation has started.
+### ENISA adaptation and implementation boundaries - 22 September 2026
+
+Planning decision: ADR-016. Requirements: [PROJECT](PROJECT.md#exercise-preparation-and-review-flow). The user's detailed readiness specification remains pending. This section records structure and responsibility, not checklist criteria or an AI grading rubric.
+
+Reference: ENISA, *The ENISA Cybersecurity Exercise Methodology*, version 1.0, February 2026 ([official publication](https://www.enisa.europa.eu/publications/the-enisa-cybersecurity-exercise-methodology)). The supplied local copy is in the ignored references folder. Page numbers below are printed pages, one less than the PDF page index counted from one. This adaptation uses the lifecycle and objective/evidence relationships; it does not import EU duties, national-exercise staffing or planning-duration estimates as SME prerequisites.
+
+| ENISA basis | Platform adaptation |
+| --- | --- |
+| Initiation, sections 1.1-1.5, pp. 9-18 | Purpose, exercise focus, context and feasibility before detailed preparation |
+| Design, sections 2.1-2.3, pp. 20-23 | Objectives, scope, dependencies, audience and roles refined from available context |
+| Preparation, sections 3.1-3.3, pp. 27-35; Figure 8, p. 31 | One scenario and ordered injects with recipients, expected decisions, evaluation criteria, evidence and a player briefing |
+| Execution, sections 4.1-4.3, pp. 39-43 | Readiness checks, controlled release, recorded responses/interventions and debrief feedback |
+| Evaluation, section 5.2, pp. 48-49 | Human-reviewed, evidence-linked AAR with limitations |
+| Moving forward, section 6.2, pp. 53-55 | Prioritised actions with owners, due dates, status and later verification |
+
+ENISA distinguishes discussion-based and operation-based formats (section 1.2). Our technical and operational tracks both use the discussion format. The two-attempt coaching model is a declared learning-focused adaptation: keep initial and coached outcomes separate, account for prior hints, and do not equate discussed decisions with executed technical actions. Neutral observation in ENISA section 4.1.3 is a reason to disclose coaching, not to erase the accepted coaching scope.
+
+Maintain three distinct kinds of records when their implementation is authorised:
+
+- Organisation profile: versioned, reusable source-linked information, including uncertainty, selected services/assets, dependencies, ownership and impact. Sources are evidence, not executable instructions. Guided answers are attributed sources; absent files do not prove absent plans.
+- Exercise plan: purpose, selected track, objectives, scope, participants/role mapping, reference versions, evaluation approach and exercise-only assumptions. Revising a plan does not overwrite the organisation profile.
+- Readiness decisions: context, package and run decisions tied to their applicable profile/plan/package and checklist revisions, reasons, unresolved items and reviewer. Changing dependent revisions requires re-evaluation. Confirmation alone does not unlock drafting or play.
+
+The backend owns authoritative state and application checks. AI proposes extracted information, targeted questions, drafts and evidence-linked assessments. It cannot invent missing facts, approve its own readiness result or change review rules. A persistent reviewed profile supplies task-specific AI context; conversational recall is not the authoritative organisation memory. An uncertainty may intentionally be exercised only when the approved objective and evaluation criteria support that choice.
+
+Implementation map (all additions below remain planned):
+
+| Existing area | Later change |
+| --- | --- |
+| `src/contracts/profile.ts` | Extend source categories and reviewed profile fields for relevant plans/playbooks and service/asset/dependency information; preserve existing provenance and synthetic-only constraints. The current `setup` source already permits guided-answer provenance conceptually. |
+| `src/server/profile-service.ts` | Keep revision-specific confirmation. Add separate objective-dependent readiness operations only after reviewing the user's specification. |
+| `src/server/storage.ts` | Persist exercise plans and readiness decisions as version-bound records; preserve confirmations and existing demonstration data through deliberate migrations. |
+| `src/ui/main.tsx` | Add exercise intention ahead of detailed intake and separate confirmation/readiness displays in future checkpoints. Operational availability depends on agreed cross-workstream integration; do not add a working-looking unsupported route. |
+| Planned package/run/review features | Bind objective, inject, criterion and evidence IDs; preserve exact release approvals, two-attempt history, debrief attribution and action ownership. |
+
+The first next engineering checkpoint remains TASK-001C with a manually reviewed deterministic fixture. Full AI profiling, document ingestion and the readiness engine are separate dependent work. No broad schema expansion or runtime behaviour is implemented by this planning update.
+
+Diagram maintenance: `node docs/diagrams/generate-five-inject-workflow.cjs` regenerates the current editable Excalidraw scene and SVG from one layout definition. Its PNG is a rendered preview of that SVG. The attached Downloads SVG is a convenience copy; the repository workflow is the canonical diagram. The older screen storyboard/Figma copy and HTML component illustration are historical views and are labelled accordingly.
+
+---
+
+Status: historical proposed design for review, 9 September 2026. At that date no platform implementation had started; current implementation status is recorded above and in WORK.
 
 The historical sections below describe the fuller target. Where they discuss scenario branching or 10-15 entries, do not treat that as first-draft scope; the current PROJECT and five-inject workflow above take precedence.
 

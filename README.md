@@ -9,9 +9,13 @@ Product framing clarified on 19 September 2026: TTX Platform is the shared produ
 
 The [first exercise draft](docs/PROJECT.md#first-exercise-draft), clarified on 18 September, uses five injects, two answers per inject and adaptive coaching. An insufficient second answer becomes an unresolved finding. SOC/MSSP responsibilities are established during setup; the RACI, rubric and detailed AAR template are pending. This follows the one-inject engineering slice and is distinct from the longer-term 10-15-entry target. See the [editable workflow diagram](docs/diagrams/ttx-five-inject-workflow.excalidraw) or [PNG preview](docs/diagrams/ttx-five-inject-workflow.png).
 
-The [nine-screen storyboard](docs/diagrams/ttx-screen-concepts.svg) illustrates sign-in through after-action review, with existing capabilities and planned screens labelled separately. It is a design concept, not implemented navigation or a working exercise. See the [editable Excalidraw file](docs/diagrams/ttx-screen-concepts.excalidraw), [PNG preview](docs/diagrams/ttx-screen-concepts.png) and [design notes](docs/architecture.md#screen-storyboard---20-september-2026).
+The [current workflow SVG](docs/diagrams/ttx-five-inject-workflow.svg), updated 22 September under ADR-016, starts with purpose and track before detailed intake. Documents, guided answers and reused profiles lead to separate profile/plan review and readiness decisions, then package review, briefing, five-inject play, debrief and reviewed improvement actions. This is a design update; the user will supply the detailed readiness specification later. See the [adaptation and implementation map](docs/architecture.md#enisa-adaptation-and-implementation-boundaries---22-september-2026).
+
+The [nine-screen storyboard](docs/diagrams/ttx-screen-concepts.svg) illustrates sign-in through after-action review, with existing capabilities and planned screens labelled separately. Its 20 September intake-before-track ordering is superseded by the current workflow; retain it for layout reference pending the readiness specification. It is not implemented navigation or a working exercise. See the [editable Excalidraw file](docs/diagrams/ttx-screen-concepts.excalidraw), [PNG preview](docs/diagrams/ttx-screen-concepts.png) and [design notes](docs/architecture.md#screen-storyboard---20-september-2026).
 
 An [editable Figma copy](https://www.figma.com/design/4oCPzxBPHnEpsp4qRz2YV3?node-id=1-2) is available in 2301777's team. It is an imported storyboard with text/vector layers, not an interactive prototype or an automatically synchronised copy of the repository.
+
+The Figma copy and HTML component illustration retain the older design. Follow PROJECT and the current workflow for preparation order and first-draft scope. Figma is not automatically updated when repository plans are published.
 
 ## Start here
 | Document | Authoritative purpose |
@@ -69,6 +73,6 @@ Git carries the Dockerfile, Compose configuration, source and npm lockfile. On a
 ## Source material and data
 The working product brief is the local `GPT_ICT4011_Form_B_AI_Assisted_TTX.docx`. Existing research documents and the architecture illustration remain in place. Their presence is not approval to redistribute, commit or transmit them to a provider.
 
-The planning publication includes the architecture illustration and repository planning/configuration files. Original briefs, supervisor slides, PDFs and research/reference packs remain local; links to those materials require a local copy and will not resolve in a plans-only checkout.
+The planning publication includes the architecture illustration and repository planning/configuration files. Original briefs, supervisor slides, PDFs and research/reference packs remain local; links to those materials require a local copy and will not resolve in a plans-only checkout. The user-supplied `references/` folder is ignored by Git and remains available for local review.
 
 Use synthetic organisational context and exercise content throughout the prototype, including demonstrations and evaluations. Keep credentials, uploads, session databases and sensitive exports outside Git and this OneDrive-synchronised source directory. Ignore rules are not access controls.

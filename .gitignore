@@ -8,6 +8,9 @@ github_token.txt
 github_tokens.txt
 token.txt
 
+# Local reference library supplied for review; do not publish with project plans.
+/references/
+
 # Generated output when the application exists.
 node_modules/
 dist/

@@ -32,14 +32,28 @@ Acceptance plan for [TASK-003](WORK.md#task-003---five-inject-coached-first-draf
 | --- | --- | --- |
 | Upfront SOC/MSSP mapping | REQ-013 | Setup distinguishes internal/outsourced functions and named responding users/teams. Missing mappings block role-specific preparation; an unrelated participant cannot answer for the assigned role. |
 | Five-inject single-track package | REQ-009/015 | Exactly five prepared injects in the selected track; no technical/operational mixture or decision-dependent scenario branching in the first draft. |
-| First answer sufficient | REQ-014 | Resolve after one answer; do not demand or permit another answer to the closed inject. Record unaided success. |
-| First insufficient, second sufficient | REQ-010/014 | Deliver targeted feedback once, retain both answers and the guidance, and record coached rather than unaided success. |
+| First answer sufficient | REQ-014 | Resolve after one answer; do not demand or permit another answer to the closed inject. Record first-attempt success on that inject, without implying no influence from earlier coaching. |
+| First insufficient, second sufficient | REQ-010/014 | Deliver targeted feedback once, retain both answers and the guidance, and record coached success separately from a sufficient first attempt. |
 | Second answer insufficient | REQ-010/014/015 | Record an unresolved finding, reject a third submission and permit the next prepared inject only through normal approval/release checks. |
 | Retries, failure and restart | REQ-004/006/014 | Duplicate submission retries do not consume another answer; provider reassessment does not create an answer. A failed evaluation preserves the submitted answer as pending, not failed. Restart retains the attempt count and cannot reopen the budget. |
 | Ambiguous or disputed grading | REQ-007/014 | Human review uses the recorded answer and rubric, logs the decision and cannot grant a third answer or silently mark an insufficient answer sufficient. |
 | Completion with gaps | REQ-015 | All five injects have final outcomes; unresolved findings are allowed, unanswered injects are not silently treated as complete. |
-| Evidence-linked AAR | REQ-010/014 | The reviewed template preserves initial/retry answers, feedback, rubric version and outcomes; reports unaided/coached successes and unresolved findings without inventing performed actions or successful recovery. |
+| Evidence-linked AAR | REQ-010/014 | The reviewed template preserves initial/retry answers, feedback, rubric version and outcomes; reports first-attempt/coached successes and unresolved findings without inventing performed actions or successful recovery. Debrief observations remain attributed; action completion requires evidence. |
 | Synthetic-only content | REQ-011 | Development, demonstration and evaluation packs use synthetic organisation/exercise content; source references and fixture provenance are recorded. |
+
+## ENISA-adapted flow verification plan
+
+Structural acceptance under ADR-016 and REQ-016/017; not an implemented checklist or the user's pending readiness specification. Define exact expected readiness outcomes only after that specification is reviewed.
+
+- Exercise purpose, track and initial scope are recorded before detailed targeted questions; changing objectives triggers review of affected readiness and package decisions.
+- Documents and guided answers retain source attribution. No-document, partial/conflicting-document and complete-document synthetic cases all have a defined route; absent uploads do not become fabricated facts or proof of absent plans.
+- Profile confirmation cannot substitute for context, package or run readiness. Decisions refer to the reviewed profile, exercise plan and applicable criteria versions; stale decisions cannot silently unlock downstream stages.
+- The unresolved-gap route stops or revises the plan explicitly. Exhausted questioning never causes an automatic ready result.
+- Business impact and reviewer confirmation support critical-asset selection; inventory presence alone does not establish crown jewels.
+- Package review verifies objective-to-inject-to-criterion-to-evidence links, recipient/responder assignments and a coherent five-inject sequence. Participant briefing gives the necessary context without disclosing private grading material or future injects.
+- Debrief feedback and exercise-design limitations are distinguished from participant-response findings. AAR actions identify an owner, due date and status; proposed actions are not reported as completed.
+
+These cases guide future work; they do not replace the deterministic first-slice tests or permit invented rubric thresholds.
 
 ## Later evaluation
 For the [technical-exercise checkpoints](WORK.md#technical-exercise-checkpoints), the user owns frontend, backend and integration verification. Validate frontend mock examples against the shared contracts and verify each completed screen against the real backend. Include a non-recipient participant fixture. Restart tests must retrieve records submitted during the test; seed data is insufficient evidence of durability. Seed routines must preserve existing demonstration data. These checks establish technical-workstream evidence only, not completion or validation of the other worker's operational exercise.
