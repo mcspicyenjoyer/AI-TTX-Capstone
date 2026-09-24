@@ -73,7 +73,7 @@ function edge(id, points, label, lx = 0, ly = 0, lw = 200) {
 }
 
 text('title', 50, 30, 'AI-assisted TTX / Exercise flow', 1480, 38);
-text('subtitle', 50, 86, 'ENISA-adapted planning direction | 22 September 2026 | Synthetic prototype', 1480, 21, palette.muted);
+text('subtitle', 50, 86, 'Bounded adaptive exercise planning | 24 September 2026 | Synthetic prototype', 1480, 21, palette.muted);
 for (const [i, [tone, label]] of Object.entries([
   ['human', 'Human review / decision'], ['ai', 'AI-assisted proposal'],
   ['app', 'Application control'], ['gap', 'Gap / coached retry'],
@@ -93,10 +93,10 @@ card('plan', 430, 660, 600, 140, '4. Review plan and context readiness',
   ['Confirm profile and exercise plan separately', 'Refine objectives, scope, roles and evaluation', 'Apply reviewed checks; record human decisions'], 'app');
 card('intake-gap', 1100, 650, 400, 166, 'If essential context is missing',
   ['Provide evidence or revise scope', 'Review explicit exercise assumptions', 'Or save and stop pending information', 'No endless prompting or automatic pass'], 'gap', true);
-card('package', 430, 860, 600, 116, '5. AI drafts the five-inject package',
-  ['One coherent scenario with objective coverage', 'Reviewed criteria, evidence and role references'], 'ai');
+card('package', 430, 860, 600, 116, '5. AI drafts the exercise package',
+  ['Five positions; reviewed scenario alternatives', 'Fixed objectives, criteria and role references'], 'ai');
 card('package-review', 430, 1022, 600, 100, '6. Review and freeze the package',
-  ['Check consistency, criteria and acceptable alternatives']);
+  ['Check objective coverage and continuity on every path']);
 card('briefing', 430, 1172, 600, 112, '7. Brief participants; check run readiness',
   ['Confirm roles, context, ground rules and access', 'Use the reviewed package and participant mapping'], 'app');
 card('release', 430, 1334, 600, 100, '8. Facilitator approves and releases',
@@ -132,9 +132,11 @@ card('shared-note', 50, 660, 310, 166, 'SHARED PROFILE',
 card('role-note', 50, 1022, 310, 172, 'ROLES AND EVALUATION',
   ['Bind roles to users / teams.', 'RACI does not grant app access.', 'Review criteria and alternatives', 'before play.'], 'human', true);
 card('scope-note', 1100, 1022, 400, 176, 'BOUNDED FIRST DRAFT',
-  ['Five prepared injects in one track.', 'Technical and operational are both TTXs.', 'Two answers maximum per inject.', 'Adaptive coaching; no scenario branching.'], 'human', true);
+  ['Five inject positions in one track.', 'Reviewed paths keep shared objectives.', 'Two answers maximum per inject.', 'Unresolved gaps remain valid outcomes.'], 'human', true);
 card('assessment-note', 1100, 1484, 400, 132, 'UNCLEAR OR FAILED ASSESSMENT',
   ['Hold for review or manual evaluation.', 'No automatic fail or extra attempt.', 'AI never authorises release.'], 'human', true);
+card('branch-choice', 1100, 2010, 400, 180, 'Choose next approved variant',
+  ['AI proposes an eligible next path.', 'Facilitator confirms; app validates.', 'Retain objectives and consequences.', 'No fitting variant? Pause for review.'], 'human', true);
 card('evidence-note', 50, 2220, 310, 190, 'EVIDENCE LIMITS',
   ['Earlier hints may help later on.', 'A first attempt is not proof of', 'wholly unaided readiness.', 'Discussed actions do not prove', 'executed recovery.'], 'human', true);
 card('aar-note', 1100, 2364, 400, 180, 'IMPROVEMENT RECORD',
@@ -157,17 +159,17 @@ edge('retry', [[205, 1629], [205, 1534], [425, 1534]], 'One coached retry', 220,
 edge('second-gap', [[1034, 1730], [1065, 1730], [1065, 1845], [1095, 1845]]);
 edge('sufficient', [[730, 1774], [730, 1875]], 'Criteria met', 752, 1808, 200);
 edge('gap-recorded', [[1300, 1914], [1300, 1934], [1035, 1934]]);
-edge('next-inject', [[895, 2098], [1540, 2098], [1540, 1384], [1035, 1384]],
-  'NO: next prepared inject', 1075, 2068, 330);
+edge('next-choice', [[895, 2098], [1095, 2098]], 'NO', 960, 2068, 70);
+edge('next-inject', [[1505, 2098], [1540, 2098], [1540, 1384], [1035, 1384]]);
 edge('all-outcomes', [[730, 2160], [730, 2215]], 'YES', 752, 2170, 100);
 
 text('footer', 50, 2688, [
   'Application-owned records preserve revisions, approvals, releases, responses, feedback and human decisions.',
-  'Planning diagram, not implemented navigation. Detailed RACI, grading rubric and AAR template remain pending.',
+  'Planning only. Detailed readiness, RACI, grading, branch rules/content and AAR template remain pending.',
   'Adapted from ENISA (2026), sections 1-6. Scope and implementation boundaries: docs/PROJECT.md and docs/architecture.md.',
 ], 1500, 19, palette.muted);
 
-const description = 'Purpose and track precede documents or guided setup. Reviewed source-linked context and a separate exercise plan feed objective-dependent readiness. Unresolved intake gaps require revision or stopping. A reviewed five-inject package and participant briefing precede facilitator-controlled releases. Each inject permits an initial answer and one coached retry, then a sufficient or unresolved outcome. All five outcomes lead to debrief, a human-reviewed AI draft AAR, and owned improvement actions. Readiness specification remains pending.';
+const description = 'Purpose and track precede documents or guided setup. Reviewed source-linked context and a separate exercise plan feed objective-dependent readiness. Unresolved intake gaps require revision or stopping. A reviewed five-position package with bounded alternatives and participant briefing precedes facilitator-controlled releases. Each inject permits an initial answer and one coached retry, then a sufficient or unresolved outcome. AI proposes an eligible next variant; the facilitator confirms and the application validates it before normal release approval. Every path preserves learning objectives and earlier consequences without forcing success or adding injects. All five outcomes lead to debrief, a human-reviewed AI draft AAR, and owned improvement actions. Detailed readiness and branch rules remain pending.';
 const scene = { type: 'excalidraw', version: 2, source: 'AI-TTX-Capstone/local-workflow-generator',
   elements, appState: { viewBackgroundColor: '#ffffff', gridSize: null,
     exportBackground: true, exportWithDarkMode: false }, files: {} };

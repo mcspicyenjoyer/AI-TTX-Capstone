@@ -31,7 +31,7 @@ Acceptance plan for [TASK-003](WORK.md#task-003---five-inject-coached-first-draf
 | Case | Requirements | Evidence |
 | --- | --- | --- |
 | Upfront SOC/MSSP mapping | REQ-013 | Setup distinguishes internal/outsourced functions and named responding users/teams. Missing mappings block role-specific preparation; an unrelated participant cannot answer for the assigned role. |
-| Five-inject single-track package | REQ-009/015 | Exactly five prepared injects in the selected track; no technical/operational mixture or decision-dependent scenario branching in the first draft. |
+| Five-inject single-track package | REQ-009/015/018 | Five participant-facing positions in the selected track, with one reviewed variant per position. Authored alternatives do not increase the five-inject run count; no technical/operational mixture. |
 | First answer sufficient | REQ-014 | Resolve after one answer; do not demand or permit another answer to the closed inject. Record first-attempt success on that inject, without implying no influence from earlier coaching. |
 | First insufficient, second sufficient | REQ-010/014 | Deliver targeted feedback once, retain both answers and the guidance, and record coached success separately from a sufficient first attempt. |
 | Second answer insufficient | REQ-010/014/015 | Record an unresolved finding, reject a third submission and permit the next prepared inject only through normal approval/release checks. |
@@ -40,6 +40,20 @@ Acceptance plan for [TASK-003](WORK.md#task-003---five-inject-coached-first-draf
 | Completion with gaps | REQ-015 | All five injects have final outcomes; unresolved findings are allowed, unanswered injects are not silently treated as complete. |
 | Evidence-linked AAR | REQ-010/014 | The reviewed template preserves initial/retry answers, feedback, rubric version and outcomes; reports first-attempt/coached successes and unresolved findings without inventing performed actions or successful recovery. Debrief observations remain attributed; action completion requires evidence. |
 | Synthetic-only content | REQ-011 | Development, demonstration and evaluation packs use synthetic organisation/exercise content; source references and fixture provenance are recorded. |
+
+## Bounded adaptation cases
+
+Acceptance plan under ADR-017 and REQ-018; not executed runtime tests. Use reviewed synthetic branch fixtures and deterministic AI recommendations/abstentions after the branch rules and content are agreed.
+
+| Case | Expected evidence |
+| --- | --- |
+| Objective coverage and bounds | Every permitted complete path offers all agreed learning objectives within five positions. Reject cycles, extra positions, dead ends without an explicit pause and variants outside approved scope/context. |
+| Response-dependent progression | Contrasting reviewed responses select the expected eligible alternatives. Preserve response evidence and rationale; do not infer performed actions from a score or rewrite initial answers after coaching. |
+| Continuity at reconvergence | Paths return to common stages while retaining their recorded consequences. Unresolved containment cannot silently become successful recovery to make paths converge. |
+| Human authority and revision checks | An AI suggestion cannot release content. Reject non-member/ineligible variants and stale approval; changes require the applicable renewed review. |
+| Ambiguity, unexpected answers and outage | Preserve uncertainty and existing responses; human selection is limited to eligible reviewed alternatives. If none fits, pause instead of inventing a path, adding an answer or forcing success. |
+| Retries and restart | Retain chosen variants, evidence, remaining positions and answer budgets. Repeated/concurrent requests cannot select or release two variants for one position. |
+| Visibility and AAR | Hide unreleased alternatives and criteria server-side. Report the actual path and attributed consequences; retain unresolved findings and distinguish coaching and hypothetical actions from observed execution. |
 
 ## ENISA-adapted flow verification plan
 
@@ -50,7 +64,7 @@ Structural acceptance under ADR-016 and REQ-016/017; not an implemented checklis
 - Profile confirmation cannot substitute for context, package or run readiness. Decisions refer to the reviewed profile, exercise plan and applicable criteria versions; stale decisions cannot silently unlock downstream stages.
 - The unresolved-gap route stops or revises the plan explicitly. Exhausted questioning never causes an automatic ready result.
 - Business impact and reviewer confirmation support critical-asset selection; inventory presence alone does not establish crown jewels.
-- Package review verifies objective-to-inject-to-criterion-to-evidence links, recipient/responder assignments and a coherent five-inject sequence. Participant briefing gives the necessary context without disclosing private grading material or future injects.
+- Package review verifies objective-to-inject-to-criterion-to-evidence links, recipient/responder assignments and coherent five-position paths through the reviewed alternatives. Participant briefing gives the necessary context without disclosing private grading material or future injects.
 - Debrief feedback and exercise-design limitations are distinguished from participant-response findings. AAR actions identify an owner, due date and status; proposed actions are not reported as completed.
 
 These cases guide future work; they do not replace the deterministic first-slice tests or permit invented rubric thresholds.
