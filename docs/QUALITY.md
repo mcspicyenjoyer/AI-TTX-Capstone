@@ -69,6 +69,16 @@ Structural acceptance under ADR-016 and REQ-016/017; not an implemented checklis
 
 These cases guide future work; they do not replace the deterministic first-slice tests or permit invented rubric thresholds.
 
+## Organisation content review
+
+For ADR-019/020's authored package, check stable IDs and unique definitions, valid service/asset/data/person references, staff totals excluding external suppliers, and agreement between the author register and player profile. Preserve legacy fixture evidence separately from newly authored fictional answers. A fictional near miss or policy is not observed runtime evidence.
+
+Shared material must use natural names rather than record IDs and omit authoring gates, provenance, future branches, evaluator criteria, specialist weakness catalogues and lesson-teaching conclusions. Put appropriate specialist baseline knowledge in individual role cards, not an all-player bundle. Retain fiction/simulation cover lines. Check the author allocation map against actual card content; facts essential to an objective must be available through an assigned role or ordinary request, not an exact-question trigger or absent participant. Role combination/supplier representation remains explicit future exercise preparation. Separating Markdown files is not proof of server-side visibility enforcement or release approval.
+
+Verify time-sensitive legal/regulatory claims from primary sources, keep fictional contract clocks separate, and record name-check method, source and limits. Distinguish user-reported registry results from independently observed searches. Check fictional reference dates/deadlines, control exceptions, data locations/permissions and company authority across both layers. These are documentation checks, not certification, legal advice or proof of technical capability.
+
+Distinguish current authority from stale contact records, intended channels from channels actually created, and designated personnel from tested cover. Preserve deliberate gaps without scripting absence or failure. Server backup jobs must not imply cloud/SaaS protection; unvalidated provider-native recovery is unknown, not confirmed absent. Check summary/card length and shared-profile leak exclusions; do not claim a Markdown text budget proves print pagination.
+
 ## Later evaluation
 For the [technical-exercise checkpoints](WORK.md#technical-exercise-checkpoints), the user owns frontend, backend and integration verification. Validate frontend mock examples against the shared contracts and verify each completed screen against the real backend. Include a non-recipient participant fixture. Restart tests must retrieve records submitted during the test; seed data is insufficient evidence of durability. Seed routines must preserve existing demonstration data. These checks establish technical-workstream evidence only, not completion or validation of the other worker's operational exercise.
 

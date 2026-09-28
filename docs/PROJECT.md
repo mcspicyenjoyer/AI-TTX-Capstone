@@ -1,6 +1,6 @@
 # Project baseline
 
-Status: working implementation-planning scope, updated 24 September 2026 with bounded adaptive injects under ADR-017, extending the ENISA-adapted flow in ADR-016. The user will draft the detailed readiness specification later; no checklist criteria, thresholds or question budget are approved by this update. The five-inject experience, two-attempt coaching rules and technical/operational ownership remain unchanged. Formal supervisor approval and organisation technology permissions are not inferred.
+Status: working implementation-planning scope, clarified 27 September 2026 under ADR-018: the current draft starts from predefined exercise content and reviewed response-dependent branches, not inject generation from an SME environment. This retains ADR-017's bounds and ADR-016's objective-led preparation. The user will draft the detailed readiness specification later; no checklist criteria, thresholds or question budget are approved by this update. The five-inject experience, two-attempt coaching rules and technical/operational ownership remain unchanged. The user reports their supervisor's direction; formal approval of a specific package and organisation technology permissions are not inferred.
 
 ## Problem and users
 Resource-constrained SMEs need help converting systems and continuity context into bounded tabletop exercises. The AI-assisted TTX Platform encompasses separate technical and operational exercise tracks and assists preparation, facilitated play and review. Use "TTX Platform" for the product; "technical" identifies an exercise track, not the whole platform. Users are a planner/profile reviewer, facilitator, participant teams and an exercise reviewer. A person may hold multiple functions, but participant access remains distinct from facilitator authority.
@@ -26,6 +26,8 @@ First slice: manually prepared synthetic profile → confirm revision → review
 ### First exercise draft
 
 Confirmed under ADR-013 and extended by ADR-017 in [DECISIONS](DECISIONS.md): after the engineering first slice, prepare one bounded exercise with exactly five participant-facing inject positions. Technical and operational tracks remain separate; this repository implements the technical track. Adaptive coaching and a small set of reviewed, response-dependent inject alternatives are in the planned first draft. Each run releases one variant at each position; the authored package may contain more than five payloads, but a completed run still contains five injects.
+
+Authoring clarified under ADR-018: use a predefined scenario package with its context, inject variants and consequences prepared and reviewed before play. Do not make environment-to-inject generation a prerequisite or the current draft's core capability. Organisation information supports scenario fit, participant decisions and evaluation; it is not an instruction to invent a new scenario. AI-assisted assessment, coaching, eligible-variant recommendations and evidence-linked reporting remain planned, subject to their reviewed inputs and feasibility. Earlier generation-oriented proposals are not current-draft requirements. The [technical TTX research note](research/technical-ttx-inputs-and-synthetic-pack.md) gives advisory input/package options, not approved content or readiness rules.
 
 - Use synthetic organisational context and exercise content throughout development, demonstration and evaluation, not just initially. Published reference guidance can inform the exercise; real organisation uploads are outside this prototype's scope.
 - Establish the synthetic SOC/MSSP operating model at the start, including which functions are internal or outsourced, and bind RACI responsibilities to the responding users/teams before preparing role-specific injects.
@@ -61,6 +63,14 @@ The document-free route uses attributed guided answers. Unresolved essentials le
 
 Profile planning includes selected business services, supporting assets/data, dependencies, ownership and business impact. AI may propose crown-jewel candidates; the reviewer confirms their criticality. A complete enterprise inventory or a particular document title is not a universal entry prerequisite. Detailed field contracts remain future implementation work.
 
+### Organisation foundation
+
+Authorised on 27 September 2026 under ADR-019 and expanded by the user's realism feedback on 28 September under ADR-020: use a CSA-structured, originally authored synthetic engineering-services company. Keep the named master register as authoring truth and provide a separate in-universe participant profile without repeated governance caveats. Include named people/vendors/customers/projects, hybrid work, engineering dependencies, finance/payroll/personal-data context, security posture and fictional company decision/communication authority. Keep real institutions and legal requirements accurately sourced, with name-check evidence and limitations in author notes. See the [draft package](organisation/example-sme-01/README.md). Individual authored details remain reviewable; authoring permission is not profile confirmation or exercise readiness.
+
+The second realism review further separates a short common brief/reference from baseline role cards: specialist weaknesses, finance/privacy procedures and reporting clocks are not common player knowledge. Keep essential facts available through assigned roles and ordinary discussion; cards are not answer scripts or role-specific injects. Deliberately stale arrangements, concentrated responsibilities and the distinction between server backups and unvalidated native SaaS recovery belong in the canonical context. More varied replacement names require recorded registry screening; general-web results are not clearance.
+
+This reusable context can be drafted before the detailed exercise inputs are settled. Fictional business authority and baseline role knowledge are not a completed exercise RACI or TTX approval/access permissions. The rubric, branch-content and AAR dependencies above remain. Next select the incident family and learning objectives (OPEN-11); that choice determines the necessary role detail, logical diagram and plan extracts, rather than completing every plan first. Preserve historical fixture uncertainties separately from current-fiction answers. Application/runtime state and contracts remain unchanged. [WORK](WORK.md#task-004---synthetic-organisation-foundation) owns completion and verification status.
+
 ## Requirements
 | ID | Outcome | Stage |
 | --- | --- | --- |
@@ -72,7 +82,7 @@ Profile planning includes selected business services, supporting assets/data, de
 | REQ-006 | Reject releases while paused/completed; prevent retry duplicates; recover durably with explicit resume. | First slice |
 | REQ-007 | AI proposes within approved scope, can abstain/fail and never bypasses human control; manual play remains possible. | AI integration |
 | REQ-008 | Supported intake preserves source locators and surfaces missing/conflicting information for review. | Intake |
-| REQ-009 | Validate package counts, roles, bounded decisions, artefact consistency and approved alternatives. | Package generation |
+| REQ-009 | Validate package counts, roles, bounded decisions, artefact consistency and approved alternatives. | Package preparation |
 | REQ-010 | Findings distinguish observation from interpretation, cite activity and debrief evidence, and separate first-attempt, coached and unresolved outcomes; use the reviewed AAR template and assign improvement ownership. | Review output |
 | REQ-011 | Use synthetic exercise data throughout the prototype, server-held credentials and approved external processing. | All stages |
 | REQ-012 | Maintain reproducible verification, controlled evaluation and school-safe handover evidence. | All stages |
