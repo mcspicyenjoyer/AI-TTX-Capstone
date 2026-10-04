@@ -1,6 +1,29 @@
 # Quality and verification
 
-Status: acceptance plan; WORK records executed results. Deterministic contract/API/persistence tests and Playwright profile checks now accompany TASK-001A/B. No AI evaluations exist yet.
+Status: acceptance plan; WORK records executed results. Deterministic contract/API/persistence tests and Playwright profile/exercise checks accompany TASK-001A/B/C and the operational skeleton. Response, completed-exercise and AI evaluation evidence remain outstanding.
+
+## Form B acceptance sequence
+
+ADR-021 makes [Form B's mapped outcomes](PROJECT.md#form-b-traceability) authoritative. Five injects are the user-authorised first playable baseline; expand to ten for the final 10-15-entry requirement. Counts alone do not establish completion: final evidence must cover every FB-01-12 outcome. The operational development skeleton is a parallel, separately verified handoff, not a completed operational exercise. Deferred coaching/readiness cases below do not block baseline acceptance.
+
+| Stage / case | Required evidence |
+| --- | --- |
+| Step 0 preparation | Before inject 1, confirm assigned functions, incident leadership/escalation, reference/contact routes, decision authority and simulation limits against reviewed context. Missing/stale/conflicting information remains explicit; essential gaps have a reviewed disposition. No automatic CTM pass/fail, real notifications, hidden-criteria disclosure or extra inject. Preparation evidence binds the applicable revisions; a profile confirmation alone cannot substitute. The engineering fixture has bounded contract/browser coverage; reviewed five-inject context is still required. |
+| First playable five | Complete the deterministic one-inject checks, then exercise five reviewed inject positions through the same real browser/API/storage path. Approval, recipient filtering, responses, ordered activity, manual progression and restart recovery hold throughout; no mandatory coached retry. |
+| Bounded intake and reconciliation | Known-answer fixtures cover the agreed diagram format, continuity text present/absent, guided answers, missing/conflicting information and source locators. Users can correct/reject/add facts before approval; generated content binds the confirmed revision. Unsupported input fails clearly. |
+| Controlled threats and generation | Reviewed tests trace pathway candidates and generated package content to the confirmed profile and controlled library. Check five for the intermediate package and ten for final acceptance; reject unsupported assets, inconsistent artefacts, unreviewed branches and scope drift. Final package has 3-4 functional roles and three key decision points. |
+| Interpretation and facilitator control | Human-reviewed known-answer/ambiguous responses cover present/missing expected actions and approved-branch recommendations. Approve/edit/reject/override/pause/manual continuation work; revisions invalidate stale approvals and recommendations never release themselves. |
+| Record and report | Timeline, agreed actions/rationale/information requests, facilitator decisions, observations and branch changes persist with evidence. Draft AAR/improvement outputs are human-reviewable and cannot invent performed actions or recovery. An action-closure tracker is not required. |
+| Expansion to ten | Run ten through the same engine without global five-slot limits, content/recipient leaks, duplicate release or skipped required records. Check coherent branches, restart and manual fallback at the expanded count. Five-stage evidence alone is not final baseline evidence. |
+| Evaluation and handover | Controlled extraction/grounding/consistency/interpretation/branch-agreement/control/fallback/usefulness results are recorded with limitations. Verify the synthetic reference pack, source/configuration/schema/prompt/test notes, user guide, school-safe demo, capstone report and presentation against FB-12. |
+
+Ordinary checks use fake providers. Any live AI evaluation requires the established explicit data/provider/usage authority; a valid schema, source review or design diagram is not evidence of a successful AI integration. Review applicable guidance versions for FB-02 before claiming a standards mapping; no certification judgement is part of acceptance.
+
+## Operational skeleton checks
+
+Acceptance checks for [TASK-005](WORK.md#task-005---operational-development-skeleton); its dated WORK entry records executed results. Verify clean Docker startup and a real operational-entry browser/API path using its synthetic development fixture. Contracts reject unknown tracks and mismatched package/run bindings; direct requests cannot gain authority from a track label, see another run's restricted records or receive facilitator-only material. Add checks for each shared execution operation when introduced.
+
+Keep existing technical-profile/confirmation tests passing. Check operational loading/empty/error states, desktop/mobile layout and honest unavailability of unimplemented actions. The handoff identifies executable schemas, examples, ownership, extension/test locations, separate local data and current limitations. Empty directories or a UI-only selector do not satisfy this milestone. No operational exercise acceptance is inferred from a passing fixture.
 
 ## Definition of done
 The bounded behaviour meets acceptance criteria, relevant failures are tested, required checks pass, the diff is reviewed and affected documents reflect reality. Outstanding required failures mean incomplete work. A successful build does not replace a browser workflow check.
@@ -8,7 +31,9 @@ The bounded behaviour meets acceptance criteria, relevant failures are tested, r
 ## Scaffold checks
 The scaffold must establish one executable entry point, provisionally `npm run check`, covering formatting verification, linting, types, deterministic tests and build with failure propagation. Record the chosen runtime, package manifest and lockfile together. Verify a locked clean installation in an isolated copy before documenting it as working. Add CI using the same command when runner/package access are established.
 
-Branding checks under ADR-015 verify "TTX Platform" in the browser title and shared header for sign-in, facilitator and participant views. Sign-in remains track-neutral; the current facilitator profile labels its context "Track: Technical". Naming does not claim that operational screens or track selection are implemented. Check desktop and mobile layout after label changes.
+Git text checkouts use LF through `.gitattributes`, matching `.editorconfig` and Prettier, so a Windows checkout does not fail the Linux Docker formatting gate solely because of CRLF conversion. Keep the formatting check strict; verify there are no semantic source changes when normalising existing build inputs.
+
+Branding checks under ADR-015 verify "TTX Platform" in the browser title and shared header for sign-in, facilitator and participant views. Sign-in remains track-neutral; profiles and exercises label their track. The assigned-exercise selector must use the server-filtered list, never grant access merely by switching a label. Check desktop and mobile layout after label changes.
 
 ## First-slice test cases
 | Case | Requirements | Evidence |
@@ -24,9 +49,11 @@ Branding checks under ADR-015 verify "TTX Platform" in the browser title and sha
 
 Use unit tests for rules, integration tests for transactions and authorisation, and browser verification for the user path. Ordinary tests are independent of AI/network services. Do not write tests that merely reproduce implementation details.
 
+Current regression entry points: [profile tests](../tests/profile.test.ts), [exercise tests](../tests/exercise.test.ts) and [browser tests](../tests/browser/exercise.spec.ts). Exercise tests include binding/recipient rejection, required Step 0/profile confirmation, current and superseded approvals, changed package/membership, same-key retries, competing requests, forced transactional failure, process-restart recovery and additive migration. Browser coverage includes a committed release whose HTTP response is lost, followed by an exact-key retry, participant/non-recipient separation and operational read-error recovery. Profile and exercise browser projects use separate temporary databases; workers inherit the same data-directory identity as their server. Contract sequences of five and ten entries prove count independence only, not reviewed scenario, response, branch or final Form B acceptance.
+
 ## Coached first-draft cases
 
-Acceptance plan for [TASK-003](WORK.md#task-003---five-inject-coached-first-draft), not executed tests. These supplement, rather than replace, the first-slice authority, durability and visibility checks. Fix expected outcomes with the reviewed rubric before evaluation; normal software checks use deterministic provider fixtures.
+Deferred extension cases from the former TASK-003 scope, not executed tests or requirements of the newly authorised five-inject baseline. Under ADR-021, coaching waits until Form B completion. Retain these for later consideration; shared authority/durability/visibility checks and baseline expected-action evaluation remain required independently. Fix extension outcomes with a reviewed rubric before any later coaching implementation.
 
 | Case | Requirements | Evidence |
 | --- | --- | --- |
@@ -43,21 +70,21 @@ Acceptance plan for [TASK-003](WORK.md#task-003---five-inject-coached-first-draf
 
 ## Bounded adaptation cases
 
-Acceptance plan under ADR-017 and REQ-018; not executed runtime tests. Use reviewed synthetic branch fixtures and deterministic AI recommendations/abstentions after the branch rules and content are agreed.
+Baseline acceptance plan under ADR-017/021 and REQ-018; not executed runtime tests. Form B requires approved branches and AI-assisted recommendation, not the deferred coaching loop. Use reviewed synthetic branch fixtures and deterministic AI recommendations/abstentions after branch rules/content are agreed.
 
 | Case | Expected evidence |
 | --- | --- |
-| Objective coverage and bounds | Every permitted complete path offers all agreed learning objectives within five positions. Reject cycles, extra positions, dead ends without an explicit pause and variants outside approved scope/context. |
-| Response-dependent progression | Contrasting reviewed responses select the expected eligible alternatives. Preserve response evidence and rationale; do not infer performed actions from a score or rewrite initial answers after coaching. |
+| Objective coverage and bounds | Every permitted complete path offers the agreed learning opportunities within the reviewed count: five initially, ten at final baseline acceptance with three key decision points. Reject cycles, extra positions, dead ends without an explicit pause and variants outside approved scope/context. |
+| Response-dependent progression | Contrasting reviewed responses select the expected eligible alternatives. Preserve response evidence and rationale; do not infer performed actions from a score or rewrite recorded answers. |
 | Continuity at reconvergence | Paths return to common stages while retaining their recorded consequences. Unresolved containment cannot silently become successful recovery to make paths converge. |
 | Human authority and revision checks | An AI suggestion cannot release content. Reject non-member/ineligible variants and stale approval; changes require the applicable renewed review. |
-| Ambiguity, unexpected answers and outage | Preserve uncertainty and existing responses; human selection is limited to eligible reviewed alternatives. If none fits, pause instead of inventing a path, adding an answer or forcing success. |
-| Retries and restart | Retain chosen variants, evidence, remaining positions and answer budgets. Repeated/concurrent requests cannot select or release two variants for one position. |
-| Visibility and AAR | Hide unreleased alternatives and criteria server-side. Report the actual path and attributed consequences; retain unresolved findings and distinguish coaching and hypothetical actions from observed execution. |
+| Ambiguity, unexpected answers and outage | Preserve uncertainty and existing responses; human selection is limited to eligible reviewed alternatives. If none fits, pause instead of inventing a path, fabricating a response or forcing success. |
+| Retries and restart | Retain chosen variants, evidence, responses and remaining positions. Repeated/concurrent requests cannot select or release two variants for one position or duplicate an agreed response. No coaching answer budget is implied. |
+| Visibility and AAR | Hide unreleased alternatives and criteria server-side. Report the actual path and attributed consequences; retain unresolved findings and distinguish hypothetical decisions from observed execution. |
 
 ## ENISA-adapted flow verification plan
 
-Structural acceptance under ADR-016 and REQ-016/017; not an implemented checklist or the user's pending readiness specification. Define exact expected readiness outcomes only after that specification is reviewed.
+Historical expanded acceptance under ADR-016 and REQ-016/017; not an implemented checklist. ADR-021 defers extra readiness machinery and its detailed specification. Use only the Form B-mapped portions for baseline acceptance; ordinary source review, scope, approval, package consistency and report evidence remain required without this engine.
 
 - Exercise purpose, track and initial scope are recorded before detailed targeted questions; changing objectives triggers review of affected readiness and package decisions.
 - Documents and guided answers retain source attribution. No-document, partial/conflicting-document and complete-document synthetic cases all have a defined route; absent uploads do not become fabricated facts or proof of absent plans.

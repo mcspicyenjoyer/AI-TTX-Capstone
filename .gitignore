@@ -7,6 +7,8 @@
 github_token.txt
 github_tokens.txt
 token.txt
+demo-access.json
+demo-track-access.json
 
 # Local reference library supplied for review; do not publish with project plans.
 /references/

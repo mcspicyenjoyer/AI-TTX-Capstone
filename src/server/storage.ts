@@ -1,21 +1,21 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import type { Actor, Activity, Confirmation, Profile, ProfileList } from '../contracts/profile.js';
 import { AppError } from './errors.js';
 import { readProfile } from './validation.js';
-
-export function contentHash(value: string): string {
-  return createHash('sha256').update(value).digest('hex');
-}
+import { contentHash } from './integrity.js';
+import { ExerciseStore, migrateExercises } from './exercise-store.js';
+export { contentHash } from './integrity.js';
 
 export class Store {
   private readonly db: DatabaseSync;
+  readonly exercises: ExerciseStore;
 
   constructor(path: string) {
     this.db = new DatabaseSync(path, { timeout: 5000 });
     this.db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;');
     const version = this.db.prepare('PRAGMA user_version').get()?.user_version;
-    if (version !== 0 && version !== 1) {
+    if (version !== 0 && version !== 1 && version !== 2) {
       this.db.close();
       throw new Error('Unsupported database version. No migration was performed.');
     }
@@ -31,6 +31,8 @@ export class Store {
         PRAGMA user_version = 1;
       `);
       });
+    if (version !== 2) this.transaction(() => migrateExercises(this.db));
+    this.exercises = new ExerciseStore(this.db);
   }
 
   transaction<T>(operation: () => T): T {
@@ -47,6 +49,12 @@ export class Store {
 
   hasActors(): boolean {
     return Number(this.db.prepare('SELECT COUNT(*) AS count FROM actors').get()?.count) > 0;
+  }
+
+  addActor(actor: Actor, username: string, codeHash: string): void {
+    this.db
+      .prepare('INSERT OR IGNORE INTO actors VALUES (?, ?, ?, ?, ?)')
+      .run(actor.id, actor.displayName, actor.role, username, codeHash);
   }
 
   seed(profile: Profile, accounts: { actor: Actor; username: string; codeHash: string }[]): void {

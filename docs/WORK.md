@@ -1,6 +1,19 @@
 # Work and handover
 
-Current content task: [TASK-004 organisation foundation](#task-004---synthetic-organisation-foundation), refined on 28 September under ADR-020 into shared context, individual baseline role cards and author-only material. OPEN-11 incident-family/objective selection is next; pending exercise inputs remain distinct. TASK-001A/B remain the only implemented workflow checkpoint. Readiness details, grading criteria and exact branch rules/content remain pending review.
+Current priority, 4 October 2026: implement Form B first under ADR-021, with five injects as the first playable baseline and ten as the later package target. TASK-001A/B/C and [TASK-005's operational development skeleton](#task-005---operational-development-skeleton) are now implemented for the bounded local scope. Step 0 and release pause/resume/recovery are included; agreed responses and full completion remain next. See the [latest implementation handover](#release-and-operational-handoff---4-october-2026) for exact evidence and deferred questions. Dated earlier handovers describe historical decisions/status; this priority and the current task statuses take precedence.
+
+## Next milestones
+
+Source requirements are mapped in [PROJECT](PROJECT.md#form-b-traceability); the current source was read from the primary checkout's ignored references folder on 4 October. This is the delivery order, not a claim that the following milestones are implemented.
+
+| Order | Milestone | Exit evidence |
+| --- | --- | --- |
+| 1 | First playable five-inject technical baseline plus operational skeleton | First prove one approved inject end to end through TASK-001C/D/E, then run five through the same engine under TASK-003. Exact approval, recipient filtering, agreed responses, ordered activity, pause/manual resume and restart recovery work without AI. TASK-005 gives the other worker a runnable, tested integration point and handoff early, without waiting for the full technical exercise. |
+| 2 | Bounded inputs to a generated five-inject draft | Select the incident/objectives and one diagram format; finish the necessary synthetic reference inputs/known answers. Implement continuity-text support, guided gap questions, source-linked extraction/reconciliation and user corrections. TASK-002 proves the provider boundary before live AI integration; controlled threat/pathway mapping and generation produce a grounded draft for human review. Five remains intermediate, not final Form B acceptance. |
+| 3 | Complete the AI-assisted five-inject workflow | Reuse the verified provider boundary to interpret agreed responses and recommend only approved branches; exercise approve/edit/reject/override/manual continuation, observations and draft AAR/improvement output. Keep ordinary tests deterministic and record bounded live-evaluation limitations. No coaching/retry engine is required. |
+| 4 | Expand to ten and close Form B | The same engine supports a generated, reviewed ten-entry package, 3-4 functional roles and three key decision points. All FB-01-12 outcomes have passing acceptance/evaluation evidence and the required technical docs, user guide, handover, school-safe demonstration, report and presentation. Only then consider extra features. |
+
+Checks and review happen at every milestone, not only at the end. Select OPEN-11's incident family/objectives before deriving scenario-specific reference material; do not invent that choice. Input format, threat-library content, evaluation criteria and provider/environment permission remain decisions for their dependent work. The deferred coaching rubric, enhanced readiness specification and detailed extension AAR template must not block the deterministic loop or operational skeleton.
 
 ## TASK-000 — Architectural baseline
 Status: Complete for the documentation/configuration baseline. Date: 15 September 2026.
@@ -20,7 +33,7 @@ Verification on 15 September 2026:
 No commit created; review/stage intended files explicitly because user reference material is already untracked. README, AGENTS, the five documentation files and three configuration files form the intended baseline; existing research/reference material is outside this change.
 
 ## TASK-001 — Minimal scaffold and synthetic workflow
-Status: TASK-001A/B complete for the bounded local profile checkpoint on 18 September 2026. Docker-first setup resolves the initial runtime, identity and data-location decisions under ADR-006/007/014. The full one-inject workflow remains incomplete.
+Status: TASK-001A/B complete for the bounded local profile checkpoint on 18 September 2026; TASK-001C complete for the one-inject engineering release checkpoint on 4 October. Release lifecycle/recovery is implemented, but TASK-001D responses and TASK-001E completion/response-recovery remain incomplete. Docker-first setup resolves the initial runtime, identity and data-location decisions under ADR-006/007/014. The full one-inject workflow is not yet complete.
 Requirements: REQ-001–006, REQ-011/012.
 
 ### Outcome
@@ -28,7 +41,7 @@ Confirm a synthetic profile, review one prepared inject, approve/release it to a
 
 ### Initial prerequisites
 - Resolved for the local Docker scaffold: pinned runtime/packages (ADR-006/014), private data volume and generated demo identities (ADR-005/007/014).
-- Hand-authored synthetic profile and executable shared profile contracts are implemented. The prepared-inject contracts and fixture remain TASK-001C work.
+- Hand-authored synthetic profile, shared track/package/run contracts and a one-inject delivery-control fixture are implemented. No approved incident scenario is inferred from this engineering fixture.
 - These local choices do not grant organisation hosting, provider access or real-data permission.
 
 ### Scope and acceptance
@@ -44,11 +57,11 @@ One application and package manager with committed lockfile; only the UI, rules,
 
 Not included: AI, parsing, polished dashboard, full MSEL package, external delivery, production deployment or AAR generation.
 
-Verification: see the current implementation handover below. Do not mark the whole workflow complete after profile confirmation alone; approval/release, responses and lifecycle remain unimplemented.
+Verification: see the [4 October implementation handover](#release-and-operational-handoff---4-october-2026). Do not mark the whole workflow complete after a successful release; newly submitted agreed responses and complete-run evidence remain required.
 
 ### Technical-exercise checkpoints
 
-Ownership follows [PROJECT](PROJECT.md#ownership-and-exercise-scope) and ADR-012; the internal UI/API boundary is in [architecture](architecture.md#exercise-based-implementation-ownership). The user owns both backend and frontend for every checkpoint below. The other worker owns the operational exercise, not these frontend tasks. TASK-001A/B are complete for the local profile scope; C/D/E are not started.
+Ownership follows [PROJECT](PROJECT.md#ownership-and-exercise-scope) and ADR-012; the internal UI/API boundary is in [architecture](architecture.md#exercise-based-implementation-ownership). The user owns both backend and frontend for every checkpoint below. The other worker owns the operational exercise, not these frontend tasks. A/B/C are complete for their bounded local scope. D has release activity but no response capture; E has release pause/resume/recovery but no completion or response-recovery evidence.
 
 | Checkpoint | Backend / user | Frontend / user | Exit evidence |
 | --- | --- | --- | --- |
@@ -58,27 +71,27 @@ Ownership follows [PROJECT](PROJECT.md#ownership-and-exercise-scope) and ADR-012
 | TASK-001D: response and activity | Authorised response storage and facilitator activity query | Agreed response form and activity display | Newly submitted response persists with author/team and accessible release reference |
 | TASK-001E: lifecycle and recovery | Pause/resume/completion rules and interrupted-run recovery | State indicators and permitted actions | Restart retains test-entered response; no duplicate releases; interrupted active run requires resume |
 
-Next coding scope: TASK-001C, reviewed definition/approval/release contracts and one deterministic prepared-inject fixture, not a generated technical exercise package. Each checkpoint includes relevant failure tests; the full TASK-001 milestone remains incomplete until all original acceptance criteria pass. Before TASK-001E, settle whether pause also blocks participant submissions; release blocking is already required. Startup seeding must never overwrite demonstration records. Test databases are separate from demonstration data.
+Next coding scope: TASK-001D's agreed actions/rationale/information-request capture and remaining TASK-001E completion/response-recovery rules, then TASK-003's reviewed five injects. Settle whether pause blocks participant submissions before implementing that behaviour; no policy was assumed in this run. The user asked to defer questions and AI account linkage to the next run. The release checkpoint and contract count tests do not implement Form B's package generator or complete TASK-001. Startup seeding must never overwrite demonstration records; tests use separate databases.
 
 ## TASK-002 — One-inject AI feasibility
 
-Status: Proposed and awaiting revised acceptance under ADR-018, 27 September 2026; follows the first working deterministic exercise loop. The original inject-generation experiment is superseded for the current draft. Full document parsing is not a prerequisite. Requirements: REQ-007/011/012.
+Status: Not started; re-scoped to Form B under ADR-021 on 4 October 2026, after the first working deterministic loop. Prove one bounded AI operation, preferably response interpretation and recommendation from reviewed branches (FB-09), with a fake-provider contract first. Form B's generation requirement also remains mandatory; succeeding at this feasibility case does not complete FB-06/07. Full document parsing is not a prerequisite for the experiment. Requirements: REQ-007/011/012/018.
 
 Use ADR-011 and the [adapter boundary](architecture.md#proposed-codex-adapter-experiment), with fresh provider verification before implementation. The user owns the backend provider lifecycle, job API, schema/reference validation and failure handling, plus the frontend pending/error/review experience, initially using deterministic job fixtures. AI proposals still require human review; implementation ownership does not replace exercise approval.
 
 Retained feasibility safeguards: establish the installed protocol/model/authentication and enforceable isolation; record latency, validity, unsupported content and reviewer corrections; display proposals for review; exercise timeout, invalid output, usage limit, process exit and manual continuation. Normal tests use a fake provider. Live evaluation requires an explicitly bounded synthetic case and usage limit. Do not silently switch to paid API calls or widen execution permissions when integration fails.
 
-Proposed replacement checkpoint: evaluate one response against a reviewed criterion and produce targeted feedback, or recommend an eligible variant from a predefined package with response evidence and an abstention path. Choose the bounded case and acceptance criteria after the relevant rubric/branch inputs are reviewed; neither is implemented or approved in detail by this clarification. Keep the full intake, package and reporting scope in PROJECT.
+Before the experiment, review the expected actions, allowed branch fixtures, evidence/abstention criteria and bounded evaluation cases. Do not turn response interpretation into the deferred two-attempt coaching feature. No provider, model, execution permission or paid fallback is newly approved. Keep the full intake, generation and reporting obligations in PROJECT.
 
 ## TASK-003 - Five-inject coached first draft
 
-Status: Planned, not started. Requirements: REQ-010/011/013-018 plus the inherited approval, visibility and durability requirements. The user owns the technical frontend, backend and integration; operational implementation remains the other worker's workstream.
+Status: Re-scoped on 4 October 2026 to the five-inject first playable baseline, not started. The historical heading is retained for existing links; coaching is deferred. Requirements: REQ-002-006/011/012/015 and the applicable Form B outcomes. The user owns the technical frontend/backend/integration; the other worker owns operational exercise implementation.
 
-Depends on the deterministic TASK-001 workflow, a viable reviewed TASK-002 integration for its AI-assisted features, agreed synthetic context, the user's reviewed readiness specification and the user-supplied technical RACI, assessment rubric/thresholds, risk/threat references and detailed AAR template. Review the small set of branch points, alternative limits, response conditions and consistent consequences/reconvergence before dependent implementation or package preparation. ADR-018 replaces generated scenarios with predefined packages; manual context preparation does not require a document parser or environment-to-inject generation. Manual continuation remains required.
+First playable exit: after TASK-001C/D/E, use one reviewed synthetic technical package with five inject positions in a browser-to-server exercise. Complete [Step 0](PROJECT.md#step-0---baseline-preparation) before inject 1 under REQ-020; it does not count as an inject or a CTM assessment. Each release names the reviewed revision/recipients; capture agreed actions, rationale and information requests; preserve the ordered record across reload/restart and exercise manual pause/resume. Prove no duplicate delivery or cross-recipient disclosure. The package/run defines its sequence length; moving to ten must not require replacing the engine. Do not add a mandatory two-answer assessment gate.
 
-Outcome and acceptance follow [PROJECT's first exercise draft](PROJECT.md#first-exercise-draft), its [preparation/review flow](PROJECT.md#exercise-preparation-and-review-flow) and [QUALITY's coached cases](QUALITY.md#coached-first-draft-cases) and [adaptation cases](QUALITY.md#bounded-adaptation-cases): purpose/track before detailed intake, separate readiness decisions, five technical inject positions with reviewed variants, upfront SOC/MSSP role mapping, at most two answers per inject, evidence-linked coaching and final outcomes, including unresolved findings, then debrief and a reviewed AAR with owned actions. Preserve objective coverage, scope and consequence continuity across every permitted path. Persist selected variants, rationale, attempts and guidance across failure/restart; AI assessment or branch recommendation does not grant release authority. Ordinary tests use deterministic provider fixtures.
+Reviewed initial content, recipients, expected actions and any exercised branch conditions are needed before play. Do not invent them or treat authored baseline role cards as approved participant assignments. The larger coaching/readiness specifications are not prerequisites. A deterministic five-inject run can establish the first playable exit; it does not claim that ingestion, generation, AI interpretation or AAR are implemented. Milestones 2-3 add those Form B outcomes at five injects before expansion to ten.
 
-Not included: mixed technical/operational runs, unrestricted live branching, real organisation uploads or the longer-term 10-15-entry package. Verification: not run for TASK-003; profile scaffolding is not a five-inject exercise. This milestone does not replace or mark TASK-001/002 complete.
+Final Form B acceptance still requires the generated ten-entry package, 3-4 roles, three decision points and every mapped outcome. No mixed-track runs, real organisation uploads, unrestricted live branches, coaching, enhanced readiness engine or improvement-action closure tracker are included in this first playable checkpoint. Verification: the release engine passes synthetic five/ten-entry contract sequences; a reviewed five-inject browser exercise with responses, branches and closure has not been run and is not implemented.
 
 ## TASK-004 - Synthetic organisation foundation
 
@@ -88,7 +101,59 @@ Deliverables are linked from the author-only [package index](organisation/exampl
 
 Acceptance for the revised draft: concrete names and coherent operations; concise common context without weakness/lesson disclosure; authentic role knowledge with an author availability map; explicit gaps without predetermined failure; consistent IDs/headcounts/dependencies; sourced real rules and bounded name-check claims. Preserve fixture uncertainties separately from current fictional answers. Do not invent approval, observed recovery, formal exercise RACI, rubric, injects or branches. Select OPEN-11's incident family/objectives before finalising role detail or expanding diagrams/plans; readiness remains objective-dependent.
 
-Verification and handover are recorded in the dated entry below. The next engineering task remains TASK-001C; content authoring does not complete TASK-001/002/003 or implement an intake format.
+Verification and handover are recorded in the dated entry below. Under ADR-021, reuse this draft and extend only what Form B's Synthetic SME Reference Pack needs for the selected incident: the agreed diagram, relevant continuity text, guided answers and known-answer facts. Further editorial/company expansion is deferred. The next engineering task remains TASK-001C alongside TASK-005; content authoring does not complete TASK-001/002/003 or implement an intake format.
+
+## TASK-005 - Operational development skeleton
+
+Status: Bounded skeleton complete on 4 October 2026 under ADR-021/023, alongside TASK-001C. The [operational handoff](operational-handoff.md) supplies startup, shared contracts/API examples, contribution locations and limits. This is the explicit exception to the Form B-first feature freeze, not completion of the other worker's operational exercise.
+
+Scope and acceptance:
+
+- Reuse the existing application, Docker setup, authentication, validation and persistence boundaries. Establish the minimal shared track/package/run contract and contribution boundaries before either worker depends on them; [architecture](architecture.md#operational-development-skeleton) owns that design.
+- Provide a runnable operational development entry with a clearly synthetic contract fixture and a working server-backed read/validation path. Empty directories, a nonfunctional selector or a fake successful exercise are not a skeleton handoff. Do not author operational incident objectives, scoring, branches or reports on the other worker's behalf.
+- Keep technical and operational package/run identity explicit and server-validated. A track label or route is not authority. Tests reject unsupported tracks, package/run track mismatches and unauthorised access; private technical material must not leak through the operational entry. Test additional shared execution operations as they are introduced.
+- Share the general approval/release/response/activity engine as TASK-001 builds it; keep track-specific content and rules separate. Do not duplicate the technical backend or create a second framework/provider stack. Run length must support the initial five and later ten.
+- Document how to start locally, where the other worker adds content/UI/rules/tests, the request/response examples, shared contract ownership and the current implementation limits. Use separate checkouts/branches and data volumes, not two machines editing one synchronised directory. No teammate credentials or provider account sharing.
+- Pass shared checks, operational-entry browser checks and technical-profile regression checks using isolated synthetic test data. Record exact evidence before calling the handoff complete. Existing demonstration records must remain intact.
+
+The user coordinates shared package/lockfile/schema changes and initial integration; the other worker owns operational content and track-specific frontend/backend behaviour. The verified read/validation/UI path now permits that work without waiting for technical content or AI. The separate operational identity cannot read the technical profile/run, and start/release remain unavailable for the empty development fixture. No message or credentials were sent to the other worker; Git publication is the authorised handoff mechanism.
+
+## Release and operational handoff - 4 October 2026
+
+Purpose: deliver the next bounded engineering milestone and an operational integration point, following the user's direction to proceed, test with synthetic data and push a detailed progress commit. Form B remains authoritative; five injects are intermediate and ten the later target. No user questions, account linking or live AI work were attempted. ADR-023 records the implementation choice.
+
+Implemented:
+
+- TASK-001C: strict track/package/run, briefing, approval, release and activity contracts; server-side membership and participant projections; a one-inject technical engineering fixture with separate recipient/non-recipient identities. Technical company content and `profile-r1` remain unchanged.
+- Step 0: common/role-specific simulated starting context, explicit gap dispositions, assigned roles and facilitator acknowledgement bound to profile/package/briefing/assignment identity. Missing profile confirmation, mismatched hashes, holds and missing roles block start. It is not a CTM assessment, proof of contactability or an extra inject.
+- Exact-revision approval and separate release: stale content, superseded recipients, wrong track/run, unauthorised identities, paused/completed states and mismatched preparations are rejected. One SQLite transaction commits run revision, receipt, recipient links, activity and idempotency result; retries cannot create another release. The UI retains uncertain requests for exact-key retry.
+- Durable release lifecycle: pause/resume, restart-to-paused recovery, unused-approval invalidation and ordered facilitator activity. Restart tests retrieve releases created by the test, not seed records. Receipts report inbox availability, never observed viewing, real calls or successful recovery. Response capture/completion are still absent.
+- TASK-005: separately authenticated operational workspace, validated server-backed fixture, honest development hold, loading/error/refresh states and no fake play actions or technical private content. Both tracks share the existing application rather than a second stack. Contribution instructions are in the operational handoff.
+- Additive SQLite v2 migration and insert-only fixture/run seeding preserve v1 profiles, confirmations, credentials and existing run memberships/content. New account codes live in a separate private `demo-track-access.json`; no original code file is replaced.
+- LF checkout policy in `.gitattributes` makes Windows/Docker formatting consistent without weakening Prettier. No application dependency or lockfile version changed. Separate browser projects isolate profile and exercise test data.
+
+Verification on Windows/Docker Desktop Linux engine using the pinned Node 24.19.0 image:
+
+| Check | Executed result |
+| --- | --- |
+| `docker build --target browser-tests -t ai-ttx-browser-tests:release-skeleton .` | Passed `npm run check`: formatting, ESLint, TypeScript, 37 deterministic tests (17 profile + 20 exercise) and server/Vite builds. |
+| `docker run --name ai-ttx-release-check-20261004-10f9-b --network none ai-ttx-browser-tests:release-skeleton` | Five Playwright tests passed: three profile regressions, release/preparation/pause/retry/recipient workflow and operational entry/error recovery. Both browser servers use temporary data, not a demonstration volume. |
+| Failure and recovery cases | Passed schema/reference/authority rejection; same-key duplicate and competing approval checks; changed recipients/package/membership; forced release-audit failure rolling back all writes; restart with an unused approval and with a test-created release; v1 migration preservation and seed non-overwrite checks. |
+| Lost browser response | Server commits release, browser response is deliberately aborted, then retry returns the same receipt. Exactly one release activity entry and one recipient inbox item remain; non-recipient inbox stays empty. |
+| Five/ten engine bounds | Both contract sequences pass through start/approve/release/inbox using the same engine. These are repeated engineering entries, not authored scenario, response, branching or final-acceptance evidence. |
+| Visual review | Inspected seven screenshots: profile desktop/mobile, technical release desktop/mobile, participant inbox mobile, operational desktop/mobile. New screens were checked at 1440x1080 and 390x844; overflow/action-overlap assertions passed. Captures remain ignored under `test-results/release-skeleton/`. |
+| Fresh local runtime | `TTX_PORT=3010`, `docker compose -p ai-ttx-release-preview-10f9 up --build -d --wait` created a separate volume and healthy loopback-only runtime. Host `/healthz` returned `status: ok`, `aiEnabled: false`. No prior demonstration volume was used or deleted. |
+| Documentation and scope | Strict UTF-8, final-newline, trailing-whitespace, paired-fence and local-link checks passed across nine Markdown files and 123 links. Only the two known historical source links remain unavailable. `git diff --check` passed. No semantic changes to package versions, Docker/Compose configuration or the historical profile fixture. |
+
+Corrections during verification: initial type checks caught callback/narrowing issues and a possibly absent test access code; they were corrected without relaxing schemas/tests. The first browser run passed the three profile tests but failed two exercise tests because worker config regenerated the exercise data-directory UUID. Reusing the inherited environment value fixed the harness; the complete rerun passed. The earlier CRLF formatting failure and fix are recorded in the preceding preparation-test handover. No test was weakened to manufacture a pass.
+
+The local preview is [localhost:3010](http://localhost:3010), Compose project `ai-ttx-release-preview-10f9`. Retrieve its local codes with `docker compose -p ai-ttx-release-preview-10f9 exec app node dist/server/show-access.js`. It intentionally starts with fresh data, separate from browser-test state. Stop it with `docker compose -p ai-ttx-release-preview-10f9 stop`; preserve its data volume. This is a local preview, not public deployment.
+
+Deferred to the next run: pause/submission policy; TASK-001D and remaining E; OPEN-11's incident family/objectives and reviewed five-inject package/role assignment; input format and controlled threat content; provider/account/isolation/usage decisions for TASK-002; baseline AAR/evaluation details. Do not borrow the pending coaching/readiness specifications as baseline blockers. No operational scenario, branch rules, grading thresholds, AI success or completed Form B milestone is claimed.
+
+Figma and local diagram files were not changed. Their historical coaching/readiness designs remain explicitly labelled as references, not the new baseline specification or screenshots. Reconcile relevant figures when the reviewed five-inject flow is settled; do not present the historical retry screen as implemented. No original reference document, credential, runtime database or screenshot belongs in the publication. The detailed Git commit and final response identify the pushed branch and commit for the user's progress report.
+
+Publication preparation uses branch `codex/form-b-release-operational-skeleton`, a scoped source/docs/configuration allowlist and ignore checks for references, tokens, both demo-code files and browser output. The two disposable browser-test containers were removed after screenshot inspection; their databases were not mounted outside those containers. The intentionally running preview retains its separate volume. No teammate message or credentials were sent.
 
 ## Planning handover — 15 September 2026
 
@@ -288,3 +353,29 @@ Normal Git authentication fetched origin without reading credential files. The p
 Application code, tests, fixture, dependencies, diagrams and runtime data are unchanged; runtime tests were not rerun. No deployment, live provider integration, full plan library, scenario package or learning objectives are claimed complete. No credentials, real organisation records, original reference archives or local verification helpers are included.
 
 Resume with OPEN-11: agree the incident family and learning objectives, then select relevant role detail and derive the needed topology/plan extracts. Ransomware disrupting project delivery is a recommendation for discussion, not an accepted scenario. Keep technical RACI, readiness/grading details, branch rules and AAR inputs pending review. Independent engineering work remains TASK-001C. Work stops after this publication; no automatic next-day run is scheduled.
+
+## Form B priority and parallel-work handover - 4 October 2026
+
+The user made Form B authoritative, deferred additional features until it is implemented, requested an operational skeleton for the other worker's parallel development, and clarified that five initial injects may precede expansion to ten. Recorded ADR-021, mapped all twelve Form B objectives and relevant scope/deliverables in PROJECT, revised the milestone order and TASK-002/003 scope, added TASK-005's bounded skeleton acceptance, and aligned architecture, QUALITY, README and repository instructions. Marked the research note's predefined-only recommendation as historical. Existing content and diagrams are preserved; diagrams are labelled as historical in their accompanying documentation rather than claimed current.
+
+The source was initially absent from the checkouts. After the user supplied it in the primary checkout's `references/` folder, read the DOCX body/table paragraphs through structured OOXML extraction and recorded its SHA-256 in PROJECT. Form B explicitly requires controlled threat/pathway mapping and package generation, as well as response interpretation and approved-branch recommendation. ADR-021 therefore supersedes ADR-018's removal of generation; prepared fixtures remain appropriate for deterministic development. Five is the authorised first playable count; ten, 3-4 roles, three decision points and the rest of FB-01-12 remain final acceptance. Coaching and extra readiness machinery are deferred, not ordinary guided questions, evaluation criteria or human approval.
+
+Verification: inspected the existing contracts, API, storage, UI and deterministic/browser tests; reviewed the scoped documentation diff. `git diff --check` passed. Inline PowerShell checked all eight changed Markdown files for strict UTF-8, final newlines, trailing whitespace, paired fences and 85 local links/anchors with no new broken links. Two unavailable historical references remain (supervisor slides and research guide); the former missing root-level Form B link was replaced with its verified local reference location. `git check-ignore -v` in the primary checkout confirms Form B is excluded by `/references/`. No source document or its personal/contact/signature details were copied into Git.
+
+`git diff --name-only HEAD -- src tests scripts package.json package-lock.json Dockerfile compose.yaml` returned no changes. No runtime tests were rerun because this is a source-grounded planning/documentation update, not implementation or fresh runtime verification. No dependency, database, fixture, provider call, external message, commit, push or deployment changed. TASK-001A/B remain the implemented checkpoint; the next coding scope is TASK-001C coordinated with the operational skeleton, then responses/recovery and five-inject play. Further feature work has not started in this turn.
+
+## Synthetic verification and Step 0 clarification - 4 October 2026
+
+The user authorised synthetic testing and clarified a tier 3-5 audience with basic incident contacts and responsibilities understood before play. Added ADR-022 and REQ-020, a bounded Step 0 preparation requirement, its planned integration and acceptance checks. It is not a sixth inject, certification assessment or additional readiness engine. Rechecked CSA's currently linked Cyber Trust and Cyber Essentials (2025) publications, including visual inspection of the relevant tier/incident-response tables; source mapping is in architecture. Basic response roles/escalation are foundational, while explicit contact verification appears at tier 3. A missing answer or document does not itself establish certification failure.
+
+The authored organisation has contact/escalation context but also deliberate stale records, missing cover and unrehearsed arrangements. Preserved those facts and the separate immutable app fixture. The current test run uses the app's `example-sme-01` / `profile-r1` fixture, not an imported `org-draft-0.3` company or an implemented Step 0. TASK-001A/B remain the runtime checkpoint.
+
+Executed on Docker Desktop's Linux engine with the pinned Node 24.19.0 image:
+
+- Started the stopped Docker Desktop engine. The first `docker build --target browser-tests -t ai-ttx-browser-tests:step0-20261004 .` failed at Prettier: Windows CRLF checkout conversion affected 25 checked files, before lint/types/tests could run. This was a real failed check, not a test success.
+- Added `.gitattributes` with LF text checkouts, consistent with `.editorconfig` and Prettier. Mechanically normalised 27 tracked build inputs locally, plus the eight already-modified Markdown files. Git reports no content diff in source, tests, scripts or build configuration; no formatter rule or test was weakened. `git check-attr text eol` confirms the policy for source, browser tests, Compose and documentation. Git status may still list the line-ending-only inputs while the new attributes file is untracked; no files were staged.
+- Re-ran the same Docker build successfully. Its uncached verify stage passed `npm run check`: formatting, lint, types, all 17 deterministic contract/API/persistence tests and both production builds. Dependency versions and the lockfile did not change.
+- `docker run --name ai-ttx-step0-browser-20261004-10f9 --network none ai-ttx-browser-tests:step0-20261004` passed all three Playwright tests: facilitator evidence/filter/confirmation/reload/activity, participant UI/direct-API exclusion and safe sign-in errors. The test container used temporary synthetic data, no host port or volume, and no live AI.
+- Copied the test screenshots to ignored `test-results/` and visually inspected desktop (1440 x 1080 viewport) and mobile (390 x 844 viewport). Evidence/unknown/conflict labels and controls are legible; browser overflow/row-overlap assertions and page-error checks passed. Removed the completed test container; no demonstration database or credentials were used or changed.
+
+Reviewed the scoped diff and documentation links/encoding/whitespace. Checks passed across eight Markdown files and 89 local links/anchors. `git diff --check` passed; the two previously unavailable historical architecture references remain, with no new broken links. No commit, push, deployment, real notification or provider integration occurred. Figma and local diagrams are unchanged and remain historical as labelled in architecture. Approval/release, Step 0, five-inject play, AI, AAR and the operational skeleton are still unimplemented and have no runtime test evidence from this run. Continue with TASK-001C and TASK-005, preserving the five-then-ten Form B sequence.

@@ -1,12 +1,19 @@
 import { Ajv } from 'ajv';
 import { default as addFormatsImport } from 'ajv-formats';
 import { ProfileSchema, type Profile } from '../contracts/profile.js';
+import type { TSchema, Static } from '@sinclair/typebox';
 
 const ajv = new Ajv({ strict: true, coerceTypes: false, removeAdditional: false });
 // CommonJS interop differs between the browser/test and NodeNext compiler targets.
 const addFormats = addFormatsImport as unknown as (instance: Ajv) => void;
 addFormats(ajv);
 const validate = ajv.compile<Profile>(ProfileSchema);
+
+export function readStored<T extends TSchema>(schema: T, value: unknown): Static<T> {
+  const check = ajv.compile<Static<T>>(schema);
+  if (!check(value)) throw new Error('Invalid stored exercise schema.');
+  return value;
+}
 
 export function readProfile(value: unknown): Profile {
   if (!validate(value)) throw new Error('Invalid stored profile schema.');

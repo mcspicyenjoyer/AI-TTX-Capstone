@@ -10,6 +10,7 @@ import {
   CircleHelp,
   FileText,
   Fingerprint,
+  Inbox,
   ListFilter,
   LoaderCircle,
   LockKeyhole,
@@ -33,6 +34,7 @@ import {
 } from '../contracts/profile.js';
 import { ApiError, request, signOut } from './api.js';
 import './style.css';
+import { ExerciseWorkspace } from './exercise-workspace.js';
 
 type Status = ProfileView['profile']['statements'][number]['status'];
 const statusLabels: Record<Status, string> = {
@@ -59,7 +61,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [tab, setTab] = useState<'profile' | 'activity'>('profile');
+  const [tab, setTab] = useState<'profile' | 'activity' | 'exercises'>('profile');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [status, setStatus] = useState('all');
@@ -72,10 +74,16 @@ function App() {
     setActivity([]);
     setAcknowledged(false);
     setExpanded(new Set());
-    if (currentActor.role !== 'facilitator') return;
+    if (currentActor.role !== 'facilitator') {
+      setTab('exercises');
+      return;
+    }
     const profiles = await request(ProfileListSchema, '/api/profiles');
     const selected = profiles[0];
-    if (!selected) return;
+    if (!selected) {
+      setTab('exercises');
+      return;
+    }
     const [snapshot, events] = await Promise.all([
       request(
         ProfileViewSchema,
@@ -258,7 +266,7 @@ function App() {
         <div className="workspace">
           <nav className="sidebar" aria-label="Workspace">
             <p className="nav-heading">PREPARATION</p>
-            {actor.role === 'facilitator' ? (
+            {actor.role === 'facilitator' && view ? (
               <>
                 <button
                   className={tab === 'profile' ? 'nav-item selected' : 'nav-item'}
@@ -275,12 +283,14 @@ function App() {
                   Activity
                 </button>
               </>
-            ) : (
-              <div className="nav-item selected">
-                <LockKeyhole size={18} />
-                Participant workspace
-              </div>
-            )}
+            ) : null}
+            <button
+              className={tab === 'exercises' ? 'nav-item selected' : 'nav-item'}
+              onClick={() => setTab('exercises')}
+            >
+              <Inbox size={18} />
+              {actor.role === 'participant' ? 'Participant workspace' : 'Exercises'}
+            </button>
             <div className="sidebar-bottom">
               <span className="status-dot" />
               AI disabled<span>Synthetic data only</span>
@@ -301,13 +311,8 @@ function App() {
                 </button>
               </div>
             )}
-            {actor.role === 'participant' ? (
-              <section className="empty-state">
-                <LockKeyhole size={32} />
-                <h1>Participant workspace</h1>
-                <p>No exercise content is available.</p>
-                <span className="muted">Organisation review is restricted to the facilitator.</span>
-              </section>
+            {actor.role === 'participant' || tab === 'exercises' ? (
+              <ExerciseWorkspace key={actor.id} actor={actor} />
             ) : !view || !profile ? (
               <section className="empty-state">
                 <FileText size={32} />

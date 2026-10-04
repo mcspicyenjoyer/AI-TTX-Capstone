@@ -2,9 +2,11 @@
 
 ## Baseline integration — 15 September 2026
 
-This remains the canonical architecture document. TASK-001A/B now implement the bounded Docker-first scaffold and synthetic profile confirmation. Verification results belong in WORK; the remaining exercise, AI, parsing and reporting components are planned.
+This remains the canonical architecture document. TASK-001A/B/C implement the bounded Docker-first profile and release workflow; TASK-005 adds an operational development entry. Verification results belong in WORK. Response capture, full completion, reviewed multi-inject content, AI, parsing and reporting remain planned.
 
 Use [PROJECT](PROJECT.md) for working requirements and environment constraints, [DECISIONS](DECISIONS.md) for accepted versus proposed choices, [QUALITY](QUALITY.md) for verification criteria and [WORK](WORK.md) for actual state. Historical research and technology recommendations below do not establish current approval or installation.
+
+Current delivery rule, 4 October 2026 (ADR-021): Form B controls scope. Prove the deterministic loop, deliver five injects first, then expand to ten and complete the remaining mapped Form B outcomes before extra features. Build the operational development skeleton in parallel. Profile-grounded package generation and approved-branch recommendation are required baseline capabilities; the earlier predefined-only authoring choice cannot replace generation. The coached/readiness-expanded workflow and diagrams below are historical extension designs, not baseline prerequisites.
 
 The first slice uses a synthetic profile and prepared inject. Build only the profile/definition, approval/release, participant projection, response and durable activity boundaries it needs. Intake workers, AI coordination, retrieval and reporting come later; no speculative module directories are needed now.
 
@@ -12,7 +14,7 @@ The separate [organisation package](organisation/example-sme-01/README.md), auth
 
 ### Shared contract and release design
 
-The initial scaffold uses application-owned TypeBox JSON Schemas with inferred TypeScript types, strict AJV validation on the server, interpreted TypeBox validation in the browser (without weakening CSP) and explicitly projected API responses. Only profile read/confirmation, identity and profile activity are implemented in TASK-001A/B; release/run contracts remain later work.
+The scaffold uses application-owned TypeBox JSON Schemas with inferred TypeScript types, strict AJV validation on the server, interpreted TypeBox validation in the browser (without weakening CSP) and explicitly projected API responses. [Profile contracts](../src/contracts/profile.ts) and [exercise contracts](../src/contracts/exercise.ts) cover identity, profile confirmation, track-bound packages/runs, preparation, approval, release, recipient briefing/inbox and activity. No supplied schema, expression or generated code is executed.
 
 During scaffolding, define executable schemas once in an application-owned contracts module. UI, API, persistence mapping and future AI parsing consume or derive from that source. Section 6 is a conceptual inventory, not an executable schema.
 
@@ -20,9 +22,15 @@ Specify stable IDs and immutable profile/definition/inject revisions; run and me
 
 Release checks authority, run state, definition membership, eligibility, content revision and recipients in the authoritative transaction. Approval, release, inbox and activity changes commit consistently. A repeated successful idempotency key returns its existing result; reuse with different content fails. Concurrent requests check expected run revision. Participant projections exclude private material server-side. Restarted interrupted runs remain paused until explicitly resumed.
 
+Current implementation (ADR-023): [ExerciseService](../src/server/exercise-service.ts) owns application rules; [ExerciseStore](../src/server/exercise-store.ts) uses the existing SQLite connection/transaction boundary. Additive schema v2 preserves v1 profile data and adds immutable packages, runs/memberships, preparation, approvals, releases/recipient links, command receipts and ordered activity. Startup seeds missing fixtures only and pauses active runs with a system recovery event. It never restores removed memberships or overwrites a stored package. One local application process owns a data volume; opening a second application instance against the same volume is unsupported.
+
+Every new mutation checks the session-derived actor and run membership, package/track binding, expected run revision and command payload. Approval records the package/inject hashes and revisions, exact recipients, assignment fingerprint and resulting run revision. Release revalidates them and current profile/preparation in the same immediate transaction as the receipt, recipient links, activity and command result. Database uniqueness also prevents a second release for the same run/inject. A successful exact-key retry returns the historical receipt, even after pause/restart, without performing a new release; membership is still required. Pause/resume/recovery invalidate unused approvals by advancing the run revision. No completion command or response-dependent progression is implemented.
+
+Participant briefing allows only common context/references and that participant's role. Inbox selection is restricted in SQL to assigned release recipients, then explicitly projected without approvals, hashes, recipient lists, future injects or private notes. An inbox receipt means content is available, not that anybody viewed it, contacted a supplier or performed a real action. The UI preserves an uncertain mutation's original payload/key for retry; after a full page reload, refresh authoritative state rather than assuming a failed HTTP response means no write occurred.
+
 ### Exercise-based implementation ownership
 
-Updated under ADR-012, ADR-014 and ADR-015. [PROJECT](PROJECT.md#ownership-and-exercise-scope) owns the assignment: the user implements the technical exercise end to end; the other worker handles the operational exercise. Both are workstreams of the TTX Platform, whose title, sign-in and shared interface branding are track-neutral. The current single-application scaffold supports the technical workstream; an explicit "Track: Technical" context label is not the product name. Operational implementation and shared integration contracts still need agreement; do not add a nonfunctional track selector or claim operational support. ADR-006/007 cover the local Docker scaffold; WORK records installed and tested behaviour.
+Updated under ADR-012/014/015/021/023. [PROJECT](PROJECT.md#ownership-and-exercise-scope) owns the assignment: the user implements the technical exercise end to end; the other worker handles the operational exercise. Both use the track-neutral TTX Platform application. The assigned-exercise selector displays only server-authorised runs; technical and operational content are separate modules behind the shared contracts and engine. The [operational handoff](operational-handoff.md) identifies current entry points and ownership. A runnable development fixture is not a complete operational exercise. ADR-006/007 cover the local Docker scaffold; WORK records installed and tested behaviour.
 
 | Technical area / owner | Responsibilities | Suggested locations once needed |
 | --- | --- | --- |
@@ -32,11 +40,34 @@ Updated under ADR-012, ADR-014 and ADR-015. [PROJECT](PROJECT.md#ownership-and-e
 
 These paths are a proposed minimal layout, not directories to create in advance. Frontend and backend remain separate application boundaries despite having one owner. Backend-only profile evidence and facilitator records must not be bundled into participant-facing types or payloads. Share contracts between layers, not server implementation or secrets.
 
-The user coordinates technical root package configuration, lockfile and contract changes. Integrate one behaviour at a time. Frontend mocks use the same reviewed synthetic examples and schemas as backend checks; mocks are not evidence that permissions or persistence work. Run a real browser-to-server check at every checkpoint. If cross-workstream collaboration is agreed later, define the exact shared artefacts and interface ownership first, use separate Git checkouts/branches and local test data, and do not edit the same synchronised working directory from two machines.
+The user coordinates root package configuration, lockfile and shared contract changes. Integrate one behaviour at a time. Frontend mocks use the same reviewed synthetic examples and schemas as backend checks; mocks are not evidence that permissions or persistence work. Run a real browser-to-server check at every checkpoint. For the operational handoff, define the exact shared artefacts and interface ownership first, use separate Git checkouts/branches and local test data/volumes, and do not edit the same synchronised working directory from two machines.
+
+### Operational development skeleton
+
+Implemented design under ADR-021/023; acceptance and implementation status belong to [TASK-005](WORK.md#task-005---operational-development-skeleton). This is the smallest runnable integration boundary for parallel development, not a second application or a full operational exercise.
+
+- Reuse the current React/Fastify/TypeBox/SQLite/Docker stack and identity boundary. Add only the composition points actually used by the operational entry and the first technical run. Do not create a generic plugin framework or empty future modules.
+- Agree an application-owned track identifier (`technical` or `operational`) on package/run contracts as they are introduced. A run binds its package and track; validate this server-side. Profile facts remain reusable organisation context, not overwritten when a different track is selected. A URL or client-selected track does not grant access.
+- Keep general revision/approval/release, recipient projection, response, activity and lifecycle rules shared as TASK-001 implements them. Track-specific content, expected actions and later rules stay in clearly owned modules. Technical constants must not become default operational requirements.
+- Supply one explicitly synthetic development fixture and a server-backed read/validation path exposed through the operational entry. It tests integration, not exercise realism or approval. Keep unimplemented play actions unavailable rather than returning fabricated success. Each supported shared operation needs access and track-binding tests before exposure.
+- Sequence length belongs to the reviewed package. The first playable technical package has five inject positions and the later target has ten. Validate the applicable milestone/package bounds; no global exactly-five completion check or mandatory two-answer state machine.
+- Handoff records the entry points, executable schema examples, extension/test locations, shared-file ownership, startup commands and limitations. The other worker owns operational content and track-specific behaviour, using independent branches/checkouts and private local data. Coordinate shared schema/migration changes instead of duplicating them.
+
+The [operational fixture](../src/server/operational-fixture.ts) binds `operational-development/package-r1` to `operational-dev-01`. A separately generated `operational` demo identity has membership only in that run and no profile-review membership. Its review route returns validated synthetic development context; `kind: development-skeleton`, an explicit hold and zero injects make it non-playable at both UI and service boundaries. The technical fixture and its private notes are not returned. Fixtures are server-side, never imported into the browser bundle. This implementation adds no provider, dependency or deployment selection.
+
+### Step 0 - Baseline preparation
+
+Design under ADR-022/023 and [REQ-020](PROJECT.md#step-0---baseline-preparation), implemented only for the bounded engineering fixture. Keep the short briefing within package/run preparation rather than adding a separate readiness service. Reuse reviewed profile/reference facts and role assignments; present common context and recipient-specific reference material through server-side projection. Do not reveal author-only gaps or evaluation material to every participant.
+
+The package binds the profile revision/hash, briefing revision, common references, role briefings and gap dispositions. Start requires the exact current confirmed profile, reviewed package and assignment hashes, explicit briefing/gap/simulation acknowledgements, no hold and an assignment for every defined role. Its durable preparation record stores actor, time and those hashes; start/activity commit together. Recheck preparation before approval, release and resume. A changed package or assignment fails closed; a new revision/run and review are needed because in-place preparation editing is not exposed. Profile confirmation alone is not that record. Briefing does not approve an inject, verify that a real contact answered or alter the five/ten-inject count. No automated CTM score, contact-dialling integration or additional provider is needed.
+
+Standards checked on 4 October 2026 against CSA's current linked publications: [Cyber Trust (2025)](https://isomer-user-content.by.gov.sg/36/2cff8d23-0f79-4477-9629-377d3bccbcaf/cyber-trust-v202504.pdf), pp. 6 and 106-108, identifies Supporter, Practitioner, Promoter, Performer and Advocate as tiers 1-5. B.21.1/2 reference Cyber Essentials A.9 requirements/recommendations; B.21.3 adds contact verification at Promoter. B.21.4 concerns exercises, B.21.5 post-exercise/incident improvement, and B.21.7/8 crisis integration and senior-management reporting. [Cyber Essentials (2025)](https://isomer-user-content.by.gov.sg/36/47c6066b-71a7-449f-82e0-e8cf10ee126f/cyber-essentials-v202504.pdf), A.9.4(a/b), pp. 45-47, already requires a basic response plan with roles and escalation communications, communicated to employees. This supports the expected foundation, not an automatic tier-failure inference from an unanswered exercise question or missing upload.
+
+The authored pack's current SOC contact record and stale printed duty card are distinct facts. Preserve them and missing/rehearsal evidence until reviewed for the selected scenario; do not relabel the fixture as having passed lower tiers. The engineering briefing explicitly uses a controller to represent the incident lead, cover and suppliers for a delivery check only. It neither imports `org-draft-0.3` nor resolves the historical profile's uncertain facts. Reviewed scenario-specific starting arrangements remain work for the five-inject baseline.
 
 ### Screen storyboard - 20 September 2026
 
-Historical screen concepts: ADR-016 supersedes this storyboard's intake-before-track preparation order. For the current journey use the [revised workflow](diagrams/ttx-five-inject-workflow.svg): establish exercise intention before detailed intake, then review/refine the plan and readiness before package preparation. The nine screens and their existing Figma copy are retained for layout reference, not as the current navigation specification. Their redesign will use the user's forthcoming readiness specification; no Figma update is implied by a local planning change.
+Historical screen concepts: ADR-016 superseded this storyboard's intake-before-track preparation order; ADR-021 now gates both designs to Form B. The [five-inject workflow](diagrams/ttx-five-inject-workflow.svg) includes deferred coaching/readiness features and has not been reconciled with the new milestone sequence. Use PROJECT for the current five-then-ten baseline. These screens and their Figma copy are layout references, not the current navigation specification or an extra readiness-specification prerequisite. No Figma update is implied by a local planning change.
 
 The [editable Excalidraw storyboard](diagrams/ttx-screen-concepts.excalidraw), [SVG](diagrams/ttx-screen-concepts.svg) and [PNG preview](diagrams/ttx-screen-concepts.png) show nine desktop screen concepts for the TTX Platform. An [editable Figma copy](https://www.figma.com/design/4oCPzxBPHnEpsp4qRz2YV3?node-id=1-2) in 2301777's team preserves the imported text/vector layers; changes there do not automatically update the local scene or exports. These are design artefacts, not screenshots, implemented navigation or approval of new requirements. The proposed shared sidebar is not present in the current application. WORK records verification, earlier integration failures and the successful upload.
 
@@ -79,29 +110,32 @@ Documentation basis: [Docker Compose](https://docs.docker.com/compose/gettingsta
 
 ### Browser API contract
 
-The [shared schemas](../src/contracts/profile.ts) now define the TASK-001A/B identity and profile boundary. This is the internal frontend/backend boundary, not an API handoff to the operational worker. Identity and profile routes below are implemented; release, run inbox/responses/activity and AI routes remain sketches for later checkpoints. The frontend talks only to the TTX API. The server derives the actor from its session; request bodies cannot select authority.
+The [profile schemas](../src/contracts/profile.ts) and [exercise schemas](../src/contracts/exercise.ts) define the implemented internal frontend/backend boundary shared by both workstreams. Routes below are implemented unless marked planned. The frontend talks only to the TTX API. The server derives the actor from its session; request bodies and track labels cannot select authority. Executable examples and ownership are in the [operational handoff](operational-handoff.md).
 
-| Checkpoint | Route sketch | Contract purpose |
+| Checkpoint | Route | Contract purpose |
 | --- | --- | --- |
 | Identity | `POST /api/session`, `DELETE /api/session` | Validate generated access code or revoke the current session |
-| Profile | `GET /api/me` | Current demonstration identity; no exercise memberships are implemented yet |
+| Profile | `GET /api/me` | Current demonstration identity; run authority is checked separately |
 | Profile | `GET /api/profiles` | Profiles the authenticated facilitator may review |
 | Profile | `GET /api/profiles/:profileId/activity` | Authorised profile confirmation activity |
 | Profile | `GET /api/profiles/:profileId/revisions/:revisionId` | Authorised profile review projection with explicit unknowns |
 | Profile | `POST /api/profile-confirmations` | Confirm an exact profile revision; return durable confirmation |
-| Release | `POST /api/runs/:runId/approvals` | Approve exact reviewed inject revision and recipients against expected run revision |
-| Release | `POST /api/runs/:runId/releases` | Release with approval reference, expected run revision and idempotency key |
-| Participant | `GET /api/runs/:runId/inbox` | Only releases accessible to the authenticated participant |
-| Participant | `POST /api/runs/:runId/responses` | Record agreed response referencing an accessible release |
-| Activity | `GET /api/runs/:runId/activity` | Facilitator activity projection with ordered event IDs and pagination |
-| Historical AI experiment; superseded for current draft by ADR-018 | `POST /api/ai/inject-proposals` | Earlier generation-job sketch; not the next implementation contract |
-| Proposed AI experiment; re-scope under ADR-018 | `GET /api/ai/jobs/:jobId` | Earlier job-status sketch; output contract awaits the reviewed replacement checkpoint |
+| Exercises | `GET /api/tracks/:track/runs` | Assigned runs only; at most 100 |
+| Review | `GET /api/tracks/:track/runs/:runId/review` | Facilitator package, membership, hashes, preparation, current approval and releases |
+| Preparation/lifecycle | `POST /api/tracks/:track/runs/:runId/start`, `.../pause`, `.../resume` | Revision-checked, idempotent facilitator commands; start includes Step 0 acknowledgements |
+| Release | `POST /api/tracks/:track/runs/:runId/approvals` | Approve exact reviewed inject revision and recipients against expected run revision |
+| Release | `POST /api/tracks/:track/runs/:runId/releases` | Release with approval reference, expected run revision and idempotency key |
+| Participant | `GET /api/tracks/:track/runs/:runId/briefing`, `.../inbox` | Role-appropriate starting context and accessible released content only |
+| Participant / planned | Response route not yet specified | Record agreed actions, rationale and information requests referencing an accessible release |
+| Activity | `GET /api/tracks/:track/runs/:runId/activity` | Latest 100 facilitator-visible events in ascending sequence; full history remains in storage, pagination not implemented |
+| Historical AI route sketch; generation required by ADR-021 | `POST /api/ai/inject-proposals` | Baseline needs package generation; exact job/input/output contracts remain to be specified |
+| Proposed AI job interface | `GET /api/ai/jobs/:jobId` | Output contract awaits the reviewed baseline feasibility checkpoint |
 
-Use a consistent safe error envelope with a stable code, user-facing message and optional field errors. Specify unauthenticated, forbidden, validation and stale-revision conflicts in contracts. Duplicate release retries with the same payload return the original result; key reuse for different content is a conflict. List/read routes for reviewing definitions and approvals, and lifecycle commands, must be specified in their checkpoint before their screens depend on them. This is not the complete MVP API.
+Use the safe `{ error: { code, message } }` envelope. Unauthenticated requests return 401, forbidden membership/role 403, invalid inputs 400 and stale/bound-state conflicts 409; internal details are not exposed. Duplicate successful command retries return the original result; key reuse for different content is a conflict. Lifecycle completion, editing, response and AI contracts must be specified in their checkpoints before their screens depend on them. This is not the complete MVP API.
 
 ### Proposed Codex adapter experiment
 
-Authoring clarification, 27 September 2026 (ADR-018): the current draft uses a predefined reviewed package, not environment-to-inject generation. The generation-specific API sketch above and experiment details below are retained as earlier proposals, not the next implementation contract. Re-scope TASK-002 around reviewed assessment/coaching or eligible-variant recommendations before implementing it; provider details require fresh verification at that time.
+Scope correction, 4 October 2026 (ADR-021): Form B requires both profile-grounded package generation and response interpretation/approved-branch recommendation. TASK-002 first proves one bounded operation after the deterministic loop; success there does not complete both capabilities. The earlier API sketches and provider details below remain proposals requiring fresh verification before implementation. Coaching is not a baseline prerequisite, and no live provider is newly approved by this planning update.
 
 Intended adapter boundary: facilitator UI -> TTX API -> bounded AI job -> backend adapter -> validated proposal -> facilitator review. The existing approval/release transaction remains the only path to participant inbox availability. A Codex tool approval is never a TTX release approval.
 
@@ -121,13 +155,13 @@ Application design to prove in the experiment:
 
 ### Five-inject coached workflow - 18 September 2026
 
-Status: confirmed planning direction under ADR-013/016, extended on 24 September 2026 by ADR-017 for bounded adaptive injects; not implemented behaviour. [PROJECT](PROJECT.md#first-exercise-draft) owns the five-inject first-draft rules. The one-inject engineering slice, five-inject exercise draft and longer-term 10-15-entry target are distinct milestones. TASK-001's deterministic first slice and exact-revision release approval remain intact.
+Status: historical combined design under ADR-013/016/017, not implemented. ADR-021 retains five as the first playable count, followed by ten, but defers coaching and additional readiness machinery. [PROJECT](PROJECT.md#first-exercise-draft) owns the current intermediate scope. The detailed coached flow below is not a baseline prerequisite. TASK-001's deterministic first slice and exact-revision release approval remain intact.
 
 [Editable Excalidraw diagram](diagrams/ttx-five-inject-workflow.excalidraw), [SVG](diagrams/ttx-five-inject-workflow.svg) and [PNG preview](diagrams/ttx-five-inject-workflow.png).
 
-The diagram shows five injects per selected exercise track within the TTX Platform, not five technical plus five operational in one run. The user retains technical frontend/backend ownership; the other worker retains operational ownership. The common product framing does not establish implemented track selection or cross-workstream integration. Technical package preparation waits for the supplied RACI, assessment rubric, risk/threat references and detailed AAR template to be reviewed. All organisation/exercise content is synthetic throughout the prototype. ADR-018 now replaces the diagram's AI-drafting assumption with predefined package preparation; the 24 September diagram has not been redrawn for this clarification.
+The diagram shows five injects in one track, not a mixed-track run. It has not been redrawn for ADR-021: its mandatory coaching and expanded readiness stages are deferred, while Form B's generation requirement is restored. Review baseline role assignments, expected actions/evaluation criteria and branch content before use, but do not make the additional coaching rubric or readiness engine a dependency. All organisation/exercise content remains synthetic. The operational skeleton is a separate parallel handoff, not implemented support inferred from the diagram.
 
-Planned flow:
+Historical extended flow, subject to the scope gate above:
 1. An authorised planner establishes purpose, one track, intended audience and initial scope. Both technical and operational product tracks remain discussion-based TTXs. Detailed operational requirements and integration still need agreement.
 2. Reuse a reviewed organisation profile, provide supported synthetic documents, answer guided questions, or combine these. Source categories should cover network context, IRP/playbooks, inventory and relevant continuity/recovery material when their contracts are implemented. No particular file title is a universal prerequisite. Exercise participants need not have upload or profile-confirmation authority.
 3. AI proposes source-linked information and targeted questions against the selected objectives. A human reviews facts, assumptions, conflicts and unknowns. Include relevant business services, assets/data, dependencies, impact and the SOC/MSSP operating model. Reuse shared facts; keep exercise assumptions separate. Asset criticality requires reviewer confirmation.
@@ -152,19 +186,19 @@ Positioning: support exercise practice and review evidence relevant to Cyber Tru
 
 ### Bounded adaptation design - 24 September 2026
 
-Planning under ADR-017 and [REQ-018](PROJECT.md#bounded-adaptive-injects); no branch engine or contracts are implemented. Preserve the five-position participant experience and the approved learning objectives across all permitted paths. Adapt the scenario consequences and later information, not the objectives or assessment standards to make an answer pass.
+Planning under ADR-017/021 and [REQ-018](PROJECT.md#bounded-adaptive-injects); no branch engine or contracts are implemented. Approved-branch recommendation is Form B baseline scope, with three key decision points at final acceptance. Preserve the reviewed package's position count (initially five, later ten), learning objectives and consequences across permitted paths. Adapt later information, not objectives or assessment standards to make an answer pass. Coaching-specific progression remains deferred.
 
-1. During preparation, review a small set of variants at selected inject positions. Each records its intended objective, eligible preceding state/response conditions, consequences and route to later positions. Validate that every permitted complete path reaches all required learning opportunities and closure without cycles, extra injects or unrelated events. Exact branch points, maximum alternatives and content remain pending package design.
-2. Close the current inject under the two-answer rule before selecting the next variant. Build AI context from the immutable profile/package, previous released variants, initial/final responses, assessments and scenario consequences. The recorded final response informs progression; earlier evidence remains available and a grading label alone cannot establish an action. Distinguish proposed tabletop decisions and simulated consequences from actions observed on real systems.
+1. During preparation, review a small set of variants at selected inject positions. Each records its intended objective, eligible preceding state/response conditions, consequences and route to later positions. Validate that every permitted complete path reaches all required learning opportunities and closure within the reviewed package's count, without cycles or unrelated events. Exact branch locations, alternative limits and content remain pending package design.
+2. Record the agreed response and facilitator progression decision before selecting the next variant. Build AI context from the immutable profile/package, released variants, recorded responses, interpretations and scenario consequences. The response informs progression; a grading label alone cannot establish an action. Distinguish tabletop decisions and simulated consequences from actions observed on real systems. Do not impose the deferred two-answer coaching rule.
 3. The application determines eligible alternatives. AI recommends a candidate with response evidence and rationale, or abstains; the facilitator confirms the choice. Persist the selection, conditions/evidence used, human decision and revisions. Exact-content, recipient and run-state checks still apply at release. A retry or restart must not select or release a second variant for the same position.
 4. Reconnect branches at common exercise stages using state-consistent variants. Retain impacts and unresolved issues in later injects and the AAR. If no reviewed variant fits an unexpected response, pause for review; do not invent a new live branch, force a correct answer or silently reset the incident. Material content/scope changes require revised package review and fresh release approval.
 5. On AI failure or uncertainty, the facilitator can select an eligible reviewed alternative with a recorded reason, or pause. Evaluation uncertainty remains visible and does not become an automatic failure, recovery or progression. Participant views expose only released material, never the alternative graph or private grading evidence.
 
-The AAR records the actual path and its rationale alongside first-attempt/coached outcomes and unresolved findings. Compare criterion-level evidence with the path's learning opportunities; different consequences do not justify unqualified aggregate comparisons. See [QUALITY](QUALITY.md#bounded-adaptation-cases) for planned checks.
+The AAR records the actual path, rationale, response evidence and unresolved findings. Compare evidence with the path's learning opportunities; different consequences do not justify unqualified aggregate comparisons. First-attempt/coached outcome accounting belongs only to the deferred extension. See [QUALITY](QUALITY.md#bounded-adaptation-cases) for planned checks.
 
 ### ENISA adaptation and implementation boundaries - 22 September 2026
 
-Planning decision: ADR-016. Requirements: [PROJECT](PROJECT.md#exercise-preparation-and-review-flow). The user's detailed readiness specification remains pending. This section records structure and responsibility, not checklist criteria or an AI grading rubric.
+Planning reference: ADR-016, gated by ADR-021 and [PROJECT](PROJECT.md#exercise-preparation-and-review-flow). Use the methodology to inform required baseline preparation/review. The separate detailed readiness engine is deferred and its specification is not a baseline prerequisite. This section preserves the expanded design, not additional mandatory acceptance criteria.
 
 Reference: ENISA, *The ENISA Cybersecurity Exercise Methodology*, version 1.0, February 2026 ([official publication](https://www.enisa.europa.eu/publications/the-enisa-cybersecurity-exercise-methodology)). The supplied local copy is in the ignored references folder. Page numbers below are printed pages, one less than the PDF page index counted from one. This adaptation uses the lifecycle and objective/evidence relationships; it does not import EU duties, national-exercise staffing or planning-duration estimates as SME prerequisites.
 
@@ -197,7 +231,7 @@ Implementation map (all additions below remain planned):
 | `src/ui/main.tsx` | Add exercise intention ahead of detailed intake and separate confirmation/readiness displays in future checkpoints. Operational availability depends on agreed cross-workstream integration; do not add a working-looking unsupported route. |
 | Planned package/run/review features | Bind objective, inject, criterion and evidence IDs; preserve exact release approvals, two-attempt history, debrief attribution and action ownership. |
 
-The first next engineering checkpoint remains TASK-001C with a manually reviewed deterministic fixture. Full AI profiling, document ingestion and the readiness engine are separate dependent work. No broad schema expansion or runtime behaviour is implemented by this planning update.
+At the time of this historical planning update, the next checkpoint was TASK-001C. Current implementation and next work are recorded in WORK. Full AI profiling and document ingestion remain dependent baseline work; the additional readiness engine is now deferred under ADR-021. This historical methodology section is not runtime evidence.
 
 Diagram maintenance: `node docs/diagrams/generate-five-inject-workflow.cjs` regenerates the current editable Excalidraw scene and SVG from one layout definition. Its PNG is a rendered preview of that SVG. The attached Downloads SVG is a convenience copy; the repository workflow is the canonical diagram. The older screen storyboard/Figma copy and HTML component illustration are historical views and are labelled accordingly.
 
@@ -254,7 +288,7 @@ The model has no delivery credentials, database access, shell, production-system
 
 ## 2. Requirements baseline
 
-The supplied Form B is the primary working baseline, supported by the SME-focused slide content and research guide. This design does not establish that the proposal or technology choices have received formal supervisor approval.
+Form B is the authoritative delivery baseline under ADR-021, re-read from the user-supplied references folder on 4 October 2026. [PROJECT's source mapping](PROJECT.md#form-b-traceability) owns its requirements; the table below is an architectural summary. The user permits five initial injects before ten, not omission of generation, branching or other required outputs. Supporting slides/research do not override the brief or establish technology/deployment approval.
 
 | Project requirement | Architectural response |
 | --- | --- |
@@ -262,13 +296,14 @@ The supplied Form B is the primary working baseline, supported by the SME-focuse
 | One agreed diagram format, optional text-based BCP/BIA/DRP and guided questions | Format-specific parsers feeding a common source and candidate-fact model |
 | Assets, connections, services, roles, suppliers, RTO/RPO and exclusions | Versioned organisation profile with typed relationships and source references |
 | Missing information, conflicts, assumptions and user confirmation | Reconciliation workspace and explicit profile approval |
+| Controlled threat library, pathway mapping and draft package generation | Profile-grounded preparation separated from approved runtime content; no free-form live branches |
 | 10-15 MSEL entries, 3-4 functional roles, three decision points | Bounded scenario definition with approved alternatives and a shared main storyline |
 | Web delivery and agreed participant decisions | Role-specific inboxes plus actions, rationale and information-request submissions |
 | Approve, edit, reject, override, pause and manual continuation | Server-enforced state transitions and approval records independent of the model |
 | Draft AAR and improvement actions | Report generation from a fixed exercise-record snapshot with evidence references |
 | Controlled evaluation and school-safe demonstration | Synthetic reference pack, independent human labels, control tests and sanitised exports |
 
-Sources: [Form B](../GPT_ICT4011_Form_B_AI_Assisted_TTX.docx), [supervisor slides](../supervisor_AI%20TTX%20Idea.pptx), [research guide](../capstone_ttx_reference/AI_TTX_Research_Guide.md).
+Sources: local `references/GPT_ICT4011_Form_B_AI_Assisted_TTX.docx` (ignored and present in the primary checkout; identity recorded in PROJECT), [supervisor slides](../supervisor_AI%20TTX%20Idea.pptx), [research guide](../capstone_ttx_reference/AI_TTX_Research_Guide.md). The latter historical links may be unavailable in a source-only checkout.
 
 Scope exclusions remain intact: no cyber range, exploit execution, malware deployment, production-system changes, autonomous attack activity, certification, proof of real recovery performance, production multi-tenancy, high availability or enterprise SSO. A scenario pathway is a reviewed hypothetical incident narrative, not a verified route into a real network.
 

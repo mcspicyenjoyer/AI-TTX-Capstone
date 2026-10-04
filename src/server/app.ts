@@ -20,6 +20,9 @@ import { Store } from './storage.js';
 import { Sessions, initialiseDemo } from './access.js';
 import { ProfileService } from './profile-service.js';
 import { AppError } from './errors.js';
+import { initialiseExercises } from './exercise-demo.js';
+import { ExerciseService } from './exercise-service.js';
+import { registerExerciseRoutes } from './exercise-routes.js';
 
 export async function buildApp(options: {
   dataDirectory: string;
@@ -30,6 +33,7 @@ export async function buildApp(options: {
   const store = new Store(join(options.dataDirectory, 'ttx.sqlite'));
   try {
     initialiseDemo(store, options.dataDirectory);
+    initialiseExercises(store, options.dataDirectory);
   } catch (error) {
     store.close();
     throw error;
@@ -180,6 +184,7 @@ export async function buildApp(options: {
       return store.activity(request.params.profileId);
     },
   );
+  registerExerciseRoutes(app, sessions, new ExerciseService(store), errors);
   if (options.staticDirectory)
     await app.register(staticFiles, {
       root: options.staticDirectory,

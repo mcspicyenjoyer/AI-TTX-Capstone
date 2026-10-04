@@ -8,6 +8,8 @@ This is the SME-focused AI-assisted TTX Platform capstone, a discussion exercise
 - Inspect implementation, tests and Git status. Preserve unrelated files and user changes.
 - Requirements belong in PROJECT, design in architecture, choices in DECISIONS and execution status in WORK. Link rather than duplicate.
 - Report material contradictions; prior chats and proposed designs do not silently become approved requirements.
+- Form B is the authoritative delivery scope. Start with the user-authorised five-inject baseline, then expand to ten; defer additional features until Form B is implemented and verified. PROJECT records the mapping and source limitations, not a replacement brief.
+- Build the bounded operational development skeleton alongside the baseline so the other worker can develop independently. This explicit exception does not authorise a complete operational exercise or mixed-track runs; use WORK's scope and architecture's shared boundaries.
 
 ## Change discipline
 - Complete the authorised task and its acceptance criteria, not the entire backlog.

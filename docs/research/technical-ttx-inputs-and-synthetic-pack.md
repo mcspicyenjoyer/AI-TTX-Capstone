@@ -2,6 +2,8 @@
 
 Research date: 27 September 2026. Advisory research, not an approved readiness checklist, exercise package, rubric or implementation. [PROJECT](../PROJECT.md) owns scope; [ADR-018](../DECISIONS.md#adr-018---predefined-package-as-the-current-drafting-model) records the user's predefined-package direction. No real organisation records are needed or authorised for this prototype.
 
+Scope update, 4 October 2026: [ADR-021](../DECISIONS.md#adr-021---form-b-first-with-a-parallel-operational-skeleton) makes Form B authoritative, with five initial injects before expansion to ten. The predefined-only recommendation below is historical and cannot replace Form B's required profile-grounded package generation. Coaching and extra readiness machinery are deferred; approved-branch recommendation remains baseline scope. Reuse the source research for necessary baseline context rather than expanding a complete document library. This notice does not re-verify the dated external sources.
+
 ## Findings
 
 Use one predefined, human-reviewed scenario and a bounded set of response-dependent variants. This changes where AI adds value: assessment, coaching, eligible-variant recommendations and evidence-linked AAR drafting, rather than generating the initial scenario package from SME environment inputs. Unrestricted live rewriting was already excluded under ADR-017. These remain planned capabilities, not implemented features.
