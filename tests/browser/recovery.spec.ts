@@ -73,7 +73,7 @@ test('real server restart returns to sign-in without reload and requires manual 
     await command('step0', {
       packageHash: view.packageHash,
       assignmentHash: view.assignmentHash,
-      respondentIds: ['demo-participant'],
+      respondentIds: ['demo-participant', 'demo-observer'],
       firstContact: 'Simulated incident lead.',
       contactRoute: 'Synthetic contact card.',
       fallback: 'Controller represents the alternate route.',
@@ -137,6 +137,28 @@ test('real server restart returns to sign-in without reload and requires manual 
       participant.getByRole('heading', { name: 'File access report', exact: true }),
     ).toBeVisible({ timeout: 12000 });
     await expect(participant.locator('.inbox-item')).toHaveCount(1);
+    expect((await review()).releases).toHaveLength(1);
+    await participant
+      .getByLabel('Agreed actions', { exact: true })
+      .fill('Proposed scope review, not an observed recovery.');
+    await participant
+      .getByLabel('Team rationale', { exact: true })
+      .fill('Preserve this test-entered response over restart.');
+    await participant.getByRole('button', { name: 'Submit team response', exact: true }).click();
+    await expect(participant.locator('.saved-response')).toContainText('Proposed scope review');
+    await stop();
+    await boot();
+    for (const target of [page, participant])
+      await expect(target.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible({
+        timeout: 15000,
+      });
+    await signIn(page);
+    await signIn(participant, 'participant');
+    await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeEnabled();
+    await expect(participant.locator('.saved-response')).toContainText('Proposed scope review');
+    await expect(
+      participant.getByRole('button', { name: 'Submit team response', exact: true }),
+    ).toBeDisabled();
     expect((await review()).releases).toHaveLength(1);
   } finally {
     await participantContext.close();

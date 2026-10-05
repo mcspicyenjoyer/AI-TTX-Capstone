@@ -106,7 +106,7 @@ function step0Input(view: Review, decision = 'ready') {
         (member) =>
           member.kind === 'participant' &&
           member.roleId &&
-          view.package.injects[0]!.recipientRoleIds.includes(member.roleId),
+          view.package.roles.some((role) => role.id === member.roleId),
       )
       .map((member) => member.actorId),
     firstContact: 'The incident lead, represented by the synthetic controller.',
@@ -306,9 +306,48 @@ test('preparation holds and missing role assignments cannot become ready by ackn
     definition.briefing.gaps[0]!.disposition = 'exercise-assumption';
   });
   database((db) => db.prepare("DELETE FROM run_members WHERE actor_id = 'demo-observer'").run());
-  await recordStep0();
+  assert.equal((await query(`${root}/step0`, step0Input(await review()))).statusCode, 400);
+  assert.equal((await review()).step0Ready, false);
   assert.equal((await query(`${root}/start`, startInput(await review()))).statusCode, 409);
   assert.equal((await review()).preparation, null);
+});
+
+test('technical role coverage does not impose its contact-route check on operational packages', async () => {
+  await confirmProfile();
+  const definition = structuredClone(technicalPackage);
+  definition.id = 'operational-policy-test';
+  definition.track = 'operational';
+  definition.briefing.common = 'Synthetic operational preparation for a track-boundary test.';
+  const members = (await review()).members.map((member) =>
+    member.kind === 'facilitator'
+      ? { ...member, actorId: 'demo-operational', displayName: 'Operational developer' }
+      : member,
+  );
+  const store = new Store(join(directory, 'ttx.sqlite'));
+  try {
+    store.transaction(() => {
+      store.exercises.seedPackage(definition);
+      store.exercises.seedRun('operational-policy-test', definition, members);
+    });
+  } finally {
+    store.close();
+  }
+  const path = '/api/tracks/operational/runs/operational-policy-test';
+  const snapshot = readResponse(
+    ReviewSchema,
+    (await query(`${path}/review`, undefined, 'operational')).json(),
+  );
+  assert.equal(snapshot.step0Ready, true);
+  assert.deepEqual(snapshot.step0Checks, []);
+  assert.equal((await query(`${path}/step0`, step0Input(snapshot), 'operational')).statusCode, 409);
+  const briefing = (await query(`${path}/briefing`, undefined, 'participant')).json();
+  assert.equal(briefing.step0Status, 'not-required');
+  assert.equal(briefing.common, definition.briefing.common);
+  assert.equal((await query(`${path}/start`, startInput(snapshot), 'operational')).statusCode, 200);
+  assert.equal(
+    (await query(`${operationalRoot}/start`, startInput(snapshot), 'operational')).statusCode,
+    409,
+  );
 });
 
 test('all write operations enforce membership, roles, origin and strict request contracts', async () => {
@@ -668,7 +707,7 @@ test('an approval for another run cannot be borrowed even by the same facilitato
   assert.deepEqual((await review(other)).releases, []);
 });
 
-test('the shared release sequence supports five and ten entries without a global one- or five-slot limit', async () => {
+test('release and explicit closure support five and ten entries without a global slot limit', async () => {
   for (const length of [5, 10]) {
     const definition = structuredClone(technicalPackage);
     definition.id = `sequence-${length}`;
@@ -695,11 +734,38 @@ test('the shared release sequence supports five and ten entries without a global
         (await query(`${path}/releases`, releaseInput(await approve(path)))).statusCode,
         200,
       );
+      const released = (await review(path)).releases.at(-1)!;
+      assert.equal((await review(path)).nextInject, null);
+      const disposition = await query(`${path}/dispositions`, {
+        expectedRunRevision: (await review(path)).run.revision,
+        idempotencyKey: randomUUID(),
+        releaseId: released.id,
+        responseId: null,
+        decision: 'reviewed',
+        observations: 'No answer supplied in this count-independent engineering check.',
+        unresolvedGaps: 'Unanswered; no successful response is inferred.',
+      });
+      assert.equal(disposition.statusCode, 200, disposition.body);
+      const closure = await query(`${path}/closures`, {
+        expectedRunRevision: (await review(path)).run.revision,
+        idempotencyKey: randomUUID(),
+        releaseId: released.id,
+        dispositionId: disposition.json().id,
+        rationale: 'Carry the unanswered gap.',
+      });
+      assert.equal(closure.statusCode, 200, closure.body);
     }
     const end = await review(path);
     assert.equal(end.nextInject, null);
     assert.equal(end.releases.length, length);
     assert.equal((await query(`${path}/inbox`, undefined, 'participant')).json().length, length);
+    const completion = await query(`${path}/complete`, {
+      expectedRunRevision: end.run.revision,
+      idempotencyKey: randomUUID(),
+      rationale: 'Count fixture closed with explicit unanswered findings.',
+    });
+    assert.equal(completion.statusCode, 200, completion.body);
+    assert.equal(completion.json().closureIds.length, length);
   }
 });
 
@@ -711,6 +777,7 @@ test('additive v1 migration preserves saved profiles, confirmations and original
   // Reconstruct the previous schema in this disposable test DB, never demonstration data.
   database((db) =>
     db.exec(`
+    DROP TABLE run_completions; DROP TABLE position_closures; DROP TABLE response_dispositions; DROP TABLE team_responses;
     DROP TABLE step0_checks; DROP TABLE release_recipients; DROP TABLE inject_releases; DROP TABLE inject_approvals;
     DROP TABLE run_commands; DROP TABLE run_activity; DROP TABLE run_preparations;
     DROP TABLE run_members; DROP TABLE exercise_runs; DROP TABLE exercise_packages;
@@ -726,7 +793,7 @@ test('additive v1 migration preserves saved profiles, confirmations and original
   );
   assert.equal(readFileSync(join(directory, 'demo-access.json'), 'utf8'), originalCodes);
   assert.equal((await review()).run.state, 'draft');
-  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 3));
+  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 4));
 });
 
 test('startup does not overwrite package content or restore revoked exercise membership', async () => {
@@ -800,6 +867,7 @@ test('Step 0 validates evidence, respondents, exact context and idempotency rath
     { respondentIds: [] },
     { respondentIds: ['demo-facilitator'] },
     { respondentIds: ['demo-observer'] },
+    { respondentIds: ['demo-participant'] },
     { respondentIds: ['missing'] },
     { respondentIds: ['demo-participant', 'demo-participant'] },
     { actorId: 'forged' },
@@ -904,7 +972,7 @@ test('v2 migration preserves records but never invents Step 0 evidence for an ol
   await app.close();
   database((db) =>
     db.exec(
-      "DROP TABLE step0_checks; DELETE FROM run_activity WHERE kind = 'step0-recorded'; DELETE FROM run_commands; PRAGMA user_version = 2;",
+      "DROP TABLE run_completions; DROP TABLE position_closures; DROP TABLE response_dispositions; DROP TABLE team_responses; DROP TABLE step0_checks; DELETE FROM run_activity WHERE kind = 'step0-recorded'; DELETE FROM run_commands; PRAGMA user_version = 2;",
     ),
   );
   app = await buildApp({ dataDirectory: directory, publicPort: 3000 });
@@ -945,5 +1013,5 @@ test('v2 migration preserves records but never invents Step 0 evidence for an ol
     200,
   );
   assert.deepEqual((await review()).releases, [released]);
-  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 3));
+  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 4));
 });

@@ -34,7 +34,7 @@ function conflict(message: string): never {
 export class ExerciseService {
   constructor(private readonly store: Store) {}
 
-  private context(actor: Actor, track: Track, runId: string, facilitator: boolean) {
+  context(actor: Actor, track: Track, runId: string, facilitator: boolean) {
     const member = this.store.exercises.member(runId, actor.id);
     if (!member || member.kind !== actor.role || (facilitator && member.kind !== 'facilitator'))
       throw new AppError(403, 'FORBIDDEN', 'This account cannot access that exercise operation.');
@@ -77,7 +77,7 @@ export class ExerciseService {
       conflict('Confirm the bound profile revision before exercise play.');
   }
 
-  private requirePreparation(context: ReturnType<ExerciseService['context']>): void {
+  requirePreparation(context: ReturnType<ExerciseService['context']>): void {
     this.requirePlayable(context);
     this.requireStep0(context);
     const preparation = this.store.exercises.preparation(context.run.id);
@@ -92,12 +92,22 @@ export class ExerciseService {
 
   private currentStep0(context: ReturnType<ExerciseService['context']>): Step0Check | null {
     const check = this.store.exercises.step0Checks(context.run.id).at(-1);
-    return check?.packageHash === context.hash && check.assignmentHash === context.assignmentHash
+    return check?.packageHash === context.hash &&
+      check.assignmentHash === context.assignmentHash &&
+      context.definition.roles.every((role) =>
+        context.members.some(
+          (member) =>
+            member.kind === 'participant' &&
+            member.roleId === role.id &&
+            check.respondentIds.includes(member.actorId),
+        ),
+      )
       ? check
       : null;
   }
 
   private requireStep0(context: ReturnType<ExerciseService['context']>): void {
+    if (context.run.track !== 'technical') return;
     if (this.currentStep0(context)?.decision !== 'ready')
       conflict('Record the team contact-route evidence and a current Ready decision before play.');
   }
@@ -105,6 +115,8 @@ export class ExerciseService {
   recordStep0(actor: Actor, track: Track, runId: string, request: Step0Request): Step0Check {
     const input = { ...request, respondentIds: [...request.respondentIds].sort() };
     return this.execute(actor, track, runId, 'step0', input, Step0CheckSchema, (context) => {
+      if (track !== 'technical')
+        conflict('The technical contact-route check does not apply to this track.');
       this.requirePlayable(context);
       if (!['draft', 'paused'].includes(context.run.state))
         conflict('Pause the exercise before recording a new Step 0 decision.');
@@ -113,7 +125,7 @@ export class ExerciseService {
       const respondents = context.members.filter((member) =>
         input.respondentIds.includes(member.actorId),
       );
-      const requiredRoles = context.definition.injects[0]!.recipientRoleIds;
+      const requiredRoles = context.definition.roles.map((role) => role.id);
       if (
         respondents.length !== input.respondentIds.length ||
         respondents.some((member) => member.kind !== 'participant') ||
@@ -122,7 +134,7 @@ export class ExerciseService {
         throw new AppError(
           400,
           'INVALID_RESPONDENTS',
-          'Record the assigned responding team, including each role addressed by the first inject.',
+          'Record respondents representing every participant role in the package.',
         );
       const run = this.store.exercises.updateRun(context.run);
       const check: Step0Check = {
@@ -149,9 +161,13 @@ export class ExerciseService {
   review(actor: Actor, track: Track, runId: string): Review {
     const context = this.context(actor, track, runId, true);
     const releases = this.store.exercises.releases(runId);
-    const next = context.definition.injects.find(
-      (inject) => !releases.some((release) => release.injectId === inject.id),
-    );
+    const outstanding =
+      track === 'technical' && releases.some((release) => !this.store.outcomes.closure(release.id));
+    const next = outstanding
+      ? undefined
+      : context.definition.injects.find(
+          (inject) => !releases.some((release) => release.injectId === inject.id),
+        );
     const approval = this.store.exercises.latestApproval(runId);
     return {
       run: context.run,
@@ -162,7 +178,7 @@ export class ExerciseService {
       profileConfirmed: this.profileConfirmed(context),
       preparation: this.store.exercises.preparation(runId),
       step0Checks: this.store.exercises.step0Checks(runId),
-      step0Ready: this.currentStep0(context)?.decision === 'ready',
+      step0Ready: track !== 'technical' || this.currentStep0(context)?.decision === 'ready',
       approval:
         approval?.runRevision === context.run.revision &&
         approval.packageHash === context.hash &&
@@ -181,8 +197,9 @@ export class ExerciseService {
     const role = definition.roles.find((role) => role.id === member.roleId);
     if (member.kind !== 'participant' || !role)
       throw new AppError(403, 'FORBIDDEN', 'This account has no participant briefing.');
-    const step0Status = this.currentStep0(context)?.decision ?? 'pending';
-    const ready = step0Status === 'ready';
+    const step0Status =
+      track === 'technical' ? (this.currentStep0(context)?.decision ?? 'pending') : 'not-required';
+    const ready = step0Status === 'ready' || step0Status === 'not-required';
     return {
       runId,
       track,
@@ -318,6 +335,11 @@ export class ExerciseService {
       this.requirePreparation(context);
       if (context.run.state !== 'active') conflict('Approval requires an active exercise.');
       const releases = this.store.exercises.releases(runId);
+      if (
+        track === 'technical' &&
+        releases.some((release) => !this.store.outcomes.closure(release.id))
+      )
+        conflict('Close the released position before approving the next inject.');
       const inject = context.definition.injects.find(
         (item) => !releases.some((release) => release.injectId === item.id),
       );
@@ -374,6 +396,11 @@ export class ExerciseService {
       if (context.run.state !== 'active') conflict('Release requires an active exercise.');
       const approval = this.store.exercises.approval(input.approvalId);
       const releases = this.store.exercises.releases(runId);
+      if (
+        track === 'technical' &&
+        releases.some((release) => !this.store.outcomes.closure(release.id))
+      )
+        conflict('Close the released position before releasing the next inject.');
       const inject = context.definition.injects.find(
         (item) => !releases.some((release) => release.injectId === item.id),
       );

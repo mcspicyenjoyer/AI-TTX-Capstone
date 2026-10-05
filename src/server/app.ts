@@ -23,6 +23,8 @@ import { AppError } from './errors.js';
 import { initialiseExercises } from './exercise-demo.js';
 import { ExerciseService } from './exercise-service.js';
 import { registerExerciseRoutes } from './exercise-routes.js';
+import { OutcomeService } from './outcome-service.js';
+import { registerOutcomeRoutes } from './outcome-routes.js';
 
 export async function buildApp(options: {
   dataDirectory: string;
@@ -184,7 +186,9 @@ export async function buildApp(options: {
       return store.activity(request.params.profileId);
     },
   );
-  registerExerciseRoutes(app, sessions, new ExerciseService(store), errors);
+  const exercises = new ExerciseService(store);
+  registerExerciseRoutes(app, sessions, exercises, errors);
+  registerOutcomeRoutes(app, sessions, new OutcomeService(store, exercises), errors);
   if (options.staticDirectory)
     await app.register(staticFiles, {
       root: options.staticDirectory,

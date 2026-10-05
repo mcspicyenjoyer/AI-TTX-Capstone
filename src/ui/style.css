@@ -49,6 +49,17 @@
   cursor: pointer;
   padding: 10px 0;
 }
+.outcomes {
+  max-width: 1000px;
+}
+.saved-response {
+  padding: 12px 0;
+  border-bottom: 1px solid #d8e0de;
+}
+.saved-response h3 {
+  font-size: 12px;
+  margin: 12px 0 4px;
+}
 .exercise-picker {
   display: grid;
   gap: 6px;
