@@ -15,6 +15,9 @@ import {
   RunSchema,
   ApprovalSchema,
   ReleaseSchema,
+  Step0CheckSchema,
+  Step0RequestSchema,
+  type Step0Request,
   type Track,
   type StartRequest,
   type StateRequest,
@@ -78,6 +81,19 @@ export function registerExerciseRoutes(
     },
     async (req) =>
       service.start(
+        sessions.actor(req.cookies.ttx_session),
+        req.params.track,
+        req.params.runId,
+        req.body,
+      ),
+  );
+  app.post<{ Params: Path; Body: Step0Request }>(
+    `${root}/step0`,
+    {
+      schema: { params, body: Step0RequestSchema, response: { 200: Step0CheckSchema, ...errors } },
+    },
+    async (req) =>
+      service.recordStep0(
         sessions.actor(req.cookies.ttx_session),
         req.params.track,
         req.params.runId,

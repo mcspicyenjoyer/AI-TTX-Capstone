@@ -5,6 +5,9 @@ import {
   ApprovalSchema,
   ReleaseSchema,
   RunSchema,
+  Step0CheckSchema,
+  type Step0Check,
+  type Step0Request,
   type ApproveRequest,
   type Approval,
   type BriefingView,
@@ -76,6 +79,7 @@ export class ExerciseService {
 
   private requirePreparation(context: ReturnType<ExerciseService['context']>): void {
     this.requirePlayable(context);
+    this.requireStep0(context);
     const preparation = this.store.exercises.preparation(context.run.id);
     if (
       !preparation ||
@@ -84,6 +88,62 @@ export class ExerciseService {
       preparation.briefingRevisionId !== context.definition.briefing.revisionId
     )
       conflict('The starting arrangements have changed or have not been confirmed.');
+  }
+
+  private currentStep0(context: ReturnType<ExerciseService['context']>): Step0Check | null {
+    const check = this.store.exercises.step0Checks(context.run.id).at(-1);
+    return check?.packageHash === context.hash && check.assignmentHash === context.assignmentHash
+      ? check
+      : null;
+  }
+
+  private requireStep0(context: ReturnType<ExerciseService['context']>): void {
+    if (this.currentStep0(context)?.decision !== 'ready')
+      conflict('Record the team contact-route evidence and a current Ready decision before play.');
+  }
+
+  recordStep0(actor: Actor, track: Track, runId: string, request: Step0Request): Step0Check {
+    const input = { ...request, respondentIds: [...request.respondentIds].sort() };
+    return this.execute(actor, track, runId, 'step0', input, Step0CheckSchema, (context) => {
+      this.requirePlayable(context);
+      if (!['draft', 'paused'].includes(context.run.state))
+        conflict('Pause the exercise before recording a new Step 0 decision.');
+      if (input.packageHash !== context.hash || input.assignmentHash !== context.assignmentHash)
+        conflict('The package or assignments have changed. Review them again.');
+      const respondents = context.members.filter((member) =>
+        input.respondentIds.includes(member.actorId),
+      );
+      const requiredRoles = context.definition.injects[0]!.recipientRoleIds;
+      if (
+        respondents.length !== input.respondentIds.length ||
+        respondents.some((member) => member.kind !== 'participant') ||
+        requiredRoles.some((role) => !respondents.some((member) => member.roleId === role))
+      )
+        throw new AppError(
+          400,
+          'INVALID_RESPONDENTS',
+          'Record the assigned responding team, including each role addressed by the first inject.',
+        );
+      const run = this.store.exercises.updateRun(context.run);
+      const check: Step0Check = {
+        id: `step0-${randomUUID()}`,
+        runId,
+        runRevision: run.revision,
+        actorId: actor.id,
+        recordedAt: new Date().toISOString(),
+        packageHash: context.hash,
+        assignmentHash: context.assignmentHash,
+        respondentIds: input.respondentIds,
+        firstContact: input.firstContact,
+        contactRoute: input.contactRoute,
+        fallback: input.fallback,
+        decision: input.decision,
+        rationale: input.rationale,
+      };
+      this.store.exercises.saveStep0(check);
+      this.store.exercises.event(run, 'step0-recorded', actor.id, check.id);
+      return check;
+    });
   }
 
   review(actor: Actor, track: Track, runId: string): Review {
@@ -101,6 +161,8 @@ export class ExerciseService {
       members: context.members,
       profileConfirmed: this.profileConfirmed(context),
       preparation: this.store.exercises.preparation(runId),
+      step0Checks: this.store.exercises.step0Checks(runId),
+      step0Ready: this.currentStep0(context)?.decision === 'ready',
       approval:
         approval?.runRevision === context.run.revision &&
         approval.packageHash === context.hash &&
@@ -114,18 +176,35 @@ export class ExerciseService {
   }
 
   briefing(actor: Actor, track: Track, runId: string): BriefingView {
-    const { run, definition, member } = this.context(actor, track, runId, false);
+    const context = this.context(actor, track, runId, false);
+    const { run, definition, member } = context;
     const role = definition.roles.find((role) => role.id === member.roleId);
     if (member.kind !== 'participant' || !role)
       throw new AppError(403, 'FORBIDDEN', 'This account has no participant briefing.');
+    const step0Status = this.currentStep0(context)?.decision ?? 'pending';
+    const ready = step0Status === 'ready';
     return {
       runId,
       track,
       state: run.state,
+      step0Status,
       revisionId: definition.briefing.revisionId,
-      common: definition.briefing.common,
-      references: definition.briefing.references,
-      role,
+      common: ready
+        ? definition.briefing.common
+        : 'Before the exercise, discuss your first incident contact, how you would find or use the contact route, and your fallback with the facilitator. State any uncertainty. All actions are simulated; do not contact real people or change systems.',
+      references: ready
+        ? definition.briefing.references
+        : [
+            'You may consult the synthetic reference material supplied by the facilitator; this is not a memory test.',
+          ],
+      role: ready
+        ? role
+        : {
+            id: role.id,
+            name: role.name,
+            briefing:
+              'Bring your role-specific contact and escalation references to the discussion. Identify missing or unclear arrangements rather than guessing.',
+          },
     };
   }
 
@@ -179,6 +258,7 @@ export class ExerciseService {
   start(actor: Actor, track: Track, runId: string, input: StartRequest): Run {
     return this.execute(actor, track, runId, 'start', input, RunSchema, (context) => {
       this.requirePlayable(context);
+      this.requireStep0(context);
       if (context.run.state !== 'draft') conflict('Only a draft exercise can be started.');
       if (context.hash !== input.packageHash || context.assignmentHash !== input.assignmentHash)
         conflict('The package or assignments have changed. Review the briefing again.');

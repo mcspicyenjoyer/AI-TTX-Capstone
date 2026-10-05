@@ -4,6 +4,7 @@ This is the SME-focused AI-assisted TTX Platform capstone, a discussion exercise
 
 ## Read before work
 - Read `docs/PROJECT.md` and `docs/WORK.md` first.
+- Treat the supplied Form B as assessment authority, with the user's explicit exceptions and ownership clarification recorded in PROJECT; consult `docs/form-b-alignment.md` before changing assessed scope.
 - Consult `docs/architecture.md`, `docs/QUALITY.md` and relevant entries in `docs/DECISIONS.md`.
 - Inspect implementation, tests and Git status. Preserve unrelated files and user changes.
 - Requirements belong in PROJECT, design in architecture, choices in DECISIONS and execution status in WORK. Link rather than duplicate.

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { afterEach, beforeEach, test } from 'node:test';
+import { afterEach, beforeEach, test, mock } from 'node:test';
 import { randomUUID } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync, unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -90,9 +90,36 @@ function startInput(view: Review) {
 }
 async function start(path = root) {
   await confirmProfile();
+  await recordStep0(path);
   const response = await query(`${path}/start`, startInput(await review(path)));
   assert.equal(response.statusCode, 200, response.body);
   return review(path);
+}
+function step0Input(view: Review, decision = 'ready') {
+  return {
+    expectedRunRevision: view.run.revision,
+    idempotencyKey: randomUUID(),
+    packageHash: view.packageHash,
+    assignmentHash: view.assignmentHash,
+    respondentIds: view.members
+      .filter(
+        (member) =>
+          member.kind === 'participant' &&
+          member.roleId &&
+          view.package.injects[0]!.recipientRoleIds.includes(member.roleId),
+      )
+      .map((member) => member.actorId),
+    firstContact: 'The incident lead, represented by the synthetic controller.',
+    contactRoute: 'Use the synthetic contact card supplied for this check.',
+    fallback: 'Ask the controller to represent the alternate route; no real calls.',
+    decision,
+    rationale: 'Oral answer recorded for the engineering fixture, not verified contactability.',
+  };
+}
+async function recordStep0(path = root, decision = 'ready') {
+  const response = await query(`${path}/step0`, step0Input(await review(path), decision));
+  assert.equal(response.statusCode, 200, response.body);
+  return response.json();
 }
 function approvalInput(view: Review, recipients = ['demo-participant']) {
   const inject = view.package.injects.find((item) => item.id === view.nextInject!.id)!;
@@ -232,6 +259,10 @@ test('Step 0 requires confirmed exact profile, current assignments and explicit 
   let view = await review();
   assert.equal((await query(`${root}/start`, startInput(view))).statusCode, 409);
   await confirmProfile();
+  assert.equal((await query(`${root}/start`, startInput(view))).statusCode, 409);
+  assert.deepEqual((await query(`${root}/activity`)).json(), []);
+  await recordStep0();
+  view = await review();
   for (const changes of [{ packageHash: '0'.repeat(64) }, { assignmentHash: '0'.repeat(64) }])
     assert.equal(
       (await query(`${root}/start`, { ...startInput(view), ...changes })).statusCode,
@@ -247,7 +278,6 @@ test('Step 0 requires confirmed exact profile, current assignments and explicit 
       (await query(`${root}/start`, { ...startInput(view), ...changes })).statusCode,
       400,
     );
-  assert.deepEqual((await query(`${root}/activity`)).json(), []);
   const input = startInput(view);
   const response = await query(`${root}/start`, input);
   assert.equal(response.statusCode, 200);
@@ -255,7 +285,7 @@ test('Step 0 requires confirmed exact profile, current assignments and explicit 
   view = await review();
   assert.equal(view.run.state, 'active');
   assert.equal(view.preparation!.assignmentHash, view.assignmentHash);
-  assert.equal((await query(`${root}/activity`)).json().length, 1);
+  assert.equal((await query(`${root}/activity`)).json().length, 2);
   const profile = (await query('/api/profiles/example-sme-01/revisions/profile-r1')).json().profile;
   assert.ok(
     profile.statements.some(
@@ -270,11 +300,13 @@ test('preparation holds and missing role assignments cannot become ready by ackn
   editPackage((definition) => {
     definition.briefing.gaps[0]!.disposition = 'hold';
   });
+  await recordStep0();
   assert.equal((await query(`${root}/start`, startInput(await review()))).statusCode, 409);
   editPackage((definition) => {
     definition.briefing.gaps[0]!.disposition = 'exercise-assumption';
   });
   database((db) => db.prepare("DELETE FROM run_members WHERE actor_id = 'demo-observer'").run());
+  await recordStep0();
   assert.equal((await query(`${root}/start`, startInput(await review()))).statusCode, 409);
   assert.equal((await review()).preparation, null);
 });
@@ -282,6 +314,7 @@ test('preparation holds and missing role assignments cannot become ready by ackn
 test('all write operations enforce membership, roles, origin and strict request contracts', async () => {
   const view = await start();
   const commands = [
+    ['step0', step0Input(view)],
     ['start', startInput(view)],
     ['pause', { expectedRunRevision: view.run.revision, idempotencyKey: randomUUID() }],
     ['resume', { expectedRunRevision: view.run.revision, idempotencyKey: randomUUID() }],
@@ -403,7 +436,7 @@ test('approval and release retries are atomic, durable receipts rather than dupl
   const events = (await query(`${root}/activity`)).json();
   assert.deepEqual(
     events.map((event: { kind: string }) => event.kind),
-    ['briefing-confirmed', 'inject-approved', 'inject-released'],
+    ['step0-recorded', 'briefing-confirmed', 'inject-approved', 'inject-released'],
   );
   database((db) => {
     assert.equal(db.prepare('SELECT COUNT(*) AS count FROM inject_releases').get()!.count, 1);
@@ -444,7 +477,7 @@ test('competing approvals with different keys cannot both win the same expected 
     query(`${root}/approvals`, approvalInput(view)),
   ]);
   assert.deepEqual(results.map((response) => response.statusCode).sort(), [200, 409]);
-  assert.equal((await query(`${root}/activity`)).json().length, 2);
+  assert.equal((await query(`${root}/activity`)).json().length, 3);
 });
 
 test('changed package or membership invalidates preparation and release approval', async () => {
@@ -453,6 +486,7 @@ test('changed package or membership invalidates preparation and release approval
   editPackage((definition) => {
     definition.injects[0]!.body = 'Changed reviewed content';
   });
+  assert.equal((await review()).step0Ready, false);
   assert.equal((await query(`${root}/releases`, releaseInput(approval))).statusCode, 409);
   database((db) => {
     const payload = JSON.stringify(technicalPackage);
@@ -465,6 +499,7 @@ test('changed package or membership invalidates preparation and release approval
       "UPDATE run_members SET role_id = 'observer' WHERE actor_id = 'demo-participant'",
     ).run();
   });
+  assert.equal((await review()).step0Ready, false);
   assert.equal((await query(`${root}/releases`, releaseInput(approval))).statusCode, 409);
   assert.deepEqual((await query(`${root}/inbox`, undefined, 'participant')).json(), []);
 });
@@ -560,13 +595,14 @@ test('restart retains test-entered release and briefing, invalidates sessions an
   const restored = await review();
   assert.equal(restored.run.state, 'paused');
   assert.deepEqual(restored.preparation, before.preparation);
+  assert.deepEqual(restored.step0Checks, before.step0Checks);
   assert.deepEqual(restored.releases, [released]);
   assert.deepEqual((await query(`${root}/releases`, input)).json(), released);
   assert.equal((await query(`${root}/inbox`, undefined, 'participant')).json().length, 1);
   const events = (await query(`${root}/activity`)).json();
   assert.equal(events.at(-1).kind, 'run-recovered');
   assert.equal(events.at(-1).actorId, null);
-  assert.equal(events.length, 4);
+  assert.equal(events.length, 5);
 });
 
 test('pending approval cannot release after restart or resume without renewed exact approval', async () => {
@@ -675,7 +711,7 @@ test('additive v1 migration preserves saved profiles, confirmations and original
   // Reconstruct the previous schema in this disposable test DB, never demonstration data.
   database((db) =>
     db.exec(`
-    DROP TABLE release_recipients; DROP TABLE inject_releases; DROP TABLE inject_approvals;
+    DROP TABLE step0_checks; DROP TABLE release_recipients; DROP TABLE inject_releases; DROP TABLE inject_approvals;
     DROP TABLE run_commands; DROP TABLE run_activity; DROP TABLE run_preparations;
     DROP TABLE run_members; DROP TABLE exercise_runs; DROP TABLE exercise_packages;
     DELETE FROM actors WHERE username IN ('observer','operational'); PRAGMA user_version = 1;
@@ -690,10 +726,11 @@ test('additive v1 migration preserves saved profiles, confirmations and original
   );
   assert.equal(readFileSync(join(directory, 'demo-access.json'), 'utf8'), originalCodes);
   assert.equal((await review()).run.state, 'draft');
-  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 2));
+  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 3));
 });
 
 test('startup does not overwrite package content or restore revoked exercise membership', async () => {
+  const warning = mock.method(console, 'warn', () => {});
   editPackage((definition) => {
     definition.title = 'Saved local fixture title';
   });
@@ -704,4 +741,209 @@ test('startup does not overwrite package content or restore revoked exercise mem
   cookies.observer = await login('observer');
   assert.equal((await review()).package.title, 'Saved local fixture title');
   assert.equal((await query(`${root}/inbox`, undefined, 'observer')).statusCode, 403);
+  assert.equal(warning.mock.calls.length, 1);
+  assert.match(
+    String(warning.mock.calls[0]!.arguments[0]),
+    /Fixture revision conflict: technical-delivery-check\/package-r1/,
+  );
+  assert.ok(!String(warning.mock.calls[0]!.arguments[0]).includes('Saved local fixture title'));
+  warning.mock.restore();
+});
+
+test('Step 0 records evidence before revealing the prepared answer and preserves clarification history', async () => {
+  await confirmProfile();
+  let view = await review();
+  const before = await query(`${root}/briefing`, undefined, 'participant');
+  assert.equal(before.json().step0Status, 'pending');
+  assert.ok(!before.body.includes('same controller as the simulated alternative channel'));
+  assert.ok(!before.body.includes(technicalPackage.roles[0]!.briefing));
+  assert.equal((await query(`${root}/start`, startInput(view))).statusCode, 409);
+  for (const decision of ['clarification-required', 'hold']) {
+    await recordStep0(root, decision);
+    view = await review();
+    assert.equal(view.step0Ready, false);
+    assert.equal((await query(`${root}/start`, startInput(view))).statusCode, 409);
+    assert.equal(
+      (await query(`${root}/briefing`, undefined, 'participant')).json().step0Status,
+      decision,
+    );
+  }
+  await recordStep0();
+  view = await review();
+  assert.equal(view.step0Ready, true);
+  assert.deepEqual(
+    view.step0Checks.map((check) => check.decision),
+    ['clarification-required', 'hold', 'ready'],
+  );
+  const after = await query(`${root}/briefing`, undefined, 'participant');
+  assert.equal(after.json().common, technicalPackage.briefing.common);
+  assert.equal(after.json().role.briefing, technicalPackage.roles[0]!.briefing);
+  for (const privateValue of [
+    'respondentIds',
+    'rationale',
+    'step0Checks',
+    view.step0Checks[0]!.rationale,
+  ])
+    assert.ok(!after.body.includes(privateValue));
+  assert.equal((await query(`${root}/start`, startInput(view))).statusCode, 200);
+});
+
+test('Step 0 validates evidence, respondents, exact context and idempotency rather than trusting a checkbox', async () => {
+  await confirmProfile();
+  const view = await review();
+  for (const change of [
+    { firstContact: '   ' },
+    { contactRoute: '' },
+    { fallback: '' },
+    { rationale: '' },
+    { decision: 'passed-ctm' },
+    { respondentIds: [] },
+    { respondentIds: ['demo-facilitator'] },
+    { respondentIds: ['demo-observer'] },
+    { respondentIds: ['missing'] },
+    { respondentIds: ['demo-participant', 'demo-participant'] },
+    { actorId: 'forged' },
+  ])
+    assert.equal(
+      (await query(`${root}/step0`, { ...step0Input(view), ...change })).statusCode,
+      400,
+    );
+  for (const change of [
+    { packageHash: '0'.repeat(64) },
+    { assignmentHash: '0'.repeat(64) },
+    { expectedRunRevision: 99 },
+  ])
+    assert.equal(
+      (await query(`${root}/step0`, { ...step0Input(view), ...change })).statusCode,
+      409,
+    );
+  const input = step0Input(view);
+  const saved = await query(`${root}/step0`, input);
+  assert.equal(saved.statusCode, 200);
+  assert.deepEqual((await query(`${root}/step0`, input)).json(), saved.json());
+  assert.equal(
+    (await query(`${root}/step0`, { ...input, firstContact: 'Changed answer' })).statusCode,
+    409,
+  );
+  assert.equal((await review()).step0Checks.length, 1);
+  assert.equal((await query(`${root}/activity`)).json().length, 1);
+});
+
+test('a Step 0 activity failure rolls back evidence, command and run revision', async () => {
+  await confirmProfile();
+  const before = await review();
+  const input = step0Input(before);
+  database((db) =>
+    db.exec(
+      "CREATE TRIGGER fail_step0 BEFORE INSERT ON run_activity WHEN NEW.kind = 'step0-recorded' BEGIN SELECT RAISE(FAIL, 'test failure'); END",
+    ),
+  );
+  assert.equal((await query(`${root}/step0`, input)).statusCode, 500);
+  assert.deepEqual(await review(), before);
+  database((db) => {
+    assert.equal(db.prepare('SELECT COUNT(*) AS count FROM run_commands').get()!.count, 0);
+    db.exec('DROP TRIGGER fail_step0');
+  });
+  assert.equal((await query(`${root}/step0`, input)).statusCode, 200);
+});
+
+test('a later Step 0 hold blocks resume; correction preserves history and needs new release approval', async () => {
+  await start();
+  const approval = await approve();
+  const active = await review();
+  assert.equal((await query(`${root}/step0`, step0Input(active, 'hold'))).statusCode, 409);
+  assert.equal(
+    (
+      await query(`${root}/pause`, {
+        expectedRunRevision: active.run.revision,
+        idempotencyKey: randomUUID(),
+      })
+    ).statusCode,
+    200,
+  );
+  await recordStep0(root, 'hold');
+  let view = await review();
+  assert.equal(
+    (
+      await query(`${root}/resume`, {
+        expectedRunRevision: view.run.revision,
+        idempotencyKey: randomUUID(),
+      })
+    ).statusCode,
+    409,
+  );
+  await recordStep0();
+  view = await review();
+  assert.equal(
+    (
+      await query(`${root}/resume`, {
+        expectedRunRevision: view.run.revision,
+        idempotencyKey: randomUUID(),
+      })
+    ).statusCode,
+    200,
+  );
+  assert.equal(
+    (
+      await query(`${root}/releases`, {
+        ...releaseInput(approval),
+        expectedRunRevision: (await review()).run.revision,
+      })
+    ).statusCode,
+    409,
+  );
+  assert.equal((await review()).step0Checks.length, 3);
+  assert.equal((await query(`${root}/releases`, releaseInput(await approve()))).statusCode, 200);
+});
+
+test('v2 migration preserves records but never invents Step 0 evidence for an old active run', async () => {
+  await start();
+  const approval = await approve();
+  const released = (await query(`${root}/releases`, releaseInput(approval))).json();
+  const preparation = (await review()).preparation;
+  await app.close();
+  database((db) =>
+    db.exec(
+      "DROP TABLE step0_checks; DELETE FROM run_activity WHERE kind = 'step0-recorded'; DELETE FROM run_commands; PRAGMA user_version = 2;",
+    ),
+  );
+  app = await buildApp({ dataDirectory: directory, publicPort: 3000 });
+  cookies.facilitator = await login('facilitator');
+  let view = await review();
+  assert.equal(view.run.state, 'paused');
+  assert.deepEqual(view.releases, [released]);
+  assert.deepEqual(view.preparation, preparation);
+  assert.deepEqual(view.step0Checks, []);
+  assert.equal(view.step0Ready, false);
+  assert.equal(
+    (
+      await query(`${root}/resume`, {
+        expectedRunRevision: view.run.revision,
+        idempotencyKey: randomUUID(),
+      })
+    ).statusCode,
+    409,
+  );
+  assert.equal(
+    (
+      await query(`${root}/releases`, {
+        ...releaseInput(approval),
+        expectedRunRevision: view.run.revision,
+      })
+    ).statusCode,
+    409,
+  );
+  await recordStep0();
+  view = await review();
+  assert.equal(
+    (
+      await query(`${root}/resume`, {
+        expectedRunRevision: view.run.revision,
+        idempotencyKey: randomUUID(),
+      })
+    ).statusCode,
+    200,
+  );
+  assert.deepEqual((await review()).releases, [released]);
+  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 3));
 });

@@ -44,6 +44,7 @@ test('brief, approve, pause, reapprove and release with uncertain-response retry
   browser,
   baseURL,
 }, testInfo) => {
+  test.setTimeout(60000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.setViewportSize({ width: 1440, height: 1080 });
@@ -56,6 +57,30 @@ test('brief, approve, pause, reapprove and release with uncertain-response retry
   await expect(page.getByRole('button', { name: 'Approve inject', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Release to inbox', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Confirm briefing and start' })).toBeDisabled();
+  await page
+    .getByLabel('Who would the team contact first?', { exact: true })
+    .fill('Synthetic incident lead through the controller.');
+  await page
+    .getByLabel('How would they contact them or find the details?', { exact: true })
+    .fill('Consult the supplied synthetic contact card.');
+  await page
+    .getByLabel('What is their fallback or escalation route?', { exact: true })
+    .fill('Ask the controller to represent the alternate route, without making calls.');
+  await page
+    .getByLabel('Decision rationale and gap disposition', { exact: true })
+    .fill('Team oral response recorded; controller cover is a reviewed exercise assumption.');
+  await page.getByLabel('Facilitator decision', { exact: true }).selectOption('ready');
+  // Cross a polling interval with an unsaved oral answer; do not overwrite its context or text.
+  await page.waitForTimeout(5500);
+  await expect(page.getByLabel('Who would the team contact first?', { exact: true })).toHaveValue(
+    'Synthetic incident lead through the controller.',
+  );
+  await fits(page);
+  await page.screenshot({ path: testInfo.outputPath('step0-desktop.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await fits(page);
+  await page.screenshot({ path: testInfo.outputPath('step0-mobile.png'), fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1080 });
 
   const participantContext = await browser.newContext({ baseURL });
   const observerContext = await browser.newContext({ baseURL });
@@ -66,14 +91,47 @@ test('brief, approve, pause, reapprove and release with uncertain-response retry
       participant.getByText('No injects released to you.', { exact: true }),
     ).toBeVisible();
     await expect(participant.getByText('PRIVATE CONTROL NOTE', { exact: false })).toHaveCount(0);
+    await expect(
+      participant.getByText('same controller as the simulated alternative channel', {
+        exact: false,
+      }),
+    ).toHaveCount(0);
+    await page.getByRole('button', { name: 'Record Step 0 decision', exact: true }).click();
+    await expect(
+      page.getByText('Team contact-route check recorded', { exact: true }),
+    ).toBeVisible();
     await page.getByLabel('I have briefed the assigned roles', { exact: false }).check();
     await page.getByRole('button', { name: 'Confirm briefing and start' }).click();
     await expect(page.getByRole('button', { name: 'Approve inject', exact: true })).toBeEnabled();
+    const recipient = page
+      .getByRole('group', { name: 'Recipients', exact: true })
+      .getByRole('checkbox');
+    await recipient.uncheck();
+    const polled = page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/technical-check-01/review') &&
+        response.request().method() === 'GET',
+    );
+    await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await polled;
+    await expect(recipient).not.toBeChecked();
+    await recipient.check();
     await page.getByRole('button', { name: 'Approve inject', exact: true }).click();
     await expect(
       page.getByText('Exact revision and recipients approved.', { exact: true }),
     ).toBeVisible();
-    await page.getByRole('button', { name: 'Pause run', exact: true }).click();
+    const current = await (
+      await page.request.get('/api/tracks/technical/runs/technical-check-01/review')
+    ).json();
+    const pause = await page.request.post('/api/tracks/technical/runs/technical-check-01/pause', {
+      headers: { origin: baseURL! },
+      data: { expectedRunRevision: current.run.revision, idempotencyKey: crypto.randomUUID() },
+    });
+    expect(pause.status()).toBe(200);
+    // The facilitator learns about an external state change without pressing Refresh.
+    await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeVisible({
+      timeout: 12000,
+    });
     await expect(
       page.getByRole('button', { name: 'Release to inbox', exact: true }),
     ).toBeDisabled();
@@ -95,12 +153,19 @@ test('brief, approve, pause, reapprove and release with uncertain-response retry
       fullPage: true,
     });
 
+    let releaseRequests = 0;
     await page.route('**/releases', async (route) => {
+      releaseRequests++;
       const committed = await route.fetch();
       expect(committed.status()).toBe(200);
       await route.abort('failed');
     });
     await page.getByRole('button', { name: 'Release to inbox', exact: true }).click();
+    await expect(
+      page.getByRole('button', { name: 'Retry last request', exact: true }),
+    ).toBeVisible();
+    await page.waitForTimeout(5500);
+    expect(releaseRequests).toBe(1);
     await expect(
       page.getByRole('button', { name: 'Retry last request', exact: true }),
     ).toBeVisible();
@@ -113,10 +178,9 @@ test('brief, approve, pause, reapprove and release with uncertain-response retry
       page.getByText('Inject available in recipient inbox', { exact: true }),
     ).toHaveCount(1);
 
-    await participant.reload();
     await expect(
       participant.getByRole('heading', { name: 'File access report', exact: true }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 12000 });
     await expect(participant.locator('.inbox-item')).toHaveCount(1);
     await participant.setViewportSize({ width: 390, height: 844 });
     await fits(participant);

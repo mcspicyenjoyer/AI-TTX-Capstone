@@ -11,6 +11,40 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+.step0-form {
+  border: 0;
+  border-top: 1px solid #d8e0de;
+  padding: 16px 0;
+  margin: 20px 0;
+  min-width: 0;
+}
+.step0-form > label {
+  display: grid;
+  gap: 6px;
+  margin: 16px 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+.step0-form textarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  padding: 10px;
+  font: inherit;
+  font-weight: 400;
+  color: inherit;
+  border: 1px solid #cbd6d3;
+  border-radius: 4px;
+  background: white;
+}
+.step0-history {
+  padding-left: 20px;
+  font-size: 12px;
+}
+.step0-history summary {
+  cursor: pointer;
+  padding: 10px 0;
+}
 .exercise-picker {
   display: grid;
   gap: 6px;

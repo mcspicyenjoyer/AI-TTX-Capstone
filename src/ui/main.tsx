@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   Activity as ActivityIcon,
@@ -69,6 +69,14 @@ function App() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [acknowledged, setAcknowledged] = useState(false);
 
+  const expireSession = useCallback(() => {
+    setActor(null);
+    setView(null);
+    setActivity([]);
+    setAcknowledged(false);
+    setError('Your session expired. Sign in again to check saved state.');
+  }, []);
+
   async function loadProfile(currentActor: Actor) {
     setView(null);
     setActivity([]);
@@ -106,6 +114,8 @@ function App() {
       if (error instanceof ApiError && error.status === 401) {
         setActor(null);
         setView(null);
+        setActivity([]);
+        setAcknowledged(false);
       } else setError(message(error));
     } finally {
       setLoading(false);
@@ -153,8 +163,7 @@ function App() {
     } catch (error) {
       setError(message(error));
       if (error instanceof ApiError && error.status === 401) {
-        setActor(null);
-        setView(null);
+        expireSession();
       }
     } finally {
       setSaving(false);
@@ -312,7 +321,7 @@ function App() {
               </div>
             )}
             {actor.role === 'participant' || tab === 'exercises' ? (
-              <ExerciseWorkspace key={actor.id} actor={actor} />
+              <ExerciseWorkspace key={actor.id} actor={actor} onSessionExpired={expireSession} />
             ) : !view || !profile ? (
               <section className="empty-state">
                 <FileText size={32} />

@@ -2,6 +2,8 @@
 
 **Author/reviewer index. Do not distribute this index as a player handout.**
 
+Form B alignment, 29 September: this authored context is the foundation for the synthetic input/known-answer pack required by [TASK-006](../../WORK.md#task-006---document-intake-and-profile-reconciliation). The agreed network diagram, selected text-based continuity material and expected extraction facts still need preparation and review. This register and the seeded application profile do not substitute for ingestion, reconciliation or generation. Seven fictional characters must be mapped to the first delivery's 3-4 functional roles after objective selection; the integrated first package has five MSEL positions and three key decision points, followed by ten positions for final Form B acceptance under [PROJECT](../../PROJECT.md#target-mvp-and-first-slice).
+
 | Item | Value |
 | --- | --- |
 | Package | `ORG-EXAMPLE-SME-01`; stable ID/path retained from Example SME 01 |

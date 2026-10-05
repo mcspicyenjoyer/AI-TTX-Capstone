@@ -4,7 +4,7 @@ import type { Actor, Activity, Confirmation, Profile, ProfileList } from '../con
 import { AppError } from './errors.js';
 import { readProfile } from './validation.js';
 import { contentHash } from './integrity.js';
-import { ExerciseStore, migrateExercises } from './exercise-store.js';
+import { ExerciseStore, migrateExercises, migrateStep0 } from './exercise-store.js';
 export { contentHash } from './integrity.js';
 
 export class Store {
@@ -15,7 +15,7 @@ export class Store {
     this.db = new DatabaseSync(path, { timeout: 5000 });
     this.db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;');
     const version = this.db.prepare('PRAGMA user_version').get()?.user_version;
-    if (version !== 0 && version !== 1 && version !== 2) {
+    if (version !== 0 && version !== 1 && version !== 2 && version !== 3) {
       this.db.close();
       throw new Error('Unsupported database version. No migration was performed.');
     }
@@ -31,7 +31,8 @@ export class Store {
         PRAGMA user_version = 1;
       `);
       });
-    if (version !== 2) this.transaction(() => migrateExercises(this.db));
+    if (version < 2) this.transaction(() => migrateExercises(this.db));
+    if (version < 3) this.transaction(() => migrateStep0(this.db));
     this.exercises = new ExerciseStore(this.db);
   }
 

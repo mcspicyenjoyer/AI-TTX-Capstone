@@ -23,6 +23,7 @@ export default defineConfig({
   projects: [
     { name: 'profile', testMatch: 'profile.spec.ts', use: { baseURL: 'http://127.0.0.1:3001' } },
     { name: 'exercise', testMatch: 'exercise.spec.ts', use: { baseURL: 'http://127.0.0.1:3002' } },
+    { name: 'recovery', testMatch: 'recovery.spec.ts', use: { baseURL: 'http://127.0.0.1:3003' } },
   ],
   webServer: [
     {

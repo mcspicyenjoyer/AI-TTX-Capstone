@@ -6,6 +6,8 @@ import {
   RunSchema,
   MemberSchema,
   RunActivitySchema,
+  Step0CheckSchema,
+  type Step0Check,
   type Approval,
   type ExercisePackage,
   type Member,
@@ -63,15 +65,28 @@ export function migrateExercises(db: DatabaseSync): void {
   `);
 }
 
+export function migrateStep0(db: DatabaseSync): void {
+  db.exec(`
+    CREATE TABLE step0_checks (
+      sequence INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT NOT NULL UNIQUE,
+      run_id TEXT NOT NULL REFERENCES exercise_runs(id),
+      payload TEXT NOT NULL CHECK(json_valid(payload))
+    ) STRICT;
+    CREATE INDEX step0_run_lookup ON step0_checks(run_id, sequence);
+    PRAGMA user_version = 3;
+  `);
+}
+
 export class ExerciseStore {
   constructor(private readonly db: DatabaseSync) {}
 
-  seedPackage(value: ExercisePackage): void {
+  seedPackage(value: ExercisePackage): boolean {
     const definition = readPackage(value);
     const payload = JSON.stringify(definition);
     this.db
       .prepare('INSERT OR IGNORE INTO exercise_packages VALUES (?, ?, ?, ?, ?)')
       .run(definition.id, definition.revisionId, definition.track, payload, contentHash(payload));
+    return this.package(definition.id, definition.revisionId).hash !== contentHash(payload);
   }
 
   seedRun(id: string, definition: ExercisePackage, members: Member[]): void {
@@ -175,6 +190,25 @@ export class ExerciseStore {
         'INSERT INTO run_preparations VALUES (?, ?) ON CONFLICT(run_id) DO UPDATE SET payload = excluded.payload',
       )
       .run(runId, JSON.stringify(value));
+  }
+
+  step0Checks(runId: string): Step0Check[] {
+    return this.db
+      .prepare('SELECT * FROM step0_checks WHERE run_id = ? ORDER BY sequence DESC LIMIT 100')
+      .all(runId)
+      .reverse()
+      .map((row) => {
+        const check = readStored(Step0CheckSchema, JSON.parse(String(row.payload)));
+        if (check.id !== row.id || check.runId !== row.run_id)
+          throw new Error('Step 0 identity mismatch.');
+        return check;
+      });
+  }
+
+  saveStep0(value: Step0Check): void {
+    this.db
+      .prepare('INSERT INTO step0_checks (id, run_id, payload) VALUES (?, ?, ?)')
+      .run(value.id, value.runId, JSON.stringify(value));
   }
 
   approval(id: string): Approval | null {

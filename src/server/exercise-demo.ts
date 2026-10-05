@@ -52,8 +52,12 @@ export function initialiseExercises(store: Store, directory: string): void {
   store.transaction(() => {
     store.addActor(observer, 'observer', observerHash);
     store.addActor(operational, 'operational', operationalHash);
-    store.exercises.seedPackage(technicalPackage);
-    store.exercises.seedPackage(operationalPackage);
+    for (const definition of [technicalPackage, operationalPackage]) {
+      if (store.exercises.seedPackage(definition))
+        console.warn(
+          `Fixture revision conflict: ${definition.id}/${definition.revisionId}. Stored content was preserved; use a new package revision and run ID for changed source content.`,
+        );
+    }
     store.exercises.seedRun('technical-check-01', technicalPackage, [
       {
         actorId: 'demo-facilitator',

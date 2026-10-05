@@ -1,6 +1,6 @@
 # Work and handover
 
-Current priority, 4 October 2026: implement Form B first under ADR-021, with five injects as the first playable baseline and ten as the later package target. TASK-001A/B/C and [TASK-005's operational development skeleton](#task-005---operational-development-skeleton) are now implemented for the bounded local scope. Step 0 and release pause/resume/recovery are included; agreed responses and full completion remain next. See the [latest implementation handover](#release-and-operational-handoff---4-october-2026) for exact evidence and deferred questions. Dated earlier handovers describe historical decisions/status; this priority and the current task statuses take precedence.
+Current priority, 5 October 2026: implement Form B first under ADR-021, with five injects as the first playable baseline and ten as the later package target. TASK-001A/B/C and [TASK-005's operational development skeleton](#task-005---operational-development-skeleton) are now implemented for the bounded local scope. Step 0 now records team contact-route evidence; exercise session recovery and read polling are corrected. Agreed responses, facilitator disposition and explicit closure/completion remain next. See the [review-fix handover](#review-corrections-and-main-integration---5-october-2026) for exact evidence and deferred questions. Dated handovers and the project timeline are audit records, not authority for scope or sequencing. Form B, explicit user directions and actual dependencies govern the current work.
 
 ## Next milestones
 
@@ -75,13 +75,13 @@ Next coding scope: TASK-001D's agreed actions/rationale/information-request capt
 
 ## TASK-002 — One-inject AI feasibility
 
-Status: Not started; re-scoped to Form B under ADR-021 on 4 October 2026, after the first working deterministic loop. Prove one bounded AI operation, preferably response interpretation and recommendation from reviewed branches (FB-09), with a fake-provider contract first. Form B's generation requirement also remains mandatory; succeeding at this feasibility case does not complete FB-06/07. Full document parsing is not a prerequisite for the experiment. Requirements: REQ-007/011/012/018.
+Status: Not started; re-scoped to Form B under ADR-021 on 4 October 2026, after the first working deterministic loop. Prove one bounded AI operation, preferably response interpretation and recommendation from reviewed branches (FB-09), with a fake-provider contract first. Form B's generation requirement also remains mandatory; succeeding at this feasibility case does not complete FB-06/07. Full document parsing is not a prerequisite for the experiment. Requirements: REQ-007/011/012/018/024.
 
 Use ADR-011 and the [adapter boundary](architecture.md#proposed-codex-adapter-experiment), with fresh provider verification before implementation. The user owns the backend provider lifecycle, job API, schema/reference validation and failure handling, plus the frontend pending/error/review experience, initially using deterministic job fixtures. AI proposals still require human review; implementation ownership does not replace exercise approval.
 
 Retained feasibility safeguards: establish the installed protocol/model/authentication and enforceable isolation; record latency, validity, unsupported content and reviewer corrections; display proposals for review; exercise timeout, invalid output, usage limit, process exit and manual continuation. Normal tests use a fake provider. Live evaluation requires an explicitly bounded synthetic case and usage limit. Do not silently switch to paid API calls or widen execution permissions when integration fails.
 
-Before the experiment, review the expected actions, allowed branch fixtures, evidence/abstention criteria and bounded evaluation cases. Do not turn response interpretation into the deferred two-attempt coaching feature. No provider, model, execution permission or paid fallback is newly approved. Keep the full intake, generation and reporting obligations in PROJECT.
+Include a bounded grounded-draft case from a confirmed profile and reviewed pathway as well as response interpretation; an experiment is not the full generator. Before the experiment, review the expected actions, allowed branch fixtures, evidence/abstention criteria and bounded evaluation cases. Do not turn response interpretation into the deferred two-attempt coaching feature. No provider, model, execution permission or paid fallback is newly approved. Keep the full intake, generation and reporting obligations in PROJECT.
 
 ## TASK-003 - Five-inject coached first draft
 
@@ -101,7 +101,7 @@ Deliverables are linked from the author-only [package index](organisation/exampl
 
 Acceptance for the revised draft: concrete names and coherent operations; concise common context without weakness/lesson disclosure; authentic role knowledge with an author availability map; explicit gaps without predetermined failure; consistent IDs/headcounts/dependencies; sourced real rules and bounded name-check claims. Preserve fixture uncertainties separately from current fictional answers. Do not invent approval, observed recovery, formal exercise RACI, rubric, injects or branches. Select OPEN-11's incident family/objectives before finalising role detail or expanding diagrams/plans; readiness remains objective-dependent.
 
-Verification and handover are recorded in the dated entry below. Under ADR-021, reuse this draft and extend only what Form B's Synthetic SME Reference Pack needs for the selected incident: the agreed diagram, relevant continuity text, guided answers and known-answer facts. Further editorial/company expansion is deferred. The next engineering task remains TASK-001C alongside TASK-005; content authoring does not complete TASK-001/002/003 or implement an intake format.
+Verification and handover are recorded in the dated entry below. Under ADR-021, reuse this draft and extend only what Form B's Synthetic SME Reference Pack needs for the selected incident: the agreed diagram, relevant continuity text, guided answers and known-answer facts. Further editorial/company expansion is deferred. TASK-001C and TASK-005 are now complete for their bounded scope; response/closure and the required input reference pack remain; content authoring does not complete TASK-001/002/003 or implement an intake format.
 
 ## TASK-005 - Operational development skeleton
 
@@ -155,6 +155,36 @@ Figma and local diagram files were not changed. Their historical coaching/readin
 
 Publication preparation uses branch `codex/form-b-release-operational-skeleton`, a scoped source/docs/configuration allowlist and ignore checks for references, tokens, both demo-code files and browser output. The two disposable browser-test containers were removed after screenshot inspection; their databases were not mounted outside those containers. The intentionally running preview retains its separate volume. No teammate message or credentials were sent.
 
+## TASK-006 - Document intake and profile reconciliation
+
+Status: Required under ADR-021, not started. Form B objectives 3-5; REQ-001/002/008/011/016/017/021/022. Own the agreed input specification, full typed organisation/source schema, synthetic known-answer input pack, parsing/extraction, guided completion and candidate review. The current statement schema, seeded evidence display and confirmation are reusable foundations, not completed extraction/reconciliation.
+
+Before implementation, agree the single network-diagram format and supported text-based BCP/BIA/DRP subset, bounds and permitted parser dependencies. The authored company context needs a diagram, selected continuity document, guided answers and expected facts/relationships. Seven named characters must be assigned to 3-4 functional exercise roles; names/cards are not additional mandatory participant roles.
+
+Acceptance: ingest supported synthetic sources; preserve source/version/location evidence; identify missing/conflicting information and assumptions; let the reviewer confirm, correct, reject or add candidate information; freeze the exact validated profile before generation. Cover systems/connections, services/dependencies, roles/third parties, RTO/RPO and recovery priorities. Unsupported formats, incomplete inputs, contradictory statements and malicious embedded instructions must fail or remain explicitly unresolved rather than inventing facts. Evaluate known-answer extraction and source accuracy. Optional continuity upload in a run does not make its ingestion capability optional; guided-only preparation cannot replace the diagram demonstration.
+
+## TASK-007 - Threat pathway and package generation
+
+Status: Required under ADR-021, not started. Form B objectives 6-7; REQ-002/003/009/011/013/015/023/024. Depends on reviewed input/profile contracts and TASK-006 for integrated evidence; TASK-002 may use a manually prepared profile for a bounded feasibility experiment only.
+
+Acceptance: a controlled, versioned threat library supports a reviewed plausible pathway through the confirmed SME environment to named business services, impact and recovery decisions. Generate one package containing the required scenario/objectives, five initial MSEL inject positions, later ten for final acceptance, 3-4 functional roles, three key decision points, role-specific artefacts, expected actions, approved alternatives, criteria and facilitator notes. Preserve source grounding and distinguish unknowns and exercise assumptions; reject unsupported assets/dependencies or contradictory recovery priorities. Review all permitted paths and freeze the package before play. Prepared generic content is a comparison/template, not successful generation evidence. Thresholds, exact content and alternative limits still require review.
+
+## TASK-008 - Response interpretation and after-action review
+
+Status: Required under ADR-021, not started. Form B objectives 9-10, integrated with objective 8; REQ-003-007/010/018. Depends on recorded authorised responses and reviewed package/branch/criteria contracts.
+
+Acceptance: AI summarises the team's decision/rationale, identifies expected actions present, missing or unclear, and recommends only an eligible approved follow-up with evidence. The facilitator can approve, edit, reject, override, pause or continue manually; changes trigger the appropriate renewed review and release approval. Ambiguous responses, invalid provider outputs and AI outage retain durable evidence and manual continuation without inventing an action or branch.
+
+Generate a draft AAR and improvement actions from a fixed activity/debrief snapshot, covering releases, responses, timestamps, observations, facilitator decisions and actual branch changes. Findings link to evidence; humans review them and assign action ownership. Proposed actions are not completed remediation. Retain coaching history separately if that additional mode is used. Evaluation must also cover the core uncoached workflow.
+
+## TASK-009 - Evaluation and handover
+
+Status: Required under ADR-021, not started as a complete-workflow milestone. Form B objectives 1-2/11-12 and the deliverables mapped in [Form B alignment](form-b-alignment.md); REQ-012/025.
+
+Use controlled known-answer inputs and independent human review to evaluate extraction/source accuracy, profile reconciliation, pathway grounding, scenario/artefact consistency, response interpretation, branch agreement, approval enforcement, manual fallback and usefulness. Record test versions, methods, denominators, errors, reviewer corrections and limitations; set agreed criteria before tuning and keep held-out cases separate. Compare preparation/review effort against a documented manual baseline before claiming a reduction.
+
+Deliver the prototype/source, specifications, synthetic reference inputs, schemas and prompt/configuration notes, test report, technical documentation, user guide, operating/troubleshooting procedures, handover, school-safe demonstration, capstone report and presentation. Show the full input-to-exercise-to-review workflow at five injects first, then ten for final acceptance within Form B's 10-15 range. Core technical evidence does not claim completion of the other worker's operational work or certification/real recovery performance.
+
 ## Planning handover — 15 September 2026
 
 Historical record: the personnel split below was superseded by ADR-012 and the 16 September ownership update. The API design remains an internal technical-application boundary.
@@ -202,13 +232,8 @@ The user authorised committing and pushing these planning changes to `origin`. N
 Verification on 18 September 2026: the task-local `ttx-diagram-qa.cjs` Node/Playwright renderer used installed Chrome and Excalidraw 0.18.0 to import/export all 78 editable elements, validate IDs/bindings and check all 35 text widths; zero overflow and nonblank PNG pixel checks passed. Regenerated SVG/PNG exports and visually reviewed the final diagram. Inline PowerShell checks passed for strict UTF-8, final newlines, trailing whitespace and paired code fences across seven Markdown files; 37 local links/anchors resolved, SVG XML parsed, and the three pre-existing missing source-material links were unchanged. `git diff --check`, `git diff --cached --check`, the exact ten-file staged allowlist and token-path ignore/untracked checks passed. An initial broad credential pattern falsely matched the `task-003` heading links; the boundary-aware common credential scan passed. Reviewed the documentation diff and diagram text; `git rev-list --left-right --count HEAD...origin/main` returned `0 0` before the new commit. No application runtime tests exist yet.
 
 ## Later sequence
-1. Complete TASK-001's deterministic one-inject workflow after resolving its environment decisions.
-2. Proposed TASK-002: re-scope bounded assessment/feedback or eligible-variant recommendation feasibility under ADR-018, using reviewed synthetic context and content.
-3. TASK-003: agreed synthetic intake and SOC/MSSP mapping, reviewed five-inject package, two-answer coaching and evidence-grounded AAR; apply QUALITY's failure and recovery cases.
-4. Later fuller target: broader intake and 10-15-entry packages, bounded decision branches and approved follow-ups, only after agreeing their details.
-5. Backup/restore, evaluation evidence and school-safe handover for the implemented scope.
 
-Known limitations: TASK-001C/D/E, AI integration, parsing, five-inject assessment and AAR output remain unimplemented. Historical architecture research was not independently revalidated in the baseline task. Existing reference documents remain untracked and are not automatically included in a future commit.
+Use [Next milestones](#next-milestones) and the current task acceptance above, not the dates of historical handovers. Complete response capture/disposition/closure and the position/variant/evidence contract; develop the agreed typed input specification and known-answer sources alongside that bounded work. After the deterministic loop, TASK-002 probes both profile-grounded drafting and response interpretation with a fake-provider boundary before any authorised live evaluation. TASK-006/007/008 integrate intake, generation and interpretation/AAR at five positions; TASK-009 verifies the full ten-entry Form B delivery and handover. No calendar milestone waives these dependencies.
 
 ## Docker scaffold implementation - 18 September 2026
 
@@ -379,3 +404,76 @@ Executed on Docker Desktop's Linux engine with the pinned Node 24.19.0 image:
 - Copied the test screenshots to ignored `test-results/` and visually inspected desktop (1440 x 1080 viewport) and mobile (390 x 844 viewport). Evidence/unknown/conflict labels and controls are legible; browser overflow/row-overlap assertions and page-error checks passed. Removed the completed test container; no demonstration database or credentials were used or changed.
 
 Reviewed the scoped diff and documentation links/encoding/whitespace. Checks passed across eight Markdown files and 89 local links/anchors. `git diff --check` passed; the two previously unavailable historical architecture references remain, with no new broken links. No commit, push, deployment, real notification or provider integration occurred. Figma and local diagrams are unchanged and remain historical as labelled in architecture. Approval/release, Step 0, five-inject play, AI, AAR and the operational skeleton are still unimplemented and have no runtime test evidence from this run. Continue with TASK-001C and TASK-005, preserving the five-then-ten Form B sequence.
+
+
+## Imported laptop audit records
+
+The two entries below are retained from `21eacaa` as historical evidence, not current status or schedule authority. Their original IDs/count wording refer to that laptop checkpoint; use the [ADR-024 mapping](DECISIONS.md#adr-024---review-corrections-and-main-reconciliation) and current task sections for canonical IDs and five-then-ten scope. Their no-commit/no-push statements describe those earlier runs only.
+
+## Form B reconciliation - 29 September 2026
+
+The user explicitly made the supplied Form B the assessment authority and asked the repository requirements to match it, while keeping operational exercises in the overall platform under the other worker's ownership. During this reconciliation the user retained five MSEL injects first as the sole requested count exception. The first delivery therefore retains ingestion, reconciliation, controlled threat-pathway mapping, organisation-specific generation, 3-4 functional roles and three key decision points; expansion to Form B's original 10-15 entries is deferred.
+
+Read the complete ordered DOCX body/table content, objectives, scope, deliverables and training/review expectations using bundled Python/OOXML, and recorded the source hash in the alignment matrix. The first extraction hit a Windows console-encoding error; rerunning with Python's UTF-8 mode recovered the full content. No tracked changes were present. No source edit or redistribution occurred, and personal/contact/admin-comment content was excluded from the repository summary. Bundled LibreOffice is unavailable in this Windows runtime, so this was a content/structure review, not a rendered pagination/layout review; no page-number claims are made.
+
+Added ADR-021 and a twelve-objective/deliverable coverage matrix. Updated PROJECT, architecture, QUALITY, the active work sequence, README and agent instructions. Marked ADR-018 and the research note's predefined-package recommendation superseded. Restored TASK-005-008 for the assessed workflow; prepared fixtures remain valid for deterministic controls and comparison/fallback. Coaching is retained as supplementary, with its two-attempt rule only when selected. Existing diagrams/Figma are explicitly dated references pending redesign. The synthetic company package remains authoring context; its input diagram/continuity material and known-answer set still need preparation. Seven characters do not replace the 3-4 functional-role requirement.
+
+Inspection of contracts, profile service, API routes and tests confirms only seeded synthetic profile review/confirmation and its access/activity controls exist. No parsing, reconciliation editor, pathway/generator, exercise play, AI or AAR implementation is claimed. Application code, fixtures, tests, dependencies, source DOCX and runtime records are unchanged; the current task is requirements/design reconciliation, not implementation.
+
+Verification: inline bundled Python checks passed across all ten changed/new Markdown files for strict UTF-8, final newlines, trailing whitespace, paired fences and 125 local links/anchors. Two historical links in architecture remain unavailable (the supervisor PPTX and research guide); the Form B link now resolves to the supplied references copy, and there are no new missing links. Cross-checked all twelve source objectives and fourteen deliverable titles against the matrix, 23 unique requirement IDs and nine unique work items. The DOCX SHA-256 matches the original read. Reviewed the scoped diff; `git diff --check` passed. `git diff --name-only HEAD -- src tests package.json package-lock.json Dockerfile compose.yaml docs/diagrams` was empty. Runtime tests were not rerun for these documentation-only changes.
+
+No commit, push, deployment, provider call or live-data processing was performed. Continue with TASK-001C independently; settle OPEN-11 and the TASK-005 input/profile specification before dependent content/ingestion work. Requirements approval here does not select a parser, provider or production environment.
+
+## Main documentation checkpoint and branch handover - 5 October 2026
+
+The user requested a commit of the relevant local files on `main`, with a detailed progress-report and continuation record. The scope is eleven Markdown files: AGENTS, README, PROJECT, DECISIONS, QUALITY, WORK, architecture, the organisation-package index, the research-note clarification, the Form B alignment matrix and the [TTX threat-pathway template](../THREAT_PATHWAY_TEMPLATE.md). The separate vulnerability-research template `THREAT_MODEL_TEMPLATE.md` is deliberately excluded and must remain untouched and untracked. Original references, credentials, runtime data and verification helpers are also excluded.
+
+This checkpoint preserves the local 29 September Form B reconciliation: all twelve objectives and fourteen deliverables are mapped to requirements and acceptance evidence; ingestion, source-linked reconciliation, controlled pathway mapping, organisation-specific generation, response interpretation and AAR/evaluation work are required. Prepared packages remain control fixtures and comparison/fallback material. Coaching is supplementary. Five injects describe the first delivery; Form B still specifies 10-15 entries, 3-4 functional roles and three key decision points. Nothing here claims assessor approval to reduce the final submission to five.
+
+The TTX pathway template supports objective 6 and the input-to-package design. It distinguishes confirmed facts, reviewed assumptions and unknowns; connects narrative threat activity to named systems, services, impact and recovery decisions; maps expected actions and three decision points into the five-position initial MSEL; and requires source, changed-input and tailoring review. It is an authoring aid, not an implemented threat library, approved scenario or completed package generator. It contains no selected incident or newly approved organisational facts.
+
+### Continue from the implementation branch
+
+At this review, local `main` and `origin/main` shared `3ae3db1` before the new documentation commit. The feature branch was one commit ahead at `b2d365c`. Its code and recorded checks cover approval/release, recipient filtering, Step 0, pause/resume/restart recovery and a bounded operational development workspace. The branch's handover records 37 deterministic tests and five browser tests; those results were not rerun or imported as evidence for this documentation commit. Agreed responses, full completion, ingestion/generation, AI interpretation and AAR output remain separate unfinished work.
+
+Integrate this documentation checkpoint into the feature branch while preserving its code, test evidence and five-then-ten delivery sequence. The local five-inject intermediate scope does not supersede the branch's ten-entry final target or its deferral of extra coaching/readiness features. Reconcile overlapping prose by the Form B objective and actual implemented behaviour, rather than choosing every conflict from one side. The earlier merge simulation identified overlapping content conflicts in README, PROJECT, DECISIONS, QUALITY, WORK and architecture; no merge is performed by this checkpoint.
+
+Resolve identifier collisions and update their references during that integration:
+
+| Identifier | This main checkpoint | Feature branch at b2d365c |
+| --- | --- | --- |
+| ADR-021 | Form B authority and five-inject first delivery | Form B first, five then ten, with the operational skeleton exception |
+| TASK-005 | Document intake and profile reconciliation | Operational development skeleton |
+| REQ-019 | Typed input/profile/source specification | Controlled pathway mapping and package generation |
+| REQ-020 | Candidate reconciliation and validation | Step 0 preparation |
+
+Retain the detailed local intake/generation/reporting/evaluation acceptance criteria and objective/deliverable matrix, updating their identifiers and implementation-status cells against the branch. Keep the branch's operational handoff and newer ADRs. Continue its TASK-001D and remaining TASK-001E work; settle the pause/submission policy, incident family/objectives, supported input format, reviewed criteria/branches and provider constraints before their dependent stages. Do not restart completed release work because the older main status says TASK-001C is pending.
+
+### Checkpoint verification
+
+Verified eleven Markdown files for strict UTF-8, final newlines, trailing whitespace, paired fences and conflict markers. Checked 127 local links/anchors; only the two historical architecture references (supervisor slides and research guide) remain unavailable. Cross-checked all twelve source objectives, fourteen deliverable titles, 23 unique requirement IDs and nine work items. The selected-file credential-pattern scan and whitespace checks passed; source/test/diagram paths have no changes. The excluded research template's SHA-256 is unchanged and it remains outside Git's tracked files. An exact eleven-file staging check is required before the commit.
+
+The Form B source hash was rechecked against the matrix: `df83c3f0d4f5daeca5b3eb72e778f75627a94aecbee839be92b1972416a462ea`. The source remains in the ignored local references folder. The commit is limited to documentation; application source, tests, fixtures, dependencies, diagrams and runtime data are unchanged. Document/link, scope and exclusion checks are recorded with the commit message. Runtime tests are not repeated for this checkpoint, and no new runtime success is claimed. This request authorises a local main commit; no push, deployment, merge into the feature branch or provider operation is included.
+
+## Review corrections and main integration - 5 October 2026
+
+Scope: validated the two supplied independent reviews against the code and main's laptop commit `21eacaa`, then integrated its documentation into `codex/form-b-release-operational-skeleton`. The prior `b2d365c` added runtime release/operational controls above the profile-only `3ae3db1`; `21eacaa` was eleven documentation files only, including a fuller Form B matrix and threat-pathway authoring template. It did not supersede the branch's tested runtime, five-then-ten direction or deferred extras.
+
+Corrected:
+
+- Step 0 is now recorded evidence rather than a checkbox: three oral/reference-assisted team contact-route answers, named respondents, facilitator decision/rationale, immutable correction history and exact package/assignment binding. Pending, Clarification required and Hold cannot start or resume play. Participants see neutral questions before Ready, not the prepared contact answer or facilitator evidence. No CTM/contactability claim or repair of deliberate company gaps is made.
+- Exercise 401s clear private client state and return to sign-in on reads and writes. Re-login fetches durable state; it never automatically retries a mutation. Visible read polling updates participant inbox/run state and facilitator activity without refresh; unsaved evidence and uncertain commands pause polling and keep their original context/key.
+- Schema v3 is additive. Existing profile/confirmation, codes, memberships, releases and activity survive; legacy runs are not assigned fictional Ready evidence. Same-ID/revision seed mismatch warns without overwriting saved content. No live dataset or volume reset is used.
+- Integrated the laptop's twelve-objective/fourteen-deliverable matrix, detailed intake/generation/reconciliation/evaluation acceptance and pathway template. Reconciled colliding task/requirement IDs under ADR-024 and retained both histories. Timeline dates remain audit only. No dependencies, company facts, fixture revisions, AI provider or scenario were selected/changed.
+
+Remaining design issue: flat message counts are not MSEL positions, branch variants or role-specific evidence. Architecture records the required distinction; no increased array cap or claim of branch support was substituted for that work. Response capture, facilitator disposition, explicit closure/completion and pause/submission policy precede the reviewed five-inject pilot. Settle OPEN-11 and the agreed input format/typed source model alongside that bounded loop; protect Form B's input-driven generation, not an indefinite hand-authored demo. AI account/linking decisions remain deferred to the user.
+
+Verification on Windows/Docker Desktop with the pinned Node 24.19.0 image:
+
+- `docker build --target browser-tests -t ai-ttx-browser-tests:review-fixes .` passed `npm run check`: formatting, lint, TypeScript, all 42 deterministic tests (17 profile, 25 exercise), server build and Vite build. No test was skipped or weakened; no dependency/lockfile changed.
+- The final isolated `--network none` browser container passed all six Playwright tests (three profile, two exercise, one real-server recovery). Covered Step 0 entry, unsaved-answer and recipient-selection preservation, cross-session pause/inbox polling, uncertain-response exact-key retry without automatic writes, access isolation and operational read-error recovery. A separately spawned server really stopped/restarted against its test database: both roles returned to sign-in without reload; manual resume/fresh approval were required; an expired-session release was not replayed after login.
+- The first two browser runs exposed unstable implicit labels on the new select/filled textareas. Added explicit accessible names matching the visible questions and reran unchanged assertions. Two subsequent full suites passed. Nine desktop/mobile screenshots were visually reviewed, including the new Step 0 form; the final form spacing/font refinement was rechecked at 1440x1080 and 390x844. Overflow, action-button overlap and page-error checks passed. Images/traces remain ignored under `test-results/`.
+- `docker compose config --quiet` and the normal `up --build -d --wait` passed for `ai-ttx-release-preview-10f9` at localhost:3010. Its stopped v2 dataset was migrated to v3 without reset: read-only before/after hashes matched across all 13 existing data tables inspected and both code files, with run states/revisions unchanged. Health reports AI disabled; runtime is non-root/read-only and published only to host loopback. No test responses or readiness records were inserted into that preview.
+- Strict UTF-8, newline, whitespace, fence/conflict checks passed across 12 Markdown files. Checked 161 local links/anchors, 25 unique requirement IDs and 10 unique top-level tasks. Only the two already-known historical architecture sources remain unavailable. Form B's local SHA-256 still matches the matrix. The twelve objectives and fourteen deliverable rows survive integration; changed-path and credential/ignore checks exclude references, personal research, code files and runtime/test output.
+
+Reviewed the code/docs diff and migration/retry/privacy failure paths. Publication uses the existing feature branch, a detailed merge-and-fix commit and a scoped allowlist; main is integrated, not overwritten or force-pushed. Figma and concept diagrams remain unchanged historical references. No live AI, external contact, new parser/format/scenario selection or claim of a completed five-inject exercise was made. The final response records the published commit and remote verification.

@@ -23,6 +23,7 @@ import {
   ApprovalSchema,
   ReleaseSchema,
   RunSchema,
+  Step0CheckSchema,
   type BriefingView,
   type Inbox as InboxItems,
   type Review,
@@ -35,6 +36,7 @@ type Pending = { schema: TSchema; path: string; body: Record<string, unknown> };
 const date = (value: string) =>
   new Date(value).toLocaleString('en-SG', { dateStyle: 'medium', timeStyle: 'short' });
 const labels: Record<RunActivity[number]['kind'], string> = {
+  'step0-recorded': 'Team contact-route check recorded',
   'briefing-confirmed': 'Briefing confirmed and run started',
   'inject-approved': 'Inject approved',
   'inject-released': 'Inject available in recipient inbox',
@@ -43,7 +45,13 @@ const labels: Record<RunActivity[number]['kind'], string> = {
   'run-recovered': 'Restart detected; run paused',
 };
 
-export function ExerciseWorkspace({ actor }: { actor: Actor }) {
+export function ExerciseWorkspace({
+  actor,
+  onSessionExpired,
+}: {
+  actor: Actor;
+  onSessionExpired: () => void;
+}) {
   const [runs, setRuns] = useState<RunList>([]);
   const [selected, setSelected] = useState('');
   const [review, setReview] = useState<Review | null>(null);
@@ -56,17 +64,34 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
   const [acknowledged, setAcknowledged] = useState(false);
   const [recipients, setRecipients] = useState<string[]>([]);
   const [pending, setPending] = useState<Pending | null>(null);
+  const [refreshError, setRefreshError] = useState('');
+  const [step0, setStep0] = useState({
+    firstContact: '',
+    contactRoute: '',
+    fallback: '',
+    rationale: '',
+    decision: 'clarification-required',
+  });
+  const [respondents, setRespondents] = useState<string[]>([]);
   const generation = useRef(0);
+  const binding = useRef('');
+  const polling = useRef(false);
+  const editing = useRef(false);
+  const refresh = useRef<() => void>(() => {});
 
-  async function reload(choice = selected) {
+  async function reload(choice = selected, background = false) {
     const current = ++generation.current;
-    setLoading(true);
-    setError('');
-    setReview(null);
-    setBriefing(null);
-    setInbox([]);
-    setEvents([]);
-    setAcknowledged(false);
+    if (background) polling.current = true;
+    else {
+      setLoading(true);
+      setError('');
+      setRefreshError('');
+      setReview(null);
+      setBriefing(null);
+      setInbox([]);
+      setEvents([]);
+      setAcknowledged(false);
+    }
     try {
       const lists = await Promise.all(
         ['technical', 'operational'].map((track) =>
@@ -74,33 +99,54 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
         ),
       );
       const all = lists.flat();
-      if (current !== generation.current) return;
+      if (current !== generation.current || (background && editing.current)) return;
       setRuns(all);
       const run = all.find((item) => `${item.track}/${item.id}` === choice) ?? all[0];
       const next = run ? `${run.track}/${run.id}` : '';
       setSelected(next);
-      if (!run) return;
+      if (!run) {
+        setReview(null);
+        setBriefing(null);
+        setInbox([]);
+        setEvents([]);
+        return;
+      }
       const root = `/api/tracks/${run.track}/runs/${run.id}`;
       if (actor.role === 'facilitator') {
         const [detail, activity] = await Promise.all([
           request(ReviewSchema, `${root}/review`),
           request(RunActivitySchema, `${root}/activity`),
         ]);
-        if (current !== generation.current) return;
+        if (current !== generation.current || (background && editing.current)) return;
         setReview(detail);
         setEvents(activity);
         const inject = detail.package.injects.find((item) => item.id === detail.nextInject?.id);
-        setRecipients(
-          detail.approval?.recipientIds ??
+        const nextBinding = `${run.id}/${detail.packageHash}/${detail.assignmentHash}/${inject?.id ?? ''}`;
+        if (!background || binding.current !== nextBinding) {
+          setAcknowledged(false);
+          binding.current = nextBinding;
+          setRespondents(
             detail.members
               .filter(
                 (member) =>
                   member.kind === 'participant' &&
                   member.roleId &&
-                  inject?.recipientRoleIds.includes(member.roleId),
+                  detail.package.injects[0]?.recipientRoleIds.includes(member.roleId),
               )
               .map((member) => member.actorId),
-        );
+          );
+          setRecipients(
+            detail.approval?.recipientIds ??
+              detail.members
+                .filter(
+                  (member) =>
+                    member.kind === 'participant' &&
+                    member.roleId &&
+                    inject?.recipientRoleIds.includes(member.roleId),
+                )
+                .map((member) => member.actorId),
+          );
+        }
       } else {
         const [context, items] = await Promise.all([
           request(BriefingViewSchema, `${root}/briefing`),
@@ -110,29 +156,72 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
         setBriefing(context);
         setInbox(items);
       }
+      setRefreshError('');
     } catch (error) {
-      if (current === generation.current)
-        setError(error instanceof Error ? error.message : 'The exercise could not be loaded.');
+      if (current === generation.current) {
+        if (error instanceof ApiError && error.status === 401) {
+          generation.current++;
+          onSessionExpired();
+        } else {
+          if (error instanceof ApiError && [403, 404].includes(error.status)) {
+            setReview(null);
+            setBriefing(null);
+            setInbox([]);
+            setEvents([]);
+          }
+          (background ? setRefreshError : setError)(
+            error instanceof Error ? error.message : 'The exercise could not be loaded.',
+          );
+        }
+      }
     } finally {
-      if (current === generation.current) setLoading(false);
+      if (background) polling.current = false;
+      else if (current === generation.current) setLoading(false);
     }
   }
 
+  refresh.current = () => {
+    if (!busy && !loading && !pending && !polling.current && !editing.current && !document.hidden)
+      void reload(selected, true);
+  };
+
   useEffect(() => {
     void reload();
+    const timer = window.setInterval(() => refresh.current(), 5000);
+    const visible = () => refresh.current();
+    window.addEventListener('focus', visible);
+    document.addEventListener('visibilitychange', visible);
     return () => {
       generation.current++;
+      window.clearInterval(timer);
+      window.removeEventListener('focus', visible);
+      document.removeEventListener('visibilitychange', visible);
     };
   }, []);
 
   async function perform(command: Pending) {
+    generation.current++;
     setBusy(true);
     setError('');
     try {
       await request(command.schema, command.path, command.body);
       setPending(null);
+      if (command.path.endsWith('/step0')) {
+        editing.current = false;
+        setStep0({
+          firstContact: '',
+          contactRoute: '',
+          fallback: '',
+          rationale: '',
+          decision: 'clarification-required',
+        });
+      }
       await reload();
     } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        onSessionExpired();
+        return;
+      }
       setError(error instanceof Error ? error.message : 'The result could not be confirmed.');
       if (error instanceof ApiError && error.status < 500) setPending(null);
     } finally {
@@ -162,6 +251,11 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
     [...recipients].sort().join(',') === [...review.approval.recipientIds].sort().join(',');
   const isSkeleton = review?.package.kind === 'development-skeleton';
 
+  function editStep0(field: keyof typeof step0, value: string) {
+    editing.current = true;
+    setStep0((previous) => ({ ...previous, [field]: value }));
+  }
+
   return (
     <section className="exercise-workspace">
       <div className="page-heading">
@@ -173,7 +267,7 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
           className="icon-button"
           title="Refresh exercises"
           aria-label="Refresh exercises"
-          disabled={busy || loading}
+          disabled={busy || loading || editing.current}
           onClick={() => void reload()}
         >
           <RefreshCw size={19} />
@@ -183,6 +277,12 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
         <div className="error" role="alert">
           <TriangleAlert size={18} />
           <span>{error}</span>
+        </div>
+      )}
+      {refreshError && (
+        <div className="error" role="alert">
+          <TriangleAlert size={18} />
+          <span>{refreshError}</span>
         </div>
       )}
       {pending && !busy && (
@@ -198,7 +298,17 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
             aria-label="Exercise"
             value={selected}
             disabled={disabled}
-            onChange={(event) => void reload(event.target.value)}
+            onChange={(event) => {
+              editing.current = false;
+              setStep0({
+                firstContact: '',
+                contactRoute: '',
+                fallback: '',
+                rationale: '',
+                decision: 'clarification-required',
+              });
+              void reload(event.target.value);
+            }}
           >
             {runs.map((run) => (
               <option key={run.id} value={`${run.track}/${run.id}`}>
@@ -239,6 +349,172 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
             <div>
               <section className="run-section" aria-label="Starting arrangements">
                 <h2>Step 0: Starting arrangements</h2>
+                {!isSkeleton && (
+                  <>
+                    <h3>Team contact-route check</h3>
+                    <p className="run-notice">
+                      {review.step0Ready
+                        ? 'Current Ready decision recorded.'
+                        : 'A current Ready decision is required before play.'}
+                    </p>
+                    {review.step0Checks.length > 0 && (
+                      <ol className="step0-history">
+                        {review.step0Checks.map((check) => (
+                          <li key={check.id}>
+                            <details>
+                              <summary>
+                                {check.decision.replaceAll('-', ' ')} / {date(check.recordedAt)}
+                              </summary>
+                              <p>
+                                <strong>Respondents:</strong>{' '}
+                                {check.respondentIds
+                                  .map(
+                                    (id) =>
+                                      review.members.find((member) => member.actorId === id)
+                                        ?.displayName ?? id,
+                                  )
+                                  .join(', ')}
+                              </p>
+                              <p>
+                                <strong>First contact:</strong> {check.firstContact}
+                              </p>
+                              <p>
+                                <strong>Contact route:</strong> {check.contactRoute}
+                              </p>
+                              <p>
+                                <strong>Fallback:</strong> {check.fallback}
+                              </p>
+                              <p>
+                                <strong>Facilitator decision:</strong> {check.rationale}
+                              </p>
+                            </details>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                    {['draft', 'paused'].includes(review.run.state) && (
+                      <fieldset className="step0-form" disabled={disabled}>
+                        <legend>Record the team's oral answers</legend>
+                        <div className="recipient-list">
+                          {review.members
+                            .filter((member) => member.kind === 'participant')
+                            .map((member) => (
+                              <label key={member.actorId}>
+                                <input
+                                  type="checkbox"
+                                  checked={respondents.includes(member.actorId)}
+                                  onChange={(event) => {
+                                    editing.current = true;
+                                    setRespondents(
+                                      event.target.checked
+                                        ? [...respondents, member.actorId]
+                                        : respondents.filter((id) => id !== member.actorId),
+                                    );
+                                  }}
+                                />
+                                {member.displayName}
+                              </label>
+                            ))}
+                        </div>
+                        <label>
+                          Who would the team contact first?
+                          <textarea
+                            aria-label="Who would the team contact first?"
+                            value={step0.firstContact}
+                            maxLength={1500}
+                            onChange={(event) => editStep0('firstContact', event.target.value)}
+                          />
+                        </label>
+                        <label>
+                          How would they contact them or find the details?
+                          <textarea
+                            aria-label="How would they contact them or find the details?"
+                            value={step0.contactRoute}
+                            maxLength={1500}
+                            onChange={(event) => editStep0('contactRoute', event.target.value)}
+                          />
+                        </label>
+                        <label>
+                          What is their fallback or escalation route?
+                          <textarea
+                            aria-label="What is their fallback or escalation route?"
+                            value={step0.fallback}
+                            maxLength={1500}
+                            onChange={(event) => editStep0('fallback', event.target.value)}
+                          />
+                        </label>
+                        <label>
+                          Facilitator decision
+                          <select
+                            aria-label="Facilitator decision"
+                            value={step0.decision}
+                            onChange={(event) => editStep0('decision', event.target.value)}
+                          >
+                            <option value="clarification-required">Clarification required</option>
+                            <option value="hold">Hold</option>
+                            <option value="ready">Ready</option>
+                          </select>
+                        </label>
+                        <label>
+                          Decision rationale and gap disposition
+                          <textarea
+                            aria-label="Decision rationale and gap disposition"
+                            value={step0.rationale}
+                            maxLength={2000}
+                            onChange={(event) => editStep0('rationale', event.target.value)}
+                          />
+                        </label>
+                        <div className="run-actions">
+                          <button
+                            className="secondary"
+                            disabled={
+                              disabled ||
+                              !review.profileConfirmed ||
+                              !respondents.length ||
+                              [
+                                step0.firstContact,
+                                step0.contactRoute,
+                                step0.fallback,
+                                step0.rationale,
+                              ].some((value) => !value.trim())
+                            }
+                            onClick={() =>
+                              submit(Step0CheckSchema, 'step0', {
+                                ...step0,
+                                respondentIds: respondents,
+                                packageHash: review.packageHash,
+                                assignmentHash: review.assignmentHash,
+                              })
+                            }
+                          >
+                            <Check size={17} />
+                            Record Step 0 decision
+                          </button>
+                          {editing.current && (
+                            <button
+                              className="secondary"
+                              disabled={disabled}
+                              onClick={() => {
+                                editing.current = false;
+                                setStep0({
+                                  firstContact: '',
+                                  contactRoute: '',
+                                  fallback: '',
+                                  rationale: '',
+                                  decision: 'clarification-required',
+                                });
+                                void reload();
+                              }}
+                            >
+                              Discard unsaved check
+                            </button>
+                          )}
+                        </div>
+                      </fieldset>
+                    )}
+                    <h3>Prepared briefing</h3>
+                  </>
+                )}
                 <p>{review.package.briefing.common}</p>
                 <ul className="run-references">
                   {review.package.briefing.references.map((reference) => (
@@ -297,6 +573,7 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
                         disabled ||
                         !acknowledged ||
                         !review.profileConfirmed ||
+                        !review.step0Ready ||
                         review.run.state !== 'draft'
                       }
                       onClick={() =>
@@ -368,6 +645,8 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
                           className="secondary"
                           disabled={
                             disabled ||
+                            !review.profileConfirmed ||
+                            !review.step0Ready ||
                             !recipients.length ||
                             review.run.state !== 'active' ||
                             approvalMatches
@@ -387,7 +666,13 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
                         </button>
                         <button
                           className="primary"
-                          disabled={disabled || !approvalMatches || review.run.state !== 'active'}
+                          disabled={
+                            disabled ||
+                            !review.profileConfirmed ||
+                            !review.step0Ready ||
+                            !approvalMatches ||
+                            review.run.state !== 'active'
+                          }
                           onClick={() =>
                             submit(ReleaseSchema, 'releases', { approvalId: review.approval!.id })
                           }
@@ -439,7 +724,7 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
                   {review.run.state === 'paused' && (
                     <button
                       className="secondary"
-                      disabled={disabled}
+                      disabled={disabled || !review.step0Ready}
                       onClick={() => submit(RunSchema, 'resume')}
                     >
                       <Play size={17} />
@@ -476,8 +761,13 @@ export function ExerciseWorkspace({ actor }: { actor: Actor }) {
           <section className="run-section">
             <div className="section-heading">
               <h2>Starting arrangements</h2>
-              <span className="badge pending">{briefing.state}</span>
+              <span className={`badge ${briefing.state === 'active' ? 'confirmed' : 'pending'}`}>
+                {briefing.state}
+              </span>
             </div>
+            {briefing.step0Status !== 'ready' && (
+              <p className="run-notice">Step 0: {briefing.step0Status.replaceAll('-', ' ')}</p>
+            )}
             <p>{briefing.common}</p>
             <h3>{briefing.role.name}</h3>
             <p>{briefing.role.briefing}</p>

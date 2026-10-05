@@ -115,6 +115,32 @@ export const PreparationSchema = Type.Object(
   },
   strict,
 );
+export const Step0DecisionSchema = Type.Union([
+  Type.Literal('ready'),
+  Type.Literal('clarification-required'),
+  Type.Literal('hold'),
+]);
+const step0Evidence = {
+  respondentIds: Type.Array(IdSchema, { minItems: 1, maxItems: 50, uniqueItems: true }),
+  firstContact: text(1500),
+  contactRoute: text(1500),
+  fallback: text(1500),
+  decision: Step0DecisionSchema,
+  rationale: text(2000),
+};
+export const Step0CheckSchema = Type.Object(
+  {
+    ...step0Evidence,
+    id: IdSchema,
+    runId: IdSchema,
+    packageHash: hash,
+    assignmentHash: hash,
+    actorId: IdSchema,
+    recordedAt: at,
+    runRevision: revision,
+  },
+  strict,
+);
 export const ApprovalSchema = Type.Object(
   {
     id: IdSchema,
@@ -163,6 +189,7 @@ export const BriefingViewSchema = Type.Object(
     runId: IdSchema,
     track: TrackSchema,
     state: RunStateSchema,
+    step0Status: Type.Union([Type.Literal('pending'), Step0DecisionSchema]),
     revisionId: IdSchema,
     common: text(4000),
     references: Type.Array(text(500), { maxItems: 20 }),
@@ -179,6 +206,8 @@ export const ReviewSchema = Type.Object(
     members: Type.Array(MemberSchema, { maxItems: 50 }),
     profileConfirmed: Type.Boolean(),
     preparation: Type.Union([PreparationSchema, Type.Null()]),
+    step0Checks: Type.Array(Step0CheckSchema, { maxItems: 100 }),
+    step0Ready: Type.Boolean(),
     approval: Type.Union([ApprovalSchema, Type.Null()]),
     nextInject: Type.Union([Type.Object({ id: IdSchema, contentHash: hash }, strict), Type.Null()]),
     releases: Type.Array(ReleaseSchema, { maxItems: 15 }),
@@ -186,6 +215,10 @@ export const ReviewSchema = Type.Object(
   strict,
 );
 const command = { expectedRunRevision: revision, idempotencyKey: IdSchema };
+export const Step0RequestSchema = Type.Object(
+  { ...command, ...step0Evidence, packageHash: hash, assignmentHash: hash },
+  strict,
+);
 export const StartRequestSchema = Type.Object(
   {
     ...command,
@@ -216,6 +249,7 @@ export const RunActivitySchema = Type.Array(
       sequence: Type.Integer({ minimum: 1 }),
       runId: IdSchema,
       kind: Type.Union([
+        Type.Literal('step0-recorded'),
         Type.Literal('briefing-confirmed'),
         Type.Literal('inject-approved'),
         Type.Literal('inject-released'),
@@ -240,6 +274,8 @@ export type Member = Static<typeof MemberSchema>;
 export type Run = Static<typeof RunSchema>;
 export type RunList = Static<typeof RunListSchema>;
 export type Preparation = Static<typeof PreparationSchema>;
+export type Step0Check = Static<typeof Step0CheckSchema>;
+export type Step0Request = Static<typeof Step0RequestSchema>;
 export type Approval = Static<typeof ApprovalSchema>;
 export type Release = Static<typeof ReleaseSchema>;
 export type Inbox = Static<typeof InboxSchema>;
