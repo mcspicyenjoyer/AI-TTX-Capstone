@@ -1,6 +1,6 @@
 # Technical TTX inputs and synthetic SME package
 
-Research date: 27 September 2026. Advisory research, not an approved readiness checklist, exercise package, rubric or implementation. [PROJECT](../PROJECT.md) owns scope; [ADR-018](../DECISIONS.md#adr-018---predefined-package-as-the-current-drafting-model) records the user's predefined-package direction. No real organisation records are needed or authorised for this prototype.
+Research date: 27 September 2026. Historical advisory research, not a readiness checklist, exercise package, rubric or implementation. Its predefined-package authoring recommendation was superseded on 29 September by [ADR-021](../DECISIONS.md#adr-021---form-b-authority-and-five-inject-first-delivery). [PROJECT](../PROJECT.md) now requires ingestion, reconciliation, controlled threat-pathway mapping and organisation-specific generation, retaining five MSEL injects first by explicit user exception. Input categories and synthetic-context research below remain useful; recommendations that bypass generation are no longer current. No real organisation records are authorised.
 
 ## Findings
 

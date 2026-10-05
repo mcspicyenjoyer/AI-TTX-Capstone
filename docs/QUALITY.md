@@ -1,6 +1,6 @@
 # Quality and verification
 
-Status: acceptance plan; WORK records executed results. Deterministic contract/API/persistence tests and Playwright profile checks now accompany TASK-001A/B. No AI evaluations exist yet.
+Status: acceptance plan aligned to Form B under ADR-021 on 29 September 2026, retaining the user's five-MSEL-inject first-delivery exception. WORK records executed results. Deterministic contract/API/persistence tests and Playwright profile checks cover TASK-001A/B only. No extraction, generation, exercise-play or AI evaluations exist yet.
 
 ## Definition of done
 The bounded behaviour meets acceptance criteria, relevant failures are tested, required checks pass, the diff is reviewed and affected documents reflect reality. Outstanding required failures mean incomplete work. A successful build does not replace a browser workflow check.
@@ -24,14 +24,35 @@ Branding checks under ADR-015 verify "TTX Platform" in the browser title and sha
 
 Use unit tests for rules, integration tests for transactions and authorisation, and browser verification for the user path. Ordinary tests are independent of AI/network services. Do not write tests that merely reproduce implementation details.
 
+## Form B workflow acceptance
+
+Required for [TASK-005-008](WORK.md#task-005---document-intake-and-profile-reconciliation) and the integrated five-inject delivery. These are planned cases, not implemented tests. [Form B alignment](form-b-alignment.md) maps the twelve objectives and outputs. Review input limits, human reference labels and quality thresholds before evaluation; normal software checks use deterministic provider fixtures.
+
+| Area / requirements | Required evidence and failure cases |
+| --- | --- |
+| Input specification and schema / REQ-008/019 | One agreed diagram format and supported text-based continuity formats have explicit bounds. Typed systems, connections, services, dependencies, roles, third parties, RTO/RPO and priorities preserve source links and uncertainty. Reject unsupported/malformed inputs; never execute supplied content. |
+| Extraction and provenance / REQ-008/012 | Known-answer synthetic diagram and BCP/BIA/DRP cases measure entity/relationship accuracy and locator correctness. Test omissions, conflicting names/values, incomplete sources and instruction-like text. A pre-seeded profile is not extraction evidence. |
+| Reconciliation and confirmation / REQ-001/002/020 | Reviewer can confirm, correct, reject and add information with provenance; conflicts and assumptions remain visible. No generation from an unconfirmed or stale revision. Changing inputs/profile invalidates affected drafts; missing upload is not confirmed absence of a capability. |
+| Optional documents and guided completion / REQ-008/016/017 | Diagram-only, partial/conflicting-continuity and complete-input cases retain defined, attributed completion routes. A run may omit continuity uploads, but ingestion capability must be tested. Guided-only/manual routes do not satisfy diagram-ingestion acceptance. |
+| Threat pathway / REQ-021 | A reviewed controlled pattern links plausible entry points and affected systems/dependencies to named services, impact and recovery choices. Distinguish connectivity from exploitable reachability; unsupported edges/claims require rejection or labelled, reviewed exercise assumptions. |
+| Grounded package generation / REQ-002/009/022 | Generate from confirmed inputs, not a fixed public/hand-authored package. Verify system/service references, recovery targets/priorities, source support, artefact chronology and scenario coherence. Controlled changes to a relevant input must be reflected consistently in affected generated content; mere company-name substitution fails the tailoring review. |
+| Package structure and branches / REQ-009/015/018 | First delivery has five participant-facing MSEL positions, 3-4 functional roles and three key decision points. Release one variant per position; count neither unused variants nor supporting artefacts as extra positions. Every allowed complete path preserves agreed objectives/consequences and reaches closure. Record the original 10-15 count as the user-authorised deviation. |
+| Human review and facilitator controls / REQ-003-007 | Package review precedes play. Exercise approve/edit/reject/override/pause/manual continuation; every release rechecks exact revision, recipients and run conditions. Edits invalidate approval. Direct API and participant projections cannot bypass authority or disclose hidden content. |
+| Response interpretation and branch recommendation / REQ-007/012/018 | Compare against independent human labels for present/missing/unclear actions, rationale and acceptable alternatives. Test ambiguous/incomplete responses, invalid branch IDs, ineligible/stale choices, unsupported claims and abstention. A missing mention is not proof of a failed real action. |
+| Core play without coaching / REQ-004/010/015/018 | The agreed decision can be interpreted, reviewed and used for approved progression without a coached retry or a forced pass. Preserve unresolved findings. Supplementary feedback must not be required to complete this core route. |
+| Durable record and AAR / REQ-004/006/010 | AAR findings refer to recorded injects, decisions, observations, branch changes and debrief evidence from a fixed snapshot. Test outage/restart, missing evidence and disputed interpretations; do not invent delivery, execution, recovery or action closure. Human review assigns improvement ownership. |
+| Usefulness and complete handover / REQ-012/023 | Record reviewer usefulness, preparation/review effort and correction burden against a documented manual baseline. Report errors and limitations. Supply all mapped technical outputs, test results, guide and school-safe input-to-review demonstration; no unmeasured saving or operational-workstream completion claim. |
+
+The required synthetic reference pack needs the agreed diagram, selected continuity input, guided answers and independently reviewed expected facts. The existing company register/cards provide authoring truth but are not parsed input evidence or a generated exercise. Use changed-input cases within the one representative SME/incident scope, not unbounded new scenarios. Keep human-reviewed quality evaluation distinct from deterministic schema/control tests; neither replaces the other.
+
 ## Coached first-draft cases
 
-Acceptance plan for [TASK-003](WORK.md#task-003---five-inject-coached-first-draft), not executed tests. These supplement, rather than replace, the first-slice authority, durability and visibility checks. Fix expected outcomes with the reviewed rubric before evaluation; normal software checks use deterministic provider fixtures.
+Supplementary coaching acceptance for [TASK-003](WORK.md#task-003---five-inject-coached-first-draft), not a Form B requirement or executed tests. Apply when coached mode is selected; it cannot replace the required workflow above. Fix expected outcomes with the reviewed rubric before evaluation; normal software checks use deterministic provider fixtures.
 
 | Case | Requirements | Evidence |
 | --- | --- | --- |
 | Upfront SOC/MSSP mapping | REQ-013 | Setup distinguishes internal/outsourced functions and named responding users/teams. Missing mappings block role-specific preparation; an unrelated participant cannot answer for the assigned role. |
-| Five-inject single-track package | REQ-009/015/018 | Five participant-facing positions in the selected track, with one reviewed variant per position. Authored alternatives do not increase the five-inject run count; no technical/operational mixture. |
+| Five-inject single-track package | REQ-009/015/018 | Five participant-facing positions, 3-4 functional roles and three key decision points, with one reviewed variant per position. Alternatives do not increase the run count; no technical/operational mixture. |
 | First answer sufficient | REQ-014 | Resolve after one answer; do not demand or permit another answer to the closed inject. Record first-attempt success on that inject, without implying no influence from earlier coaching. |
 | First insufficient, second sufficient | REQ-010/014 | Deliver targeted feedback once, retain both answers and the guidance, and record coached success separately from a sufficient first attempt. |
 | Second answer insufficient | REQ-010/014/015 | Record an unresolved finding, reject a third submission and permit the next prepared inject only through normal approval/release checks. |
@@ -43,11 +64,11 @@ Acceptance plan for [TASK-003](WORK.md#task-003---five-inject-coached-first-draf
 
 ## Bounded adaptation cases
 
-Acceptance plan under ADR-017 and REQ-018; not executed runtime tests. Use reviewed synthetic branch fixtures and deterministic AI recommendations/abstentions after the branch rules and content are agreed.
+Acceptance plan under ADR-017/021 and REQ-018; not executed runtime tests. Use reviewed synthetic branch fixtures and deterministic AI recommendations/abstentions after the three decision points' rules/content are agreed. Apply coaching budgets only in the supplementary coached mode.
 
 | Case | Expected evidence |
 | --- | --- |
-| Objective coverage and bounds | Every permitted complete path offers all agreed learning objectives within five positions. Reject cycles, extra positions, dead ends without an explicit pause and variants outside approved scope/context. |
+| Objective coverage and bounds | Every permitted complete path offers the agreed learning objectives within five positions and the three reviewed decision points. Reject cycles, extra positions, dead ends without an explicit pause and variants outside approved scope/context. |
 | Response-dependent progression | Contrasting reviewed responses select the expected eligible alternatives. Preserve response evidence and rationale; do not infer performed actions from a score or rewrite initial answers after coaching. |
 | Continuity at reconvergence | Paths return to common stages while retaining their recorded consequences. Unresolved containment cannot silently become successful recovery to make paths converge. |
 | Human authority and revision checks | An AI suggestion cannot release content. Reject non-member/ineligible variants and stale approval; changes require the applicable renewed review. |
@@ -60,11 +81,11 @@ Acceptance plan under ADR-017 and REQ-018; not executed runtime tests. Use revie
 Structural acceptance under ADR-016 and REQ-016/017; not an implemented checklist or the user's pending readiness specification. Define exact expected readiness outcomes only after that specification is reviewed.
 
 - Exercise purpose, track and initial scope are recorded before detailed targeted questions; changing objectives triggers review of affected readiness and package decisions.
-- Documents and guided answers retain source attribution. No-document, partial/conflicting-document and complete-document synthetic cases all have a defined route; absent uploads do not become fabricated facts or proof of absent plans.
+- Documents and guided answers retain source attribution. Diagram-only, partial/conflicting-document and complete-document synthetic cases have defined routes. A supplementary no-document/manual route does not replace the assessed ingestion capability; absent uploads do not become fabricated facts or proof of absent plans.
 - Profile confirmation cannot substitute for context, package or run readiness. Decisions refer to the reviewed profile, exercise plan and applicable criteria versions; stale decisions cannot silently unlock downstream stages.
 - The unresolved-gap route stops or revises the plan explicitly. Exhausted questioning never causes an automatic ready result.
 - Business impact and reviewer confirmation support critical-asset selection; inventory presence alone does not establish crown jewels.
-- Package review verifies objective-to-inject-to-criterion-to-evidence links, recipient/responder assignments and coherent five-position paths through the reviewed alternatives. Participant briefing gives the necessary context without disclosing private grading material or future injects.
+- Package review verifies confirmed-profile/pathway grounding, objective-to-inject-to-criterion-to-evidence links, 3-4 functional roles and coherent five-position paths through three reviewed decision points. Participant briefing gives the necessary context without disclosing private criteria or future injects.
 - Debrief feedback and exercise-design limitations are distinguished from participant-response findings. AAR actions identify an owner, due date and status; proposed actions are not reported as completed.
 
 These cases guide future work; they do not replace the deterministic first-slice tests or permit invented rubric thresholds.
