@@ -25,6 +25,10 @@
   font-size: 12px;
   font-weight: 600;
 }
+.step0-form > .acknowledgement {
+  display: flex;
+  font-weight: 400;
+}
 .step0-form textarea {
   width: 100%;
   min-height: 72px;

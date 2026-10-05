@@ -106,7 +106,7 @@ What should hold according to the organisation's controls, plans or authority. T
 
 Map the selected pathway onto the MSEL: five positions for the first delivery, three of them key decision points.
 
-| Pos. | Pathway stage | What participants see (artefact) | Recipient role (RACI R) | Expected actions | Decision point | Objective |
+| Pos. | Pathway stage | What participants see (artefact) | Intended recipient function(s) | Expected actions | Decision point | Objective |
 |---|---|---|---|---|---|---|
 | 1 |  |  |  |  |  |  |
 | 2 |  |  |  |  |  |  |
@@ -115,6 +115,8 @@ Map the selected pathway onto the MSEL: five positions for the first delivery, t
 | 5 |  |  |  |  |  |  |
 
 Every fact an expected action depends on must reach participants through an inject, a role card or an ordinary information request.
+
+Keep action responsibility and approval authority in the expectations/role mapping, separate from evidence recipients. Receiving an artefact does not make that function RACI Responsible.
 
 ## Library source and variants
 
@@ -136,7 +138,7 @@ Every fact an expected action depends on must reach participants through an inje
 ## Tailoring gate
 
 - Named-system test: each inject uses the organisation's own systems, services, dependencies and recovery targets:
-- Name-swap test: would the storyline still read correctly for a different SME? If yes, it is generic:
+- Relevant-input sensitivity: change a pathway prerequisite, dependency or recovery constraint; identify which evidence, consequence or decision must change, or why the path becomes invalid. A reusable threat pattern may remain valid for similar SMEs:
 - Profile-change test result:
 - Labelled exercise assumptions, and any that should become confirmed facts:
 - Classification: grounded | grounded with labelled assumptions | partly generic (revise) | renamed generic scenario (reject)
