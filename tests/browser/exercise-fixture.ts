@@ -7,9 +7,10 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 // Each exercise case has its own real server and disposable database.
-export const test = base.extend<{ exerciseServer: string }>({
+export const test = base.extend<{ exerciseServer: string; subscriptionEnabled: boolean }>({
+  subscriptionEnabled: [false, { option: true }],
   exerciseServer: [
-    async ({ baseURL }, use) => {
+    async ({ baseURL, subscriptionEnabled }, use) => {
       const directory = mkdtempSync(join(tmpdir(), 'ttx-browser-case-'));
       let server: ChildProcess | undefined;
       let startupError: Error | undefined;
@@ -20,6 +21,7 @@ export const test = base.extend<{ exerciseServer: string }>({
             ...process.env,
             TTX_DATA_DIR: directory,
             TTX_BROWSER_PORT: new URL(baseURL!).port,
+            TTX_BROWSER_SUBSCRIPTION: String(subscriptionEnabled),
           },
           stdio: 'ignore',
         });

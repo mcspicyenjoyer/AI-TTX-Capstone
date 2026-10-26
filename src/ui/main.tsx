@@ -9,6 +9,7 @@ import {
   ChevronRight,
   CircleHelp,
   FileText,
+  FileUp,
   Fingerprint,
   Inbox,
   ListFilter,
@@ -35,17 +36,20 @@ import {
 import { ApiError, request, signOut } from './api.js';
 import './style.css';
 import { ExerciseWorkspace } from './exercise-workspace.js';
+import { IntakeWorkspace } from './intake-workspace.js';
 
 type Status = ProfileView['profile']['statements'][number]['status'];
 const statusLabels: Record<Status, string> = {
   fact: 'Sourced fact',
   assumption: 'Assumption',
+  proposal: 'Proposed requirement',
   unknown: 'Unknown',
   conflict: 'Conflict',
 };
 const statusIcons = {
   fact: CheckCircle2,
   assumption: CircleHelp,
+  proposal: CircleHelp,
   unknown: CircleHelp,
   conflict: TriangleAlert,
 };
@@ -61,7 +65,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [tab, setTab] = useState<'profile' | 'activity' | 'exercises'>('profile');
+  const [tab, setTab] = useState<'profile' | 'activity' | 'exercises' | 'intake'>('profile');
+  const [intakeGuard, setIntakeGuard] = useState<'dirty' | 'pending' | null>(null);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [status, setStatus] = useState('all');
@@ -74,8 +79,24 @@ function App() {
     setView(null);
     setActivity([]);
     setAcknowledged(false);
+    setIntakeGuard(null);
     setError('Your session expired. Sign in again to check saved state.');
   }, []);
+
+  function canLeaveIntake() {
+    if (tab !== 'intake') return true;
+    if (intakeGuard === 'pending') {
+      setError('Resolve the pending preparation request before leaving this view.');
+      return false;
+    }
+    return intakeGuard !== 'dirty' || window.confirm('Discard unsaved preparation changes?');
+  }
+  function navigate(next: typeof tab) {
+    if (next === tab || !canLeaveIntake()) return;
+    setIntakeGuard(null);
+    setError('');
+    setTab(next);
+  }
 
   async function loadProfile(currentActor: Actor) {
     setView(null);
@@ -104,6 +125,8 @@ function App() {
   }
 
   async function restoreSession() {
+    if (!canLeaveIntake()) return;
+    setIntakeGuard(null);
     setLoading(true);
     setError('');
     try {
@@ -171,6 +194,7 @@ function App() {
   }
 
   async function logout() {
+    if (!canLeaveIntake()) return;
     setSaving(true);
     setError('');
     try {
@@ -179,6 +203,7 @@ function App() {
       setView(null);
       setActivity([]);
       setTab('profile');
+      setIntakeGuard(null);
     } catch (error) {
       setError(message(error));
     } finally {
@@ -275,18 +300,27 @@ function App() {
         <div className="workspace">
           <nav className="sidebar" aria-label="Workspace">
             <p className="nav-heading">PREPARATION</p>
+            {actor.role === 'facilitator' && (
+              <button
+                className={tab === 'intake' ? 'nav-item selected' : 'nav-item'}
+                onClick={() => navigate('intake')}
+              >
+                <FileUp size={18} />
+                Source intake
+              </button>
+            )}
             {actor.role === 'facilitator' && view ? (
               <>
                 <button
                   className={tab === 'profile' ? 'nav-item selected' : 'nav-item'}
-                  onClick={() => setTab('profile')}
+                  onClick={() => navigate('profile')}
                 >
                   <FileText size={18} />
                   Organisation profile
                 </button>
                 <button
                   className={tab === 'activity' ? 'nav-item selected' : 'nav-item'}
-                  onClick={() => setTab('activity')}
+                  onClick={() => navigate('activity')}
                 >
                   <ActivityIcon size={18} />
                   Activity
@@ -295,14 +329,14 @@ function App() {
             ) : null}
             <button
               className={tab === 'exercises' ? 'nav-item selected' : 'nav-item'}
-              onClick={() => setTab('exercises')}
+              onClick={() => navigate('exercises')}
             >
               <Inbox size={18} />
               {actor.role === 'participant' ? 'Participant workspace' : 'Exercises'}
             </button>
             <div className="sidebar-bottom">
               <span className="status-dot" />
-              AI disabled<span>Synthetic data only</span>
+              Human approval required<span>Synthetic data only</span>
             </div>
           </nav>
           <main className="main-content">
@@ -322,6 +356,12 @@ function App() {
             )}
             {actor.role === 'participant' || tab === 'exercises' ? (
               <ExerciseWorkspace key={actor.id} actor={actor} onSessionExpired={expireSession} />
+            ) : tab === 'intake' ? (
+              <IntakeWorkspace
+                key={actor.id}
+                onSessionExpired={expireSession}
+                onGuardChange={setIntakeGuard}
+              />
             ) : !view || !profile ? (
               <section className="empty-state">
                 <FileText size={32} />

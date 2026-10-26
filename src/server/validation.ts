@@ -2,6 +2,7 @@ import { Ajv } from 'ajv';
 import { default as addFormatsImport } from 'ajv-formats';
 import { ProfileSchema, type Profile } from '../contracts/profile.js';
 import type { TSchema, Static } from '@sinclair/typebox';
+import { validateEnvironment } from './organisation-validation.js';
 
 const ajv = new Ajv({ strict: true, coerceTypes: false, removeAdditional: false });
 // CommonJS interop differs between the browser/test and NodeNext compiler targets.
@@ -29,11 +30,18 @@ export function readProfile(value: unknown): Profile {
     if (['unknown', 'conflict'].includes(statement.status) && statement.value !== null) {
       throw new Error('Unresolved profile data must not have a selected value.');
     }
-    if (['fact', 'assumption'].includes(statement.status) && statement.value === null) {
+    if (['fact', 'proposal', 'assumption'].includes(statement.status) && statement.value === null) {
       throw new Error('A stated fact or assumption needs a value.');
     }
-    if (statement.status === 'fact' && statement.evidence.length === 0) {
+    if (['fact', 'proposal'].includes(statement.status) && statement.evidence.length === 0) {
       throw new Error('A profile fact needs provenance.');
+    }
+  }
+  if (value.environment) {
+    validateEnvironment(value.environment.entities, value.environment.claims);
+    for (const item of [...value.environment.entities, ...value.environment.claims]) {
+      if (item.evidence.some((reference) => !sourceIds.has(reference.sourceId)))
+        throw new Error('Unknown environment evidence source.');
     }
   }
   return value;

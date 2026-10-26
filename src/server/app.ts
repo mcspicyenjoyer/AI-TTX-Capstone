@@ -25,17 +25,22 @@ import { ExerciseService } from './exercise-service.js';
 import { registerExerciseRoutes } from './exercise-routes.js';
 import { OutcomeService } from './outcome-service.js';
 import { registerOutcomeRoutes } from './outcome-routes.js';
+import { IntakeService, type ExtractionProvider } from './intake-service.js';
+import { registerIntakeRoutes } from './intake-routes.js';
 
 export async function buildApp(options: {
   dataDirectory: string;
   publicPort: number;
   port?: number;
   staticDirectory?: string;
+  extractionProvider?: ExtractionProvider;
+  subscriptionEnabled?: boolean;
 }) {
   const store = new Store(join(options.dataDirectory, 'ttx.sqlite'));
   try {
     initialiseDemo(store, options.dataDirectory);
     initialiseExercises(store, options.dataDirectory);
+    store.extractions.recover();
   } catch (error) {
     store.close();
     throw error;
@@ -44,7 +49,7 @@ export async function buildApp(options: {
   const sessions = new Sessions(store);
   const app = Fastify({
     logger: false,
-    bodyLimit: 16_384,
+    bodyLimit: 131_072,
     requestTimeout: 15_000,
     ajv: { customOptions: { removeAdditional: false, coerceTypes: false, useDefaults: false } },
   });
@@ -64,6 +69,7 @@ export async function buildApp(options: {
     403: ErrorSchema,
     404: ErrorSchema,
     409: ErrorSchema,
+    413: ErrorSchema,
     429: ErrorSchema,
     500: ErrorSchema,
   };
@@ -95,6 +101,13 @@ export async function buildApp(options: {
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof AppError)
       return reply.code(error.status).send({ error: { code: error.code, message: error.message } });
+    if (error instanceof Error && 'statusCode' in error && error.statusCode === 413)
+      return reply.code(413).send({
+        error: {
+          code: 'PAYLOAD_TOO_LARGE',
+          message: 'The request exceeds the supported size. Reduce the source or review content.',
+        },
+      });
     if (
       error instanceof Error &&
       ('validation' in error ||
@@ -113,7 +126,7 @@ export async function buildApp(options: {
       },
     });
   });
-  app.get('/healthz', async () => ({ status: 'ok', aiEnabled: false }));
+  app.get('/healthz', async () => ({ status: 'ok', aiEnabled: !!options.subscriptionEnabled }));
   app.post<{ Body: Login }>(
     '/api/session',
     { schema: { body: LoginSchema, response: { 200: MeSchema, ...errors } } },
@@ -189,6 +202,11 @@ export async function buildApp(options: {
   const exercises = new ExerciseService(store);
   registerExerciseRoutes(app, sessions, exercises, errors);
   registerOutcomeRoutes(app, sessions, new OutcomeService(store, exercises), errors);
+  registerIntakeRoutes(
+    app,
+    sessions,
+    new IntakeService(store, options.extractionProvider, 5000, options.subscriptionEnabled),
+  );
   if (options.staticDirectory)
     await app.register(staticFiles, {
       root: options.staticDirectory,

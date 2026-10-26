@@ -2,7 +2,41 @@
 
 Accepted means a direction for the user's authorised baseline, not organisation deployment or data approval.
 
-Current delivery precedence: ADR-021 applies Form B first, with a five-inject intermediate baseline, expansion to ten and a parallel operational skeleton. Earlier decisions remain historical where superseded; their additional features are not prerequisites of baseline delivery.
+## ADR-031 - Basic file-service incident for the next draft
+
+Draft direction selected on 26 October 2026 under the user's instruction to choose a more basic scenario instead of the proposed MSP remote-access compromise. Use suspected ransomware making shared engineering files on TE-FS01 unavailable, affecting the engineering work that depends on them. Keep the initial entry point uncertain unless a reviewed synthetic pathway explicitly supplies it; do not infer a successful exploit or compromise from the diagram.
+
+The three draft decision areas are containment and evidence gathering, minimum engineering-service continuity, and validation of recovery evidence before restoration. Observable objectives, the 3-4 functional role mapping, five inject positions, artefacts, criteria and allowed alternatives still need package review. This resolves the incident direction for OPEN-11's next draft, not profile confirmation or release approval. No injects, pathway generator, interpretation or AAR are implemented by this choice.
+
+Prefer this single-service disruption over an MSP credential/supplier-compromise investigation, combined incidents or a larger company-context rewrite: it directly exercises the existing service dependencies and unresolved recovery evidence with less scenario machinery. Reuse the current SME context and release engine; no new dependency or platform is needed for the choice. Maintain one bounded pathway and reviewed alternatives, initially five positions and later ten. Do not assume the affected service's RTO/RPO is achievable or invent a successful restore. Live provider use remains separately bounded by the applicable task authority.
+
+## ADR-030 - Local subscription extraction
+
+Accepted for this bounded synthetic prototype on 26 October 2026 at the user's explicit request to integrate their existing ChatGPT subscription and test the uploaded diagram/SME documents. Supersedes ADR-011's app-server proposal and ADR-029's no-live-provider checkpoint for intake only. It does not authorise real organisational data, API billing, shared accounts, hosted deployment, incident selection or scenario generation.
+
+Use the installed, version/hash-pinned Windows Codex CLI in ephemeral, structured-output mode. A local operator worker exchanges bounded jobs with the Docker app over `docker exec` stdio; the browser and application container never receive ChatGPT credentials. Managed Codex login remains on the host. Native source units are the model input; image-only OCR is not added. UTF-8 Markdown/text import supports the existing SME documents without pretending reviewer-pasted evidence is a parsed original.
+
+Choose one-shot CLI execution rather than a persistent app-server conversation, copied OAuth tokens, a network credential bridge or a new provider service. Its cost is a small host worker, process/event handling, pinned CLI/catalog configuration, an offline forced-tool audit and rerunning that audit before updates. No new npm dependency is added. The trusted worker has local operator privileges; the model is supplied no tools. Read-only mode alone is not a host-read boundary. The pinned empty-tool registry is verified using forced calls and a canary, not merely an instruction to avoid tools; this is not an OS-sandbox guarantee.
+
+Jobs persist before execution and bind owner, exact intake revision/hash and command. One active request, bounded packet/output/deadline, ten requests per draft, no application-level automatic retry, no paid fallback. Native/human candidates remain unchanged; validated AI candidates are appended pending. Quote existence is not semantic correctness and duplicate depictions still need reviewer reconciliation. Restart, invalid output, stale inputs and provider failure retain manual continuation. [Architecture](architecture.md#subscription-extraction) owns implementation limits; [WORK](WORK.md#current-verification) records executed evidence and remaining semantic review.
+
+Official references checked for this implementation: [non-interactive CLI](https://learn.chatgpt.com/docs/noninteractive), [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference), [app-server integration/authentication](https://learn.chatgpt.com/docs/app-server). Availability and subscription limits remain account-dependent; this local experiment is not a commercial authentication integration.
+
+## ADR-029 - Bounded profile-first source intake
+
+Chosen on 26 October 2026 under the user's instruction to begin the next step after the subscription vision feasibility trial. Implement incident-independent typed intake/reconciliation now, rather than waiting for OPEN-11 or expanding hand-authored injects. OPEN-11 still controls scenario content. This reconciles main's older pilot-first sequencing with the user's profile-first direction; separately authored ADR-026-028 planning-worktree files are not copied or overwritten here.
+
+Use the agreed editable draw.io XML and text-bearing DOCX/PDF subset. Keep native extraction, model vision and human judgement distinct: native labels/connectors and paragraphs are source evidence, not a claim that AI has understood the organisation. Treat recovery targets as proposals where appropriate. Add typed entities/claims and immutable owner-private preparation revisions to the existing app/SQLite/profile contracts; preserve every existing fixture/run. [Architecture](architecture.md#bounded-source-intake) owns formats, limits, dependencies and routes; [WORK](WORK.md#task-006---document-intake-and-profile-reconciliation) owns evidence.
+
+Select `fast-xml-parser`, lazy `yauzl` ZIP reading and PDF.js text extraction instead of hand-written format parsers, an office conversion service or a new OCR framework. Resource-bounded threads avoid blocking the server but are not an OS sandbox. Maintenance cost is three pinned parsers, advisory/lockfile review, bounded malformed-input tests and format-specific source accuracy checks. The user-approved formats plus delegated implementation judgement authorise this local scaffold, not arbitrary real uploads or external processing.
+
+Human review remains necessary: preserve pending/accepted/rejected candidates separately from fact/proposal/assumption/unknown/conflict status. Verify exact quotes/locators and referential integrity, not just JSON shape. Confirmation freezes a distinct immutable profile in the same transaction as its approval and history; it does not replace existing runs or claim generation readiness. A fresh preparation is the current correction path after confirmation; clone/rebase and collaborative editing are deferred.
+
+At the ADR-029 checkpoint the interface was fake-provider-only. ADR-030 adds the live bounded subscription path. The earlier vision trial alone was not credential/isolation/job-lifecycle evidence, a Claude test, a reliable-poor-scan guarantee or proof of superiority to ChatGPT/manual preparation. Ordinary software tests remain offline and manual continuation remains available.
+
+## Decision register
+
+Current delivery precedence: ADR-021 applies Form B first, with a five-inject intermediate baseline, expansion to ten and a parallel operational skeleton. ADR-029/030 record profile-first intake and its bounded subscription adapter; ADR-031 selects the simpler next-draft incident direction. Earlier decisions remain historical where superseded; their additional features are not prerequisites of baseline delivery.
 
 | ID / status / date | Decision and reason | Alternatives / consequence |
 | --- | --- | --- |

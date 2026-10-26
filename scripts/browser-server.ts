@@ -10,6 +10,7 @@ const app = await buildApp({
   dataDirectory: prepareDataDirectory(process.env.TTX_DATA_DIR),
   publicPort: port,
   staticDirectory: resolve('dist/ui'),
+  subscriptionEnabled: process.env.TTX_BROWSER_SUBSCRIPTION === 'true',
 });
 await app.listen({ host: '127.0.0.1', port });
 for (const signal of ['SIGTERM', 'SIGINT'] as const)

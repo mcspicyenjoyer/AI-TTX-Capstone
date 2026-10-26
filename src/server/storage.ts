@@ -6,18 +6,22 @@ import { readProfile } from './validation.js';
 import { contentHash } from './integrity.js';
 import { ExerciseStore, migrateExercises, migrateStep0 } from './exercise-store.js';
 import { OutcomeStore, migrateOutcomes } from './outcome-store.js';
+import { IntakeStore, migrateIntakes } from './intake-store.js';
+import { ExtractionStore, migrateExtractions } from './extraction-store.js';
 export { contentHash } from './integrity.js';
 
 export class Store {
   private readonly db: DatabaseSync;
   readonly exercises: ExerciseStore;
   readonly outcomes: OutcomeStore;
+  readonly intakes: IntakeStore;
+  readonly extractions: ExtractionStore;
 
   constructor(path: string) {
     this.db = new DatabaseSync(path, { timeout: 5000 });
     this.db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;');
-    const version = this.db.prepare('PRAGMA user_version').get()?.user_version;
-    if (version !== 0 && version !== 1 && version !== 2 && version !== 3 && version !== 4) {
+    const version = Number(this.db.prepare('PRAGMA user_version').get()?.user_version);
+    if (![0, 1, 2, 3, 4, 5, 6].includes(Number(version))) {
       this.db.close();
       throw new Error('Unsupported database version. No migration was performed.');
     }
@@ -36,8 +40,12 @@ export class Store {
     if (version < 2) this.transaction(() => migrateExercises(this.db));
     if (version < 3) this.transaction(() => migrateStep0(this.db));
     if (version < 4) this.transaction(() => migrateOutcomes(this.db));
+    if (version < 5) this.transaction(() => migrateIntakes(this.db));
+    if (version < 6) this.transaction(() => migrateExtractions(this.db));
     this.exercises = new ExerciseStore(this.db);
     this.outcomes = new OutcomeStore(this.db);
+    this.intakes = new IntakeStore(this.db);
+    this.extractions = new ExtractionStore(this.db);
   }
 
   transaction<T>(operation: () => T): T {
@@ -54,6 +62,17 @@ export class Store {
 
   hasActors(): boolean {
     return Number(this.db.prepare('SELECT COUNT(*) AS count FROM actors').get()?.count) > 0;
+  }
+
+  actor(id: string): Actor | null {
+    const row = this.db.prepare('SELECT id, display_name, role FROM actors WHERE id=?').get(id);
+    return row
+      ? {
+          id: String(row.id),
+          displayName: String(row.display_name),
+          role: row.role as Actor['role'],
+        }
+      : null;
   }
 
   addActor(actor: Actor, username: string, codeHash: string): void {
@@ -148,6 +167,19 @@ export class Store {
     return !!this.db
       .prepare('SELECT 1 FROM profiles WHERE id = ? AND current_revision = ?')
       .get(profileId, revisionId);
+  }
+
+  publishIntakeProfile(profile: Profile, actor: Actor): void {
+    readProfile(profile);
+    const payload = JSON.stringify(profile);
+    this.db
+      .prepare('INSERT INTO profile_revisions VALUES (?, ?, ?, ?)')
+      .run(profile.profileId, profile.revisionId, payload, contentHash(payload));
+    this.db
+      .prepare('INSERT INTO profiles VALUES (?, ?)')
+      .run(profile.profileId, profile.revisionId);
+    this.db.prepare('INSERT INTO reviewers VALUES (?, ?)').run(actor.id, profile.profileId);
+    this.saveConfirmation(profile.profileId, profile.revisionId, contentHash(payload), actor);
   }
 
   confirmation(profileId: string, revisionId: string): Confirmation | null {

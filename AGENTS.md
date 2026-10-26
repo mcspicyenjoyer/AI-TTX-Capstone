@@ -14,6 +14,7 @@ This is the SME-focused AI-assisted TTX Platform capstone, a discussion exercise
 
 ## Change discipline
 - Complete the authorised task and its acceptance criteria, not the entire backlog.
+- Prioritise the next usable Form B workflow in WORK. Do not expand intake formats, generic job/reliability frameworks or deployment tooling unless needed for that milestone or a demonstrated defect; preserve existing approval, access, provenance and manual-continuation rules.
 - Reuse existing code and contracts. Keep application rules separate from UI, storage and provider-specific adapters.
 - Create only modules needed now; no speculative microservices, custom skills or parallel frameworks.
 - Keep the existing lowercase `docs/architecture.md`.
@@ -39,6 +40,7 @@ This is the SME-focused AI-assisted TTX Platform capstone, a discussion exercise
 - Run meaningful checks for changed behaviour and relevant failure paths; ordinary software tests must not depend on live AI.
 - Do not weaken tests to make them pass or create placeholder success checks.
 - Review the diff, update affected documents and WORK, and report checks run, failures and limitations.
+- After each verified milestone, create a local checkpoint commit with a progress-report-style message covering purpose, implemented behaviour, checks, limitations and next steps. Stage an explicit allowlist, exclude private/runtime data and unrelated changes, and report the commit ID. Do not fabricate retrospective session commits. Push only within applicable user authorisation and verify remote equality when publishing.
 - Design documentation is not evidence of implemented or tested runtime behaviour.
 
 These instructions do not configure filesystem, network or hosting permissions.

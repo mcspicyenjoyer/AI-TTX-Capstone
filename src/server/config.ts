@@ -38,8 +38,8 @@ export function prepareDataDirectory(directory: string, sourceRoot = process.cwd
 }
 
 export function readConfig(env = process.env) {
-  if (env.TTX_AI_ENABLED && env.TTX_AI_ENABLED !== 'false')
-    throw new Error('AI is not implemented in this checkpoint.');
+  if (env.TTX_AI_ENABLED && !['false', 'codex-subscription'].includes(env.TTX_AI_ENABLED))
+    throw new Error('Only explicit codex-subscription extraction or false is supported.');
   if (!env.TTX_DATA_DIR)
     throw new Error('Set TTX_DATA_DIR to an approved absolute directory, or use Docker Compose.');
   const port = Number(env.TTX_PORT ?? 3000);
@@ -49,5 +49,11 @@ export function readConfig(env = process.env) {
   const host = env.TTX_HOST ?? '127.0.0.1';
   if (host !== '127.0.0.1' && !(env.TTX_CONTAINER === 'true' && host === '0.0.0.0'))
     throw new Error('Only loopback hosting or the explicit Docker binding is supported.');
-  return { port, publicPort, host, dataDirectory: prepareDataDirectory(env.TTX_DATA_DIR) };
+  return {
+    port,
+    publicPort,
+    host,
+    dataDirectory: prepareDataDirectory(env.TTX_DATA_DIR),
+    subscriptionEnabled: env.TTX_AI_ENABLED === 'codex-subscription',
+  };
 }

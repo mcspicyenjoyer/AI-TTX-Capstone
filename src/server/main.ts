@@ -6,7 +6,9 @@ process.umask(0o077);
 const config = readConfig();
 const app = await buildApp({ ...config, staticDirectory: resolve('dist/ui') });
 await app.listen({ host: config.host, port: config.port });
-console.log(`TTX Platform ready on port ${config.port}. AI disabled. Synthetic data only.`);
+console.log(
+  `TTX Platform ready on port ${config.port}. Subscription extraction ${config.subscriptionEnabled ? 'configured' : 'disabled'}. Synthetic data only.`,
+);
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.once(signal, () => {
     void app.close().then(() => process.exit(0));

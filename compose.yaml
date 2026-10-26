@@ -12,7 +12,7 @@ services:
       TTX_PUBLIC_PORT: ${TTX_PORT:-3000}
       TTX_DATA_DIR: /data
       TTX_CONTAINER: 'true'
-      TTX_AI_ENABLED: 'false'
+      TTX_AI_ENABLED: ${TTX_AI_ENABLED:-false}
     volumes:
       - exercise-data:/data
     init: true

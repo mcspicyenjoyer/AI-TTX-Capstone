@@ -15,17 +15,90 @@ export const SourceSchema = Type.Object(
       Type.Literal('network'),
       Type.Literal('bcp'),
       Type.Literal('drp'),
+      Type.Literal('bia'),
       Type.Literal('setup'),
     ]),
     synthetic: Type.Literal(true),
+    contentHash: Type.Optional(hash),
   },
   objectOptions,
 );
 export const EvidenceSchema = Type.Object(
   {
     sourceId: IdSchema,
-    locator: boundedText(120),
+    locator: boundedText(240),
     excerpt: boundedText(1000),
+  },
+  objectOptions,
+);
+export const EntityKindSchema = Type.Union(
+  (['system', 'service', 'role', 'third-party', 'zone', 'data', 'unclassified'] as const).map(
+    (kind) => Type.Literal(kind),
+  ),
+);
+export const ClaimStatusSchema = Type.Union(
+  (['fact', 'proposal', 'assumption', 'unknown', 'conflict'] as const).map((status) =>
+    Type.Literal(status),
+  ),
+);
+export const EntitySchema = Type.Object(
+  {
+    id: IdSchema,
+    kind: EntityKindSchema,
+    name: boundedText(160),
+    evidence: Type.Array(EvidenceSchema, { minItems: 1, maxItems: 10 }),
+  },
+  objectOptions,
+);
+export const ClaimSchema = Type.Object(
+  {
+    id: IdSchema,
+    subjectId: IdSchema,
+    predicate: Type.Union(
+      (
+        [
+          'description',
+          'location',
+          'quantity',
+          'rto-hours',
+          'rpo-hours',
+          'recovery-priority',
+          'backup-frequency',
+          'backup-retention-days',
+          'mfa',
+          'backup-isolation',
+          'restore-tested',
+          'authority',
+          'diagram-link',
+          'connects-to',
+          'depends-on',
+          'owned-by',
+          'supported-by',
+          'backup-to',
+          'identity-sync-to',
+          'access-to',
+          'monitored-by',
+          'uses-data',
+        ] as const
+      ).map((predicate) => Type.Literal(predicate)),
+    ),
+    objectId: Type.Union([IdSchema, Type.Null()]),
+    value: Type.Union([
+      boundedText(1000),
+      Type.Number({ minimum: 0, maximum: 1_000_000 }),
+      Type.Boolean(),
+      Type.Null(),
+    ]),
+    status: ClaimStatusSchema,
+    explanation: boundedText(1000),
+    evidence: Type.Array(EvidenceSchema, { maxItems: 10 }),
+  },
+  objectOptions,
+);
+export const EnvironmentSchema = Type.Object(
+  {
+    entities: Type.Array(EntitySchema, { minItems: 1, maxItems: 150 }),
+    claims: Type.Array(ClaimSchema, { minItems: 1, maxItems: 300 }),
   },
   objectOptions,
 );
@@ -42,6 +115,7 @@ export const StatementSchema = Type.Object(
     status: Type.Union([
       Type.Literal('fact'),
       Type.Literal('assumption'),
+      Type.Literal('proposal'),
       Type.Literal('unknown'),
       Type.Literal('conflict'),
     ]),
@@ -60,7 +134,8 @@ export const ProfileSchema = Type.Object(
     synthetic: Type.Literal(true),
     createdAt: timestamp,
     sources: Type.Array(SourceSchema, { minItems: 1, maxItems: 30 }),
-    statements: Type.Array(StatementSchema, { minItems: 1, maxItems: 100 }),
+    statements: Type.Array(StatementSchema, { minItems: 1, maxItems: 300 }),
+    environment: Type.Optional(EnvironmentSchema),
   },
   objectOptions,
 );
@@ -155,3 +230,7 @@ export type ConfirmRequest = Static<typeof ConfirmRequestSchema>;
 export type Login = Static<typeof LoginSchema>;
 export type ProfileList = Static<typeof ProfileListSchema>;
 export type Activity = Static<typeof ActivitySchema>;
+export type Entity = Static<typeof EntitySchema>;
+export type Claim = Static<typeof ClaimSchema>;
+export type Environment = Static<typeof EnvironmentSchema>;
+export type Evidence = Static<typeof EvidenceSchema>;

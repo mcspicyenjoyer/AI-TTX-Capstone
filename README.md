@@ -3,13 +3,13 @@
 A capstone tabletop exercise platform for SMEs, with separate technical and operational exercise tracks. The technical workstream is intended to turn an SME's network and continuity information into a validated profile and an organisation-specific cyber exercise. Facilitators approve the generated package and each release; AI interprets participant decisions to recommend approved follow-ups, and recorded evidence supports the draft after-action review and improvement actions.
 
 ## Current state
-The Docker-first application supports synthetic profile confirmation, technical Step 0/briefing, exact approval/release, recipient-only inboxes, team response revisions, facilitator review, position closure and explicit run completion (TASK-001A-E). Pause freezes new releases and outcome writes; restart preserves evidence and pauses interrupted runs. The technical entry is a one-position engineering fixture, not an approved incident scenario or the five-inject baseline. Branching, AI, ingestion and AAR remain unimplemented. See [WORK](docs/WORK.md#current-verification) for verification and limitations.
+The Docker-first application supports native draw.io/DOCX/PDF/UTF-8 source intake, optional ChatGPT-subscription semantic extraction, typed profile reconciliation and immutable confirmation, alongside technical Step 0/briefing, exact approval/release, recipient-only inboxes, team response revisions, facilitator review, closure and completion. The technical exercise is still a one-position engineering fixture, not the approved incident scenario or five-inject baseline. Generation, branching, response interpretation and AAR remain unimplemented. See [WORK](docs/WORK.md#current-verification) for verification and limitations.
 
 The user owns both frontend and backend for the technical exercise; the other worker owns the operational exercise. TTX Platform remains the shared, track-neutral product name. A separate operational account now opens a server-backed development fixture through the same track-aware application. It has no technical-review access and no playable operational scenario. Use the [operational handoff](docs/operational-handoff.md) to develop independently without duplicating the engine.
 
 Delivery priority, 4 October 2026 (ADR-021): Form B is authoritative. Start with a five-inject playable baseline, then expand to ten within Form B's 10-15 range. Complete its ingestion/reconciliation, controlled threat/pathway mapping, package generation, approved-branch recommendation, facilitator controls, reporting and evaluation/handover before extra features. Two-attempt coaching and the expanded readiness engine are deferred. The five-inject interim milestone does not replace final acceptance. Timeline dates are audit tracking, not scope or sequencing authority. See the [source mapping](docs/PROJECT.md#form-b-traceability) and [next milestones](docs/WORK.md#next-milestones).
 
-Next: agree the shared position/variant/per-role evidence contract with the operational worker and select incident/objectives before authoring the five positions or reference inputs. Advance typed organisation/source and known-answer input work alongside that pilot. The engine is tested at five/ten flat entries with responses or explicit unanswered findings and closure, not reviewed scenario branches. Prepared fixtures do not substitute for Form B's required generator. [ADR-025](docs/DECISIONS.md#adr-025---bounded-technical-response-loop-and-current-handoff) records the bounded team/pause defaults selected under the user's delegation.
+Next: finish the human SME-profile review, then deliver a generated five-inject package through reviewed, sequential play using [ADR-031's simpler file-service incident direction](docs/DECISIONS.md#adr-031---basic-file-service-incident-for-the-next-draft). Detailed objectives and roles remain for review. Implement the minimal position/variant/per-role evidence contract as part of that usable milestone, followed by response interpretation and an evidence-linked AAR. Extra intake and infrastructure expansion wait; prepared content does not substitute for generation. See [delivery discipline](docs/WORK.md#delivery-discipline-after-the-26-october-review). [ADR-030](docs/DECISIONS.md#adr-030---local-subscription-extraction) records the local subscription boundary.
 
 Reuse the [synthetic organisation package](docs/organisation/example-sme-01/README.md) for baseline reference inputs once the incident family/objectives are selected. It is authored context, not a complete reference pack, approved exercise or imported application profile. Its [research note](docs/research/technical-ttx-inputs-and-synthetic-pack.md) is advisory. Further company-detail expansion is deferred unless needed for Form B.
 
@@ -35,6 +35,8 @@ The Figma copy and HTML component illustration retain the older design. Follow P
 Keep the existing lowercase `docs/architecture.md`; do not create a competing case-only filename.
 
 ## Setup
+This is currently a local facilitator-operated prototype, not a self-service installation for SME participants. The operator manages the environment below; participants use separate browser sessions. The optional subscription path adds host-side requirements. Hosted/MSSP deployment and multi-device LAN access are not established by this setup.
+
 Install Git and Docker Desktop with its Linux engine on each laptop (Docker Engine plus Compose on Linux). Clone this repository and run from its root:
 
 ```sh
@@ -51,11 +53,13 @@ docker compose exec app node dist/server/show-access.js
 
 Sign in as `facilitator` to review the synthetic profile, expand its source evidence, acknowledge uncertainties and confirm the exact revision. Open **Exercises**, ask the responding team whom they would contact first, how they would find/use the route and their fallback. Record the oral answers and a reasoned Ready / Clarification required / Hold decision; references may be consulted, and corrections preserve history. After Ready, review the explicit simulation arrangements and confirm the briefing, approve the inject's exact revision/recipients, then release it. Approval and release are separate actions. Pause/resume invalidates an unused approval; review and approve again after resuming.
 
+For new preparation, open **Source intake** and create a synthetic draft. Import uncompressed editable draw.io XML (or its editable SVG export), with optional text-bearing DOCX/PDF or UTF-8 `.md`/`.txt` evidence. Choose source passages, classify entities, review/add/correct/reject claims, and save a rationale before confirming the snapshot. Proposed RTO/RPO is not proven recovery capability. Original files are not archived; keep them for comparison. File/source limits and exclusions are in [architecture](docs/architecture.md#bounded-source-intake). AI is disabled by default; the optional worker below enables explicit extraction requests. Confirmed profiles export as JSON but do not replace the existing exercise fixture; later changes currently need a new draft.
+
 Include respondents representing every technical package participant role in Step 0, not just inject 1's recipient. Use `participant` in an isolated browser profile for briefing, inbox and the team response form. `observer` is also an assigned participant: it receives no inject body in this fixture but can see/revise the team's latest agreed response. This is shared team discussion, not permission to read another role's evidence. `operational` opens only the development workspace, with no inherited technical call-tree check. None of those three accounts may review the technical profile or private facilitator evidence.
 
 Submit agreed actions, rationale and optional information requests. The facilitator sees all revisions, records a disposition and explicitly closes the position before completing the run. A missing answer needs an explicit unanswered finding; closure and completion do not claim successful recovery. Pausing keeps unsent drafts in browser memory but freezes new outcome writes until resume. Use separate browser profiles for a one-laptop pilot; multiple tabs or incognito windows may share a login. LAN/TLS access and the reviewed 3-4-role pilot setup are not implemented or approved by this workflow.
 
-Codes are generated locally in `demo-access.json` and `demo-track-access.json` in the private data volume, not production authentication. Do not share facilitator codes with participants. Sessions end after eight hours or a server restart; saved exercise evidence and outcomes remain. Exercise-session expiry returns to sign-in; re-login does not retry commands. Visible reads refresh every five seconds, respecting unsaved Step 0 or uncertain-command locks. Drafts are not durable across reload/logout. Interrupted active runs recover paused and require explicit resume. Updating v1/v2/v3 databases adds schema v4 without replacing earlier records or codes. Technical runs without a current all-role Ready check need new recorded evidence before resume; migration does not invent answers or upgrade partial respondent coverage.
+Codes are generated locally in `demo-access.json` and `demo-track-access.json` in the private data volume, not production authentication. Do not share facilitator codes with participants. Sessions end after eight hours or a server restart; saved evidence remains. Exercise-session expiry returns to sign-in; re-login does not retry commands. Visible exercise reads refresh every five seconds, respecting unsaved Step 0 or uncertain-command locks. Unsaved edits are not durable across reload/logout; saved intake revisions are. Interrupted active runs recover paused and require explicit resume. Updating v1-v5 databases adds schema v6 without replacing earlier records or codes. Technical runs without a current all-role Ready check need new recorded evidence before resume; migration does not invent answers or upgrade partial respondent coverage.
 
 If port 3000 is occupied, set `TTX_PORT=3002` in an ignored `.env` using `.env.example` as the reference, then use localhost:3002. Host publication remains restricted to `127.0.0.1`.
 
@@ -67,7 +71,29 @@ docker compose logs --tail=30 app
 
 `docker compose down` removes the container, not its named data volume. Do not use `docker compose down -v` or volume pruning unless intentionally deleting all saved exercise data and access codes.
 
-### Verification
+### ChatGPT subscription extraction
+
+Optional Windows-only local prototype. Requires Node 24.19, Docker Desktop, the pinned Codex CLI `0.164.0-alpha.11.1`, and your own managed ChatGPT login. An updated/different binary fails closed; review and rerun the isolation audit before changing its pin. No credential file is copied or mounted into Docker, and no API key is used. Do not use this path for real organisational documents or a hosted multi-user service.
+
+In PowerShell from the repository, with a free loopback port (the current preview uses 3011):
+
+```powershell
+npm ci
+codex login status
+$env:TTX_PORT = '3011'
+$env:TTX_AI_ENABLED = 'codex-subscription'
+docker compose -p ai-ttx-intake-preview up --build -d --wait
+$codex = (Get-Command codex).Source
+$root = Join-Path $env:LOCALAPPDATA 'AI-TTX\subscription-worker'
+node --import tsx scripts/check-codex-isolation.ts $codex "$root\audit"
+node --import tsx src/server/subscription-worker.ts $codex "$root\runtime" ai-ttx-intake-preview-app-1
+```
+
+Leave the worker running. In **Source intake**, import only synthetic evidence and select **Extract candidates**; the confirmation names the source count and subscription usage. Refresh/polling shows durable progress. Returned candidates remain pending alongside the unchanged native candidates. Review duplicates, source support, knowledge status and missing service dependencies before accepting anything. You can continue manually during an outage; editing a draft invalidates an old in-flight result.
+
+Stop the worker with Ctrl+C. Restart it after recreating/restarting the app container. Unfinished jobs become interrupted, never automatically resubmitted; inspect the current draft before explicitly requesting another extraction. To disable, set `TTX_AI_ENABLED=false` and recreate the app without deleting its volume. See architecture for request/deadline/output limits. Worker attempt reports remain outside the repository in the runtime directory; do not publish account data or synthetic role-private evidence to participants.
+
+### Verification commands
 
 ```sh
 docker build --target verify -t ai-ttx-verify:local .
