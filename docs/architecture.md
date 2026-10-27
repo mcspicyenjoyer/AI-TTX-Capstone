@@ -24,7 +24,7 @@ The same technical engine now accepts a frozen generated five-position package a
 
 ### Interpretation and AAR boundary
 
-Authorised design under [ADR-034](DECISIONS.md#adr-034---bounded-interpretation-and-record-only-aar-at-five), not implemented at the label-review checkpoint. Use the existing contracts/application-service/store/provider/UI separation and pinned subscription worker; do not extract a general job framework. No package/profile/storyline edit, branch engine or retrospective run mutation belongs to this slice.
+Authorised design under [ADR-034](DECISIONS.md#adr-034---bounded-interpretation-and-record-only-aar-at-five). The label-correction checkpoint implements only the [action-evidence contract](../src/contracts/interpretation.ts) and [validator](../src/server/interpretation-validation.ts), not the integrated interpreter or AAR. The validator requires complete action-key coverage and one to three field-specific exact quotes or no supporting text; it has no reference-label input or exercise-state writes. Explicitly marked AI-directive-only occurrences are rejected without claiming general injection detection. Use the existing contracts/application-service/store/provider/UI separation and pinned subscription worker for integration; do not extract a general job framework. No package/profile/storyline edit, branch engine or retrospective run mutation belongs to this slice.
 
 | Operation | Input boundary | Persisted proposal/review boundary |
 | --- | --- | --- |

@@ -23,6 +23,12 @@ const read = (name: string) =>
   JSON.parse(readFileSync(new URL(`../evaluation/${name}`, import.meta.url), 'utf8'));
 const manifest = read('interpretation-manifest.json') as {
   approval: string;
+  frozen: boolean;
+  developmentCaseIds: string[];
+  holdoutCaseIds: string[];
+  labels: Record<Label, string>;
+  limitations: string[];
+  quotePolicy: { minimumQuotes: number; maximumQuotes: number; validation: string };
   packageRevisionId: string;
   packageHash: string;
   positions: { position: number; actionKeys: string[] }[];
@@ -52,7 +58,21 @@ test('interpretation corpus has ten development and five distinct held-out cases
     manifest.packageHash,
     'cc10e600b562fae583c827bc8a18471ab61710a5eeb6db1ff502638db3183eb8',
   );
-  assert(['pending-user-review', 'user-approved'].includes(manifest.approval));
+  assert(
+    ['pending-user-review', 'user-approved', 'user-approved-with-corrections'].includes(
+      manifest.approval,
+    ),
+  );
+  assert.equal(typeof manifest.frozen, 'boolean');
+  assert.deepEqual(
+    development.map((entry) => entry.id),
+    manifest.developmentCaseIds,
+  );
+  assert.deepEqual(
+    holdout.map((entry) => entry.id),
+    manifest.holdoutCaseIds,
+  );
+  assert.deepEqual(manifest.holdoutCaseIds, ['P1-B', 'P2-H', 'P3-H', 'P4-B', 'P5-H']);
   for (const position of manifest.positions) {
     assert.equal(development.filter((entry) => entry.position === position.position).length, 2);
     assert.equal(holdout.filter((entry) => entry.position === position.position).length, 1);
@@ -128,7 +148,35 @@ test('interpretation evaluation reserves holdout and trial calls within the auth
     'off-topic',
     'ai-directed-instruction',
     'contradicts-authority',
+    'unverified-approval-claim',
     'unverified-recovery-claim',
   ])
     assert(risks.has(required), required);
+});
+
+test('interpretation protocol distinguishes uncertainty from unclear decisions and limits measurement', () => {
+  for (const partition of [development, holdout])
+    assert.equal(
+      partition.flatMap((entry) => entry.labels).filter((row) => row.label === 'unclear').length,
+      1,
+    );
+  assert(
+    manifest.labels.unclear.includes(
+      'A team that clearly states a fact is unknown and acts on that has given a clear answer',
+    ),
+  );
+  assert(
+    manifest.limitations.some(
+      (limit) => limit.includes('one development, one holdout') && limit.includes('too few cases'),
+    ),
+  );
+  assert.equal(manifest.quotePolicy.minimumQuotes, 1);
+  assert.equal(manifest.quotePolicy.maximumQuotes, 3);
+  assert(manifest.quotePolicy.validation.includes('Score validity, not equality'));
+  const review = readFileSync(
+    new URL('../docs/evaluation/interpretation-label-review.md', import.meta.url),
+    'utf8',
+  );
+  assert(review.includes(manifest.labels.unclear));
+  assert(review.includes(manifest.limitations[0]!));
 });

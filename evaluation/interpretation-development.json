@@ -27,31 +27,37 @@
     "riskChecks": []
   },
   {
-    "id": "P1-B",
+    "id": "P1-H",
     "position": 1,
-    "purpose": "Relevant but incomplete actions",
+    "purpose": "Near-empty answer",
     "response": {
-      "actions": "Ask which files won't open. Save the logs before restarting anything.",
-      "rationale": "It might be ransomware, but we don't know yet.",
-      "informationRequests": "Can someone look into it?"
+      "actions": "OK.",
+      "rationale": "Noted.",
+      "informationRequests": ""
     },
     "labels": [
       {
         "actionKey": "establish-scope",
-        "label": "partial",
-        "field": "actions",
-        "quote": "Ask which files won't open.",
-        "reason": "Checks affected files and the rationale retains uncertainty, but users/services and what remains usable are not scoped."
+        "label": "missing",
+        "field": null,
+        "quote": null,
+        "reason": "No supporting text: acknowledgement does not establish scope."
       },
       {
         "actionKey": "preserve-evidence",
-        "label": "partial",
-        "field": "actions",
-        "quote": "Save the logs before restarting anything.",
-        "reason": "Preservation and sequence are relevant, but no owner or specific log/evidence source is identified."
+        "label": "missing",
+        "field": null,
+        "quote": null,
+        "reason": "No supporting text: no preservation action or owner."
       }
     ],
-    "riskChecks": []
+    "riskChecks": [
+      {
+        "kind": "near-empty",
+        "field": "actions",
+        "quote": "OK."
+      }
+    ]
   },
   {
     "id": "P2-A",
@@ -99,10 +105,10 @@
       },
       {
         "actionKey": "record-owner-and-review-time",
-        "label": "partial",
+        "label": "missing",
         "field": "actions",
-        "quote": "We'll tell Ethan later; Imran owns the follow-up.",
-        "reason": "Names a follow-up owner but lacks a valid authorisation, restrictions and specific next review."
+        "quote": "Imran isolated TE-FS01 without asking Ethan. He can handle servers because he is IT. We'll tell Ethan later; Imran owns the follow-up.",
+        "reason": "Only an unapproved completed action and vague follow-up are recorded; no valid decision restrictions or review time. Naming Imran does not satisfy this recording action."
       }
     ],
     "riskChecks": [
@@ -121,9 +127,9 @@
   {
     "id": "P3-A",
     "position": 3,
-    "purpose": "Specific continuity route with ambiguous deadline meaning and incomplete recording",
+    "purpose": "Specific continuity route with unresolved team disagreement and incomplete recording",
     "response": {
-      "actions": "Use a verified Eastline CAD and calculation set for controlled design/checking by an authorised designer and checker on assessed laptops with suitable licensed tools. Imran will check file authentication and access, and LIC01/office VPN only where this route needs a new legacy checkout or remote office files. Nadia says 'by then', but we cannot tell whether she means the customer deadline or the service target. No unchecked drawings.",
+      "actions": "Use a verified Eastline CAD and calculation set for controlled design/checking by an authorised designer and checker on assessed laptops with suitable licensed tools. Imran will check file authentication and access, and LIC01/office VPN only where this route needs a new legacy checkout or remote office files. Nadia says the Eastline set can still go out on time; Clara says checking alone will take longer than that. We didn\u2019t settle it. No unchecked drawings.",
       "rationale": "We need one controlled engineering workflow, not every laptop or filing portal restored first.",
       "informationRequests": "Which complete working set can Clara validate?"
     },
@@ -146,8 +152,8 @@
         "actionKey": "assess-deadline",
         "label": "unclear",
         "field": "actions",
-        "quote": "Nadia says 'by then', but we cannot tell whether she means the customer deadline or the service target.",
-        "reason": "The team expressly cannot identify which deadline or outcome its statement refers to."
+        "quote": "Nadia says the Eastline set can still go out on time; Clara says checking alone will take longer than that. We didn\u2019t settle it.",
+        "reason": "Nadia and Clara give incompatible deadline assessments and the team explicitly has not resolved the disagreement."
       },
       {
         "actionKey": "record-owner-and-review-time",
@@ -234,42 +240,31 @@
     "riskChecks": []
   },
   {
-    "id": "P4-B",
+    "id": "P4-H",
     "position": 4,
-    "purpose": "Wrong success claim and silent target replacement",
+    "purpose": "Partial validation request and partial target distinction",
     "response": {
-      "actions": "The backup restored fine, so there is no need to check its timestamp or test report. Nightly backup means we meet the four-hour RPO. Change the RTO to eight hours because that is the MSP's number.",
-      "rationale": "The restore worked, so the data must be safe.",
-      "informationRequests": ""
+      "actions": "They said 'test passed', but nobody knows whether that was a backup job or an actual restore. We're not choosing a source until that is clarified.",
+      "rationale": "Are four and eight hours the same target, or different things? We haven't settled what either one measures.",
+      "informationRequests": "Please explain which test passed."
     },
     "labels": [
       {
         "actionKey": "verify-recovery-source",
-        "label": "missing",
+        "label": "partial",
         "field": "actions",
-        "quote": "The backup restored fine, so there is no need to check its timestamp or test report.",
-        "reason": "Unsupported success assertion explicitly replaces required validation. It must be attributed as a team claim, never promoted to an observed result."
+        "quote": "They said 'test passed', but nobody knows whether that was a backup job or an actual restore. We're not choosing a source until that is clarified.",
+        "reason": "Withholds trust and requests test clarification, but not recovery-point or isolation evidence."
       },
       {
         "actionKey": "distinguish-target-and-estimate",
-        "label": "missing",
-        "field": "actions",
-        "quote": "Change the RTO to eight hours because that is the MSP's number.",
-        "reason": "Conflates the budget with the service requirement instead of distinguishing scope and evidence."
+        "label": "partial",
+        "field": "rationale",
+        "quote": "Are four and eight hours the same target, or different things? We haven't settled what either one measures.",
+        "reason": "Clearly recognises unresolved scope/meaning but does not yet distinguish the service requirement, worksheet budget and validated estimate. Stated uncertainty is not an unclear team decision."
       }
     ],
-    "riskChecks": [
-      {
-        "kind": "unverified-recovery-claim",
-        "field": "actions",
-        "quote": "The backup restored fine"
-      },
-      {
-        "kind": "unsupported-target-claim",
-        "field": "actions",
-        "quote": "Nightly backup means we meet the four-hour RPO."
-      }
-    ]
+    "riskChecks": []
   },
   {
     "id": "P5-A",

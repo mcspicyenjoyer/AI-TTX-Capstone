@@ -1,6 +1,6 @@
 {
-  "version": "interpretation-evaluation-1",
-  "approval": "pending-user-review",
+  "version": "interpretation-evaluation-2",
+  "approval": "user-approved-with-corrections",
   "packageId": "package-dd197d8b-a3d3-4c75-b714-84c0468fb58b",
   "packageRevisionId": "package-15",
   "packageHash": "cc10e600b562fae583c827bc8a18471ab61710a5eeb6db1ff502638db3183eb8",
@@ -11,11 +11,17 @@
     "present": "Substantively addresses the expected action as a discussion decision, proposed action or justified hold. Does not prove execution or successful recovery.",
     "partial": "Contains relevant, substantive support but omits a required element. A vague or incomplete action is not a full match.",
     "missing": "No substantive support, or the response explicitly does the opposite. An opposite statement may be quoted as negative evidence, not credited as support.",
-    "unclear": "Meaning, agreement or scope is genuinely ambiguous or contradictory, preventing a defensible classification. Ordinary omitted details use partial or missing instead."
+    "unclear": "You cannot tell what the team decided or proposed for this action: it contradicts itself, members never agreed what to do, or a reference such as it or he cannot be resolved. A team that clearly states a fact is unknown and acts on that has given a clear answer; grade it on the action."
   },
   "positions": [
-    { "position": 1, "actionKeys": ["establish-scope", "preserve-evidence"] },
-    { "position": 2, "actionKeys": ["obtain-isolation-authority", "record-owner-and-review-time"] },
+    {
+      "position": 1,
+      "actionKeys": ["establish-scope", "preserve-evidence"]
+    },
+    {
+      "position": 2,
+      "actionKeys": ["obtain-isolation-authority", "record-owner-and-review-time"]
+    },
     {
       "position": 3,
       "actionKeys": [
@@ -25,7 +31,10 @@
         "record-owner-and-review-time"
       ]
     },
-    { "position": 4, "actionKeys": ["verify-recovery-source", "distinguish-target-and-estimate"] },
+    {
+      "position": 4,
+      "actionKeys": ["verify-recovery-source", "distinguish-target-and-estimate"]
+    },
     {
       "position": 5,
       "actionKeys": [
@@ -49,13 +58,39 @@
     "paidFallback": false
   },
   "evaluationRules": [
-    "No prompt tuning or live interpretation before user approval of labels and split.",
+    "User-approved corrections are applied. Show the changed cases and new fingerprints before freezing; no prompt tuning or live interpretation/AAR calls before that gate.",
     "Development cases alone may inform prompt changes. Do not put evaluation labels or rationales in provider input.",
     "Freeze and hash the prompt, output schema and validators before opening held-out model results. Score each held-out case once; no tuning against held-out errors.",
     "Structural integrity checks may read held-out JSON to verify counts, keys and exact quote substrings, but must not use held-out labels for prompt design or model optimisation.",
     "Treat the five recorded trial responses as additional qualitative cases without gold labels. Do not feed or score against their facilitator dispositions.",
     "Report per-action exact-label agreement and a four-label confusion matrix separately for development and holdout, plus invalid outputs, quote validity, unsupported-action promotion and attempts/failures. Do not count schema validation as semantic accuracy.",
+    "Allow one to three exact response quotes per action, or no supporting text. Evaluate whether supplied quotes are valid, not whether they match the reference quote.",
+    "Unclear has only one development case and one held-out case, too few to measure. Report the individual results without a class-level performance claim.",
     "Report wrong claims and AI-directed instructions separately from per-action labels. They are untrusted response content, never system facts or evaluator instructions.",
     "This is a small assistant-authored, user-reviewed synthetic set, not an independent blind benchmark or a human effectiveness study."
-  ]
+  ],
+  "frozen": false,
+  "freezeStatus": "awaiting-revised-fingerprint-review",
+  "quotePolicy": {
+    "minimumQuotes": 1,
+    "maximumQuotes": 3,
+    "noSupportingText": "no supporting text",
+    "validation": "Validate every quote as an exact substring of its named response field. Score validity, not equality with the illustrative reference quote. Instruction-only text is not supporting action evidence."
+  },
+  "limitations": [
+    "The unclear label has too few cases (one development, one holdout) to measure its performance. Report the individual cases descriptively, not a class-level accuracy claim."
+  ],
+  "developmentCaseIds": [
+    "P1-A",
+    "P1-H",
+    "P2-A",
+    "P2-B",
+    "P3-A",
+    "P3-B",
+    "P4-A",
+    "P4-H",
+    "P5-A",
+    "P5-B"
+  ],
+  "holdoutCaseIds": ["P1-B", "P2-H", "P3-H", "P4-B", "P5-H"]
 }

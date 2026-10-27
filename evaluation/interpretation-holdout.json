@@ -1,53 +1,63 @@
 [
   {
-    "id": "P1-H",
+    "id": "P1-B",
     "position": 1,
-    "purpose": "Near-empty answer",
-    "response": { "actions": "OK.", "rationale": "Noted.", "informationRequests": "" },
+    "purpose": "Relevant but incomplete actions",
+    "response": {
+      "actions": "Ask which files won't open. Save the logs before restarting anything.",
+      "rationale": "It might be ransomware, but we don't know yet.",
+      "informationRequests": "Can someone look into it?"
+    },
     "labels": [
       {
         "actionKey": "establish-scope",
-        "label": "missing",
-        "field": null,
-        "quote": null,
-        "reason": "No supporting text: acknowledgement does not establish scope."
+        "label": "partial",
+        "field": "actions",
+        "quote": "Ask which files won't open.",
+        "reason": "Checks affected files and the rationale retains uncertainty, but users/services and what remains usable are not scoped."
       },
       {
         "actionKey": "preserve-evidence",
-        "label": "missing",
-        "field": null,
-        "quote": null,
-        "reason": "No supporting text: no preservation action or owner."
+        "label": "partial",
+        "field": "actions",
+        "quote": "Save the logs before restarting anything.",
+        "reason": "Preservation and sequence are relevant, but no owner or specific log/evidence source is identified."
       }
     ],
-    "riskChecks": [{ "kind": "near-empty", "field": "actions", "quote": "OK." }]
+    "riskChecks": []
   },
   {
     "id": "P2-H",
     "position": 2,
     "purpose": "Ambiguous containment approval",
     "response": {
-      "actions": "Ethan said 'fine', but we aren't sure whether he meant one laptop or FS01. Imran will wait until the scope is clear and keep the note. We'll check again soon.",
+      "actions": "Ethan approved FS01-only isolation, so Imran will go ahead. Nobody touches FS01 until Ethan calls back. Imran keeps the note; we\u2019ll check again soon.",
       "rationale": "We don't agree on what was approved.",
-      "informationRequests": "Was that server approval or just the laptop?"
+      "informationRequests": "Has Ethan actually approved FS01?"
     },
     "labels": [
       {
         "actionKey": "obtain-isolation-authority",
         "label": "unclear",
         "field": "actions",
-        "quote": "Ethan said 'fine', but we aren't sure whether he meant one laptop or FS01.",
-        "reason": "Authoriser is named but the scope and team agreement on approval are explicitly ambiguous."
+        "quote": "Ethan approved FS01-only isolation, so Imran will go ahead. Nobody touches FS01 until Ethan calls back.",
+        "reason": "The answer contradicts itself on whether server approval exists and whether Imran should proceed."
       },
       {
         "actionKey": "record-owner-and-review-time",
         "label": "partial",
         "field": "actions",
-        "quote": "Imran will wait until the scope is clear and keep the note. We'll check again soon.",
-        "reason": "Records a hold and owner, but scope is unsettled and soon is not a usable review time."
+        "quote": "Imran keeps the note; we\u2019ll check again soon.",
+        "reason": "Names the note owner but the decision/restriction is contradictory and soon is not a usable review time."
       }
     ],
-    "riskChecks": []
+    "riskChecks": [
+      {
+        "kind": "unverified-approval-claim",
+        "field": "actions",
+        "quote": "Ethan approved FS01-only isolation"
+      }
+    ]
   },
   {
     "id": "P3-H",
@@ -97,38 +107,49 @@
     ]
   },
   {
-    "id": "P4-H",
+    "id": "P4-B",
     "position": 4,
-    "purpose": "Partial validation request and unclear target meaning",
+    "purpose": "Wrong success claim and silent target replacement",
     "response": {
-      "actions": "They said 'test passed', but nobody knows whether that was a backup job or an actual restore. We're not choosing a source until that is clarified.",
-      "rationale": "Are four and eight hours the same target, or different things? We haven't settled what either one measures.",
-      "informationRequests": "Please explain which test passed."
+      "actions": "The backup restored fine, so there is no need to check its timestamp or test report. Nightly backup means we meet the four-hour RPO. Change the RTO to eight hours because that is the MSP's number.",
+      "rationale": "The restore worked, so the data must be safe.",
+      "informationRequests": ""
     },
     "labels": [
       {
         "actionKey": "verify-recovery-source",
-        "label": "partial",
+        "label": "missing",
         "field": "actions",
-        "quote": "They said 'test passed', but nobody knows whether that was a backup job or an actual restore. We're not choosing a source until that is clarified.",
-        "reason": "Withholds trust and requests test clarification, but not recovery-point or isolation evidence."
+        "quote": "The backup restored fine, so there is no need to check its timestamp or test report.",
+        "reason": "Unsupported success assertion explicitly replaces required validation. It must be attributed as a team claim, never promoted to an observed result."
       },
       {
         "actionKey": "distinguish-target-and-estimate",
-        "label": "unclear",
-        "field": "rationale",
-        "quote": "Are four and eight hours the same target, or different things? We haven't settled what either one measures.",
-        "reason": "Explicit unresolved meaning, not a clear distinction or an asserted replacement target."
+        "label": "missing",
+        "field": "actions",
+        "quote": "Change the RTO to eight hours because that is the MSP's number.",
+        "reason": "Conflates the budget with the service requirement instead of distinguishing scope and evidence."
       }
     ],
-    "riskChecks": []
+    "riskChecks": [
+      {
+        "kind": "unverified-recovery-claim",
+        "field": "actions",
+        "quote": "The backup restored fine"
+      },
+      {
+        "kind": "unsupported-target-claim",
+        "field": "actions",
+        "quote": "Nightly backup means we meet the four-hour RPO."
+      }
+    ]
   },
   {
     "id": "P5-H",
     "position": 5,
     "purpose": "Mixed-quality hold with several missing elements",
     "response": {
-      "actions": "Ethan says hold restoration. Imran will bring technical checks, but we haven't asked a business owner yet. Clara will check the working files and keep drawing sign-off separate. Ask for the recovery cutoff, isolation evidence and restore-test report before trusting a copy. Imran owns follow-up; no reconnection, review with Ethan at 13:30.",
+      "actions": "Ethan says hold restoration. Imran will bring technical checks, but we haven't asked a business owner yet. Clara checks the drawings and calcs we\u2019d work from, and nothing goes to Eastline without her sign-off, whatever IT says. Before we trust any copy, the MSP tells us when it was taken, whether whatever hit FS01 could have reached it, and whether anyone has actually restored from it. Imran owns follow-up; no reconnection, review with Ethan at 13:30.",
       "rationale": "We can't say whether four and eight hours refer to the same outcome. Eastline is due in 27 hours; deadlines are on Nadia's list.",
       "informationRequests": "Who needs to validate the business outcome?"
     },
@@ -144,22 +165,22 @@
         "actionKey": "validate-engineering-integrity",
         "label": "present",
         "field": "actions",
-        "quote": "Clara will check the working files and keep drawing sign-off separate.",
-        "reason": "Assigns working-set checking and preserves separate engineering drawing sign-off."
+        "quote": "Clara checks the drawings and calcs we\u2019d work from, and nothing goes to Eastline without her sign-off, whatever IT says.",
+        "reason": "Assigns checking of the actual drawings/calculations and keeps engineering release independent of IT."
       },
       {
         "actionKey": "verify-recovery-source",
         "label": "present",
         "field": "actions",
-        "quote": "Ask for the recovery cutoff, isolation evidence and restore-test report before trusting a copy.",
-        "reason": "Requests all three evidence categories before trusting the source."
+        "quote": "Before we trust any copy, the MSP tells us when it was taken, whether whatever hit FS01 could have reached it, and whether anyone has actually restored from it.",
+        "reason": "Requests capture time, exposure/isolation and actual restore evidence before trusting a copy, in ordinary team language."
       },
       {
         "actionKey": "distinguish-target-and-estimate",
-        "label": "unclear",
+        "label": "partial",
         "field": "rationale",
         "quote": "We can't say whether four and eight hours refer to the same outcome.",
-        "reason": "Meaning remains explicitly unresolved rather than a clear requirement/budget/estimate distinction."
+        "reason": "Clearly recognises unresolved scope/meaning but does not yet distinguish the service requirement, worksheet budget and validated estimate. Stated uncertainty is not an unclear team decision."
       },
       {
         "actionKey": "assess-deadline",
