@@ -1411,24 +1411,31 @@ input[type='checkbox'] {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
   gap: 28px;
 }
-.package-editor-grid fieldset {
+.package-editor-grid fieldset,
+.package-preparation fieldset {
   min-width: 0;
   border: 0;
   padding: 0;
 }
-.package-editor-grid label {
+.package-editor-grid label,
+.package-preparation label {
   display: grid;
   gap: 6px;
   margin: 12px 0;
 }
 .package-editor-grid select,
-.package-editor-grid input {
+.package-editor-grid input,
+.package-preparation select {
   width: 100%;
   min-width: 0;
 }
-.package-editor-grid option {
+.package-editor-grid option,
+.package-preparation option {
   white-space: normal;
   overflow-wrap: anywhere;
+}
+.package-preparation select[multiple] {
+  height: 192px;
 }
 .package-editor-grid details {
   padding: 12px 0;

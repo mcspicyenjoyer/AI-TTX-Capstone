@@ -103,6 +103,10 @@ export const actions = {
   ],
 } as const;
 export const notes = {
+  'restoration-hold-valid':
+    'Do not restore yet is a valid decision when evidence is insufficient. Record required evidence, the authoriser, action owner and next review time; no successful recovery is implied.',
+  'grounded-clarifications-only':
+    'Answer clarifications only from the confirmed profile or reviewed package. Otherwise answer "not known at this time" and record an information request. Never invent a supplier result or completed action.',
   'simulation-only':
     'All messages and actions are simulated; no real contacts, isolation or restoration.',
   'entry-point-unknown':
@@ -231,6 +235,22 @@ function evidenceText(selection: EvidenceSelection, profile: Profile): string {
 
 export function compileGeneratedPackage(draft: PackageDraft, profile: Profile): ExercisePackage {
   const plan = validateGeneratedPlan(draft.plan, profile, draft.target);
+  const preparation = draft.preparation;
+  const exercisedPlan =
+    preparation &&
+    profile.sources.find((source) => source.id === preparation.exercisedPlanSourceId);
+  if (preparation && (!exercisedPlan || !['bcp', 'drp'].includes(exercisedPlan.kind)))
+    throw new Error('Preparation requires an existing continuity plan source.');
+  for (const selection of preparation?.sharedEvidence ?? []) {
+    const claim = profile.environment!.claims.find((item) => item.id === selection.claimId);
+    if (!claim || claim.status !== selection.status)
+      throw new Error(
+        'Preparation shared evidence must retain the confirmed claim and knowledge state.',
+      );
+  }
+  const assumption = exercisedPlan
+    ? `${exercisedPlan.title} (${exercisedPlan.version}) is the plan being exercised for this trial. Its provisions retain their PROPOSAL labels. This does not establish organisational approval, achievable recovery targets or successful restoration.`
+    : null;
   const name = (id: string) =>
     profile.environment!.entities.find((entity) => entity.id === id)!.name;
   const reference = profile.environment!.claims.find(
@@ -273,8 +293,21 @@ export function compileGeneratedPackage(draft: PackageDraft, profile: Profile): 
       references: [
         'Confirmed organisation profile: source-linked role evidence supplied below.',
         'MSP and SOC contacts are simulated through the facilitator; no real calls or system changes.',
+        ...(preparation?.sharedEvidence.map((item) => evidenceText(item, profile)) ?? []),
+        ...(assumption ? [`EXERCISE ASSUMPTION: ${assumption}`] : []),
       ],
       gaps: [
+        ...(assumption
+          ? [
+              {
+                id: 'plan-being-exercised',
+                description: assumption,
+                disposition: 'exercise-assumption' as const,
+                rationale:
+                  'Explicit facilitator preparation review; the confirmed profile is unchanged.',
+              },
+            ]
+          : []),
         {
           id: 'retained-uncertainty',
           description:
@@ -300,7 +333,19 @@ export function compileGeneratedPackage(draft: PackageDraft, profile: Profile): 
       recipientRoleIds: [...playerRoles],
       roleBodies: position.messages.map((message) => ({
         roleId: message.roleId,
-        body: `SIMULATION / +${position.elapsedMinutes} elapsed minutes\n${eventText(position.event)}\n\n${message.evidence.map((item) => evidenceText(item, profile)).join('\n\n')}\n\nDiscussion:\n${message.questions.map((key) => actions[key][0]).join('\n')}`,
+        body: `SIMULATION / +${position.elapsedMinutes} elapsed minutes\n${eventText(position.event)}\n\n${message.evidence
+          .filter(
+            (item) =>
+              !preparation ||
+              ![
+                ...preparation.sharedEvidence,
+                ...plan.roles.find((role) => role.roleId === message.roleId)!.briefingEvidence,
+              ].some((baseline) => baseline.claimId === item.claimId),
+          )
+          .map((item) => evidenceText(item, profile))
+          .join(
+            '\n\n',
+          )}\n\nDiscussion:\n${message.questions.map((key) => actions[key][0]).join('\n')}`,
       })),
       expectedActions: position.expectedActions.map((key) => expectedActionText[key]),
       evaluationCriteria: position.evaluationCriteria.map((key) => actions[key][1]),

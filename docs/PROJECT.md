@@ -55,6 +55,8 @@ Before the first technical inject, record a short team contact-route check, then
 
 The existing organisation pack contains names and escalation information, but also a stale duty card, missing internal cover and unrehearsed arrangements. It is not a proven tier 3-5 organisation. Reconcile these with the chosen exercise objectives before use; preserve the historical app fixture and its unknowns. A bounded engineering fixture may explicitly use a controller to represent contacts without pretending those arrangements are verified company facts. [WORK](WORK.md#task-003---five-inject-coached-first-draft) owns delivery status for the reviewed five-inject preparation.
 
+27 October clarification (ADR-033): generated-package preparation review may select shared baseline contact references for consultation during Step 0 and role-specific knowledge for the subsequent briefing. References are not prefilled team answers. The selected draft BCP is the plan being exercised under an explicit exercise assumption; its claims retain their original knowledge states. No new profile revision or extraction is authorised. For the first five-position AI-player trial, the facilitator represents suppliers, unknown clarification answers are logged, and business leadership submits the agreed response after engineering and IT contribute. This trial protocol does not add individual chat posts or change the shared participant response permissions.
+
 ## Ownership and exercise scope
 
 The work is divided by exercise type, not by frontend versus backend (ADR-012, with product framing clarified by ADR-015 in [DECISIONS](DECISIONS.md)):

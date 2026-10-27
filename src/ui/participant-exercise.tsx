@@ -21,7 +21,7 @@ export function ParticipantExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
         )}
         <p>{briefing.common}</p>
         <h3>{briefing.role.name}</h3>
-        <p>{briefing.role.briefing}</p>
+        <p className="preserve-lines">{briefing.role.briefing}</p>
         <ul className="run-references">
           {briefing.references.map((reference) => (
             <li key={reference}>{reference}</li>

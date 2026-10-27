@@ -214,11 +214,12 @@ export class ExerciseService {
       common: ready
         ? definition.briefing.common
         : 'Before the exercise, discuss your first incident contact, how you would find or use the contact route, and your fallback with the facilitator. State any uncertainty. All actions are simulated; do not contact real people or change systems.',
-      references: ready
-        ? definition.briefing.references
-        : [
-            'You may consult the synthetic reference material supplied by the facilitator; this is not a memory test.',
-          ],
+      references:
+        ready || definition.kind === 'generated-five-inject'
+          ? definition.briefing.references
+          : [
+              'You may consult the synthetic reference material supplied by the facilitator; this is not a memory test.',
+            ],
       role: ready
         ? role
         : {

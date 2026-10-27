@@ -8,6 +8,7 @@ import {
   type GenerationContext,
   type GeneratePackage,
   type ReviewPosition,
+  type ReviewPreparation,
   type FreezePackage,
 } from '../contracts/generation.js';
 import { Store } from './storage.js';
@@ -265,6 +266,42 @@ export class GenerationService {
         );
       }
       this.store.generation.save(next, `inject-${input.position.position}-${input.decision}`);
+      this.store.generation.record(actor.id, input.commandId, hash, id);
+      return this.get(actor, id);
+    });
+  }
+
+  reviewPreparation(actor: Actor, id: string, input: ReviewPreparation): PackageDraftView {
+    return this.store.transaction(() => {
+      this.facilitator(actor);
+      const hash = fingerprint({ action: 'preparation', id, input });
+      const replay = this.replay(actor, input.commandId, hash);
+      if (replay) return replay;
+      const { draft } = this.editable(actor, id, input);
+      if (
+        new Set(input.roles.map((role) => role.roleId)).size !== 3 ||
+        draft.plan!.roles.some((role) => !input.roles.some((item) => item.roleId === role.roleId))
+      )
+        conflict('Preparation must cover each player role exactly once.');
+      const next = structuredClone(draft);
+      next.preparation = structuredClone(input.preparation);
+      for (const role of next.plan!.roles)
+        role.briefingEvidence = structuredClone(
+          input.roles.find((item) => item.roleId === role.roleId)!.briefingEvidence,
+        );
+      next.reviews = next.reviews.map(() => 'pending');
+      next.revision++;
+      next.updatedAt = new Date().toISOString();
+      try {
+        compileGeneratedPackage(next, this.requireTarget(actor, next.target));
+      } catch {
+        throw new AppError(
+          400,
+          'INVALID_PACKAGE',
+          'Preparation violates the confirmed claims, plan source or content bounds.',
+        );
+      }
+      this.store.generation.save(next, 'preparation-reviewed');
       this.store.generation.record(actor.id, input.commandId, hash, id);
       return this.get(actor, id);
     });

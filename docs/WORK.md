@@ -1,6 +1,6 @@
 # Work and handover
 
-Current checkpoint: ADR-032's confirmed-profile five-inject generation/review/freeze and three-role delivery slice is implemented. At the user's explicit clarification, the assistant confirmed the existing reviewed revision-8 content without further correction. One live subscription-generated proposal is saved privately for package review; it is not approved, frozen or released. The original engine now supports its five-position response/closure loop. Interpretation, branches and AAR are next; Form B still requires expansion to ten and final evaluation. The operational skeleton remains independent and non-playable.
+Current checkpoint: ADR-033's bounded preparation review is implemented and verified on top of ADR-032's generated five-position workflow. The user's agreed edits are saved in the live draft, with all five acceptances pending and no run yet at this implementation checkpoint. The confirmed revision-8 profile is unchanged. Next: commit, freeze the exact reviewed package and conduct the authorised three-agent workflow rehearsal. Interpretation, branches and AAR remain next development work; Form B still requires expansion to ten and final evaluation. The operational skeleton remains independent and non-playable.
 
 Read this file for current status and the next bounded task. Dated handovers through `5513d76` are preserved in the [historical work log](history/WORK-2026-10-05.md); do not reread that archive on every coding run. Requirements remain in [PROJECT](PROJECT.md), design in [architecture](architecture.md), and choices in [DECISIONS](DECISIONS.md).
 
@@ -123,6 +123,14 @@ Use controlled known-answer inputs and independent human review to evaluate extr
 Deliver the prototype/source, specifications, synthetic reference inputs, schemas and prompt/configuration notes, test report, technical documentation, user guide, operating/troubleshooting procedures, handover, school-safe demonstration, capstone report and presentation. Show the full input-to-exercise-to-review workflow at five injects first, then ten for final acceptance within Form B's 10-15 range. Core technical evidence does not claim completion of the other worker's operational work or certification/real recovery performance.
 
 ## Current verification
+
+27 October bounded preparation-review checkpoint, before live freeze/play:
+
+- Implemented a preparation editor and revision/hash-bound save: existing per-role claim selections, shared Step 0 references and a confirmed BCP/DRP source selected as the plan being exercised. Optional existing-draft JSON only; no migration, new dependency, profile edit, source upload or AI call. Preparation resets every inject acceptance. Original knowledge states and retained gaps remain; frozen content is immutable.
+- Shared contact references are available before Ready for generated packages; specialist briefings remain assigned-role-only after Ready. Baseline passages are not repeated in inject bodies, while grounding IDs remain. The existing fixture policy and readiness/release gates are unchanged.
+- Applied the authorised private package edits: shared SOC/crisis references, Imran's backup evidence retaining UNKNOWN states, earlier role-appropriate recovery targets, exercise-plan assumption, focused questions, Inject 2 engineering authority question, and Inject 5 recording criterion with a valid restoration-hold outcome. The five events and clock remain unchanged. Saved draft revision 9, all pending, no run. Full API comparison confirms the profile did not change.
+- Verification: `npm run check` passes all 108 deterministic tests plus formatting/lint/types/build; the Docker build repeats the same gate. All 17 Playwright cases pass after correcting a reload-test navigation assumption and a genuine new-selector overflow. All 35 guard-removal mutations are detected, including the five new preparation/privacy checks. Live review at 1440x960 and 390x960 has no horizontal overflow or page errors; bounded selector heights were also visually checked.
+- Private backup, before/after draft, profile equality evidence, browser captures, mutation results and trial helpers remain under the external AI-TTX rehearsal directory. No credentials, organisation content or runtime records are staged. The trial has not run at this checkpoint; no restoration, AI interpretation, branches, AAR or human-evaluation result is claimed.
 
 27 October generated five-inject checkpoint:
 

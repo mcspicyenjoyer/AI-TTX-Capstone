@@ -38,6 +38,8 @@ export const noteKinds = [
   'targets-not-capabilities',
   'authority-not-availability',
   'no-observed-action',
+  'restoration-hold-valid',
+  'grounded-clarifications-only',
 ] as const;
 export const ProfileBindingSchema = Type.Object(
   { profileId: IdSchema, profileRevisionId: IdSchema, profileHash: hash },
@@ -55,6 +57,13 @@ export const EvidenceSelectionSchema = Type.Object(
   {
     claimId: IdSchema,
     status: choice(['fact', 'proposal', 'assumption', 'unknown', 'conflict'] as const),
+  },
+  strict,
+);
+export const PackagePreparationSchema = Type.Object(
+  {
+    sharedEvidence: Type.Array(EvidenceSelectionSchema, { maxItems: 6 }),
+    exercisedPlanSourceId: IdSchema,
   },
   strict,
 );
@@ -138,6 +147,7 @@ export const PackageDraftSchema = Type.Object(
     target: PackageTargetSchema,
     status: choice(['queued', 'running', 'failed', 'review', 'frozen'] as const),
     plan: Type.Union([GeneratedPlanSchema, Type.Null()]),
+    preparation: Type.Optional(PackagePreparationSchema),
     reviews: Type.Array(choice(['pending', 'accepted', 'rejected'] as const), { maxItems: 5 }),
     error: Type.Union([Type.String({ maxLength: 300 }), Type.Null()]),
     createdAt: Type.String({ format: 'date-time' }),
@@ -181,6 +191,17 @@ export const ReviewPositionSchema = Type.Object(
   strict,
 );
 export const FreezePackageSchema = Type.Object(revisionCommand, strict);
+export const ReviewPreparationSchema = Type.Object(
+  {
+    ...revisionCommand,
+    preparation: PackagePreparationSchema,
+    roles: Type.Array(
+      Type.Pick(GeneratedPlanSchema.properties.roles.items, ['roleId', 'briefingEvidence']),
+      { minItems: 3, maxItems: 3 },
+    ),
+  },
+  strict,
+);
 export const GenerationJobSchema = Type.Object(
   { id: IdSchema, target: PackageTargetSchema, profile: ProfileSchema },
   strict,
@@ -203,5 +224,7 @@ export type PackageDraftView = Static<typeof PackageDraftViewSchema>;
 export type GenerationContext = Static<typeof GenerationContextSchema>;
 export type GeneratePackage = Static<typeof GeneratePackageSchema>;
 export type ReviewPosition = Static<typeof ReviewPositionSchema>;
+export type ReviewPreparation = Static<typeof ReviewPreparationSchema>;
+export type PackagePreparation = Static<typeof PackagePreparationSchema>;
 export type FreezePackage = Static<typeof FreezePackageSchema>;
 export type EvidenceSelection = Static<typeof EvidenceSelectionSchema>;

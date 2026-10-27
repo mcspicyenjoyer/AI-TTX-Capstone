@@ -7,7 +7,11 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import type { FastifyInstance } from 'fastify';
 import type { Actor } from '../src/contracts/profile.js';
-import type { PackageDraftView, GeneratedPlan } from '../src/contracts/generation.js';
+import type {
+  PackageDraftView,
+  GeneratedPlan,
+  ReviewPreparation,
+} from '../src/contracts/generation.js';
 import type { Review } from '../src/contracts/exercise.js';
 import { buildApp } from '../src/server/app.js';
 import { Store } from '../src/server/storage.js';
@@ -99,6 +103,140 @@ function acceptAll(view: PackageDraftView): PackageDraftView {
     });
   return view;
 }
+function preparationCommand(view: PackageDraftView): ReviewPreparation {
+  return {
+    ...command(view),
+    preparation: {
+      sharedEvidence: [{ claimId: 'shared-route', status: 'fact' }],
+      exercisedPlanSourceId: 'test-plan',
+    },
+    roles: view.draft.plan!.roles.map(({ roleId, briefingEvidence }) => ({
+      roleId,
+      briefingEvidence: [
+        ...briefingEvidence,
+        ...(roleId === 'internal-it' ? [{ claimId: 'restore', status: 'unknown' as const }] : []),
+      ],
+    })),
+  };
+}
+
+test('preparation review invalidates every acceptance persists and rejects stale or frozen edits', async () => {
+  let view = acceptAll(proposed());
+  const old = command(view);
+  const input = preparationCommand(view);
+  const profileBefore = store.profile(
+    generationTarget.profileId,
+    generationTarget.profileRevisionId,
+  );
+  const url = `/api/packages/${view.draft.id}/preparation`;
+  assert.equal((await query(url, input, 'player-it')).statusCode, 403);
+  const response = await query(url, input);
+  assert.equal(response.statusCode, 200, response.body);
+  view = response.json();
+  assert.deepEqual(view.draft.reviews, Array(5).fill('pending'));
+  assert.equal((await query(url, input)).json().draft.revision, view.draft.revision);
+  assert.equal((await query(url, { ...input, commandId: randomUUID() })).statusCode, 409);
+  assert.throws(() => service.freeze(actor, view.draft.id, old), /changed/);
+  assert.throws(() => service.freeze(actor, view.draft.id, command(view)), /accept all five/);
+  assert.deepEqual(
+    store.profile(generationTarget.profileId, generationTarget.profileRevisionId),
+    profileBefore,
+  );
+  assert.equal(view.preview!.briefing.gaps[0]!.disposition, 'exercise-assumption');
+  assert.match(view.preview!.briefing.gaps[0]!.description, /Synthetic draft BCP.*PROPOSAL/);
+  assert.match(view.preview!.roles[2]!.briefing, /UNKNOWN.*restore-tested/);
+  assert.ok(!view.preview!.injects[0]!.roleBodies![2]!.body.includes('IT_ONLY'));
+  assert.ok(view.preview!.injects[0]!.groundingClaimIds!.includes('it'));
+  view = acceptAll(view);
+  view = service.freeze(actor, view.draft.id, command(view));
+  assert.equal((await query(url, preparationCommand(view))).statusCode, 409);
+  const reopened = new Store(join(directory, 'ttx.sqlite'));
+  try {
+    assert.deepEqual(reopened.generation.get(view.draft.id)!.draft.preparation, input.preparation);
+  } finally {
+    reopened.close();
+  }
+});
+
+test('preparation rejects invalid plan source role coverage and changed knowledge states', async () => {
+  const view = proposed();
+  const url = `/api/packages/${view.draft.id}/preparation`;
+  for (const id of ['not-a-source', 'test-source']) {
+    const input = preparationCommand(view);
+    input.preparation.exercisedPlanSourceId = id;
+    assert.equal((await query(url, input)).statusCode, 400);
+  }
+  for (const claimId of ['missing', 'restore', 'target', 'comparison']) {
+    const input = preparationCommand(view);
+    input.preparation.sharedEvidence = [{ claimId, status: 'fact' }];
+    assert.equal((await query(url, input)).statusCode, 400);
+  }
+  const rolePromotion = preparationCommand(view);
+  rolePromotion.roles[2]!.briefingEvidence = [{ claimId: 'restore', status: 'fact' }];
+  assert.equal((await query(url, rolePromotion)).statusCode, 400);
+  const missingRole = preparationCommand(view);
+  missingRole.roles[2] = missingRole.roles[0]!;
+  assert.equal((await query(url, missingRole)).statusCode, 409);
+  assert.equal(service.get(actor, view.draft.id).draft.revision, view.draft.revision);
+});
+
+test('preparation shared Step 0 references do not disclose role knowledge or future injects', async () => {
+  let view = proposed();
+  view = service.reviewPreparation(actor, view.draft.id, preparationCommand(view));
+  view = acceptAll(view);
+  view = service.freeze(actor, view.draft.id, command(view));
+  const root = `/api/tracks/technical/runs/${view.draft.runId}`;
+  for (const player of packagePlayers) {
+    const response = await query(`${root}/briefing`, undefined, player.actorId);
+    assert.equal(response.statusCode, 200);
+    const briefing = response.json();
+    assert.equal(briefing.step0Status, 'pending');
+    assert.match(briefing.references.join(' '), /SHARED_ROUTE/);
+    assert.match(briefing.references.join(' '), /EXERCISE ASSUMPTION.*PROPOSAL/);
+    assert.doesNotMatch(
+      response.body,
+      /IT_ONLY|ENGINEERING_ONLY|LEADERSHIP_ONLY|restore-tested|simulated user report|evaluationCriteria/,
+    );
+    assert.deepEqual((await query(`${root}/inbox`, undefined, player.actorId)).json(), []);
+  }
+  const review = (await query(`${root}/review`)).json();
+  assert.equal(
+    (
+      await query(`${root}/start`, {
+        idempotencyKey: randomUUID(),
+        expectedRunRevision: review.run.revision,
+        packageHash: review.packageHash,
+        assignmentHash: review.assignmentHash,
+        acknowledgeBriefing: true,
+        acknowledgeGaps: true,
+        acknowledgeSimulation: true,
+      })
+    ).statusCode,
+    409,
+  );
+  const ready = await query(`${root}/step0`, {
+    idempotencyKey: randomUUID(),
+    expectedRunRevision: review.run.revision,
+    packageHash: review.packageHash,
+    assignmentHash: review.assignmentHash,
+    respondentIds: packagePlayers.map((player) => player.actorId),
+    firstContact: 'Facilitator',
+    contactRoute: 'Reviewed synthetic reference',
+    fallback: 'Record a gap',
+    decision: 'ready',
+    rationale: 'References reviewed by all roles.',
+  });
+  assert.equal(ready.statusCode, 200, ready.body);
+  const markers = ['LEADERSHIP_ONLY', 'ENGINEERING_ONLY', 'IT_ONLY'];
+  for (const [index, player] of packagePlayers.entries()) {
+    const response = await query(`${root}/briefing`, undefined, player.actorId);
+    assert.ok(response.body.includes(markers[index]!));
+    for (const other of markers.filter((_, i) => i !== index))
+      assert.ok(!response.body.includes(other));
+    if (player.actorId === 'player-it') assert.match(response.body, /UNKNOWN.*restore-tested/);
+    else assert.doesNotMatch(response.body, /restore-tested/);
+  }
+});
 function database(fn: (db: DatabaseSync) => void) {
   const db = new DatabaseSync(join(directory, 'ttx.sqlite'));
   try {

@@ -36,6 +36,8 @@ Implemented under ADR-032 in [contracts](../src/contracts/generation.ts), [compo
 
 Facilitator routes: `GET/POST /api/packages`, `GET /api/packages/:id`, revision-bound `POST .../review` and `.../freeze`. Participant requests are rejected server-side. Player access codes stay in the volume's `package-player-access.json`, available only through the explicit local operator command. No credentials are included in browser package responses or host-worker artifacts.
 
+ADR-033 adds revision-bound `POST .../preparation` and one preparation editor. It updates existing role claim selections plus optional draft JSON containing shared evidence and an existing BCP/DRP source ID. Rendering retains claim labels and supplies a plan-being-exercised assumption gap, not new organisation facts. A preparation save resets every inject acceptance; no database migration or model call is needed. Generated packages expose only their reviewed common reference list before Step 0 Ready, not private role briefs or incident injects. After Ready the usual assigned-role projection applies. Baseline passages already in shared references or that role's briefing are omitted from inject bodies, while grounding IDs remain. The original fixture's pre-Ready withholding and all start/release gates remain unchanged.
+
 ### Bounded source intake
 
 Implemented subset under ADR-029: [intake contracts](../src/contracts/intake.ts), [typed profile contracts](../src/contracts/profile.ts), [application service](../src/server/intake-service.ts), [parsers](../src/server/intake-parsers.ts) and [review workspace](../src/ui/intake-workspace.tsx). This is incident-independent preparation, not an incident selection or replacement for exercise fixtures.

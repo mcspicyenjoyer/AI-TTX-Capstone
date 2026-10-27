@@ -61,6 +61,29 @@ test('generated package review edit reject freeze at desktop and mobile widths',
     );
   }
   await expect(freeze).toBeEnabled();
+  await page.getByLabel('Plan being exercised', { exact: true }).selectOption('test-plan');
+  await page.getByLabel('Shared Step 0 references', { exact: true }).selectOption('shared-route');
+  await page.getByLabel('Internal IT briefing', { exact: true }).selectOption(['it', 'restore']);
+  await expect(freeze).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Accept inject', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Save preparation', exact: true }).click();
+  await expect(
+    page.getByText('Facilitator review / 0 of 5 injects accepted', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(/EXERCISE ASSUMPTION: Synthetic draft BCP/)).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: 'Package generation', exact: true }).click();
+  await expect(page.getByLabel('Internal IT briefing', { exact: true })).toHaveValues([
+    'it',
+    'restore',
+  ]);
+  for (let position = 0; position < 5; position++) {
+    await page.getByRole('tab', { name: new RegExp(`^${position + 1}\\.`) }).click();
+    await page.getByRole('button', { name: 'Accept inject', exact: true }).click();
+    await expect(page.getByRole('tab', { name: new RegExp(`^${position + 1}\\.`) })).toContainText(
+      'accepted',
+    );
+  }
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 960 });
     await page.evaluate(() => window.scrollTo(0, 0));

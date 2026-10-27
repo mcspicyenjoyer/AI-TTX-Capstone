@@ -6,9 +6,11 @@ import {
   PackageDraftViewSchema,
   GeneratePackageSchema,
   ReviewPositionSchema,
+  ReviewPreparationSchema,
   FreezePackageSchema,
   type GeneratePackage,
   type ReviewPosition,
+  type ReviewPreparation,
   type FreezePackage,
 } from '../contracts/generation.js';
 import type { Sessions } from './access.js';
@@ -51,6 +53,22 @@ export function registerGenerationRoutes(
     },
     async (request) =>
       service.review(sessions.actor(request.cookies.ttx_session), request.params.id, request.body),
+  );
+  app.post<{ Params: { id: string }; Body: ReviewPreparation }>(
+    '/api/packages/:id/preparation',
+    {
+      schema: {
+        params,
+        body: ReviewPreparationSchema,
+        response: { 200: PackageDraftViewSchema, ...errors },
+      },
+    },
+    async (request) =>
+      service.reviewPreparation(
+        sessions.actor(request.cookies.ttx_session),
+        request.params.id,
+        request.body,
+      ),
   );
   app.post<{ Params: { id: string }; Body: FreezePackage }>(
     '/api/packages/:id/freeze',

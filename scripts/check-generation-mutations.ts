@@ -51,6 +51,42 @@ const composition = 'generation enforces TE-FS01';
 const privateReview = 'generation proposals stay private';
 const mutations: Mutation[] = [
   {
+    name: 'preparation plan source exists and is a plan',
+    file: content,
+    test: 'preparation rejects invalid',
+    edit: removeRule('Preparation requires an existing continuity plan source'),
+  },
+  {
+    name: 'preparation shared knowledge states',
+    file: content,
+    test: 'preparation rejects invalid',
+    edit: removeRule('Preparation shared evidence must retain'),
+  },
+  {
+    name: 'preparation covers all roles',
+    file: service,
+    test: 'preparation rejects invalid',
+    edit: removeRule('Preparation must cover each player role'),
+  },
+  {
+    name: 'preparation invalidates all inject acceptances',
+    file: service,
+    test: 'preparation review invalidates',
+    edit: replaceOnce(
+      "next.reviews = next.reviews.map(() => 'pending');",
+      'next.reviews = next.reviews;',
+    ),
+  },
+  {
+    name: 'Step 0 references exclude specialist role material',
+    file: engine,
+    test: 'preparation shared Step 0',
+    edit: replaceOnce(
+      '? definition.briefing.references',
+      '? [...definition.briefing.references, ...definition.roles.map((item) => item.briefing)]',
+    ),
+  },
+  {
     name: 'generated engine fields required',
     file: 'src/server/exercise-validation.ts',
     test: 'generation engine contract rejects',
@@ -260,7 +296,7 @@ try {
       original = readFileSync(path, 'utf8');
     try {
       writeFileSync(path, mutation.edit(original));
-      const file = mutation.test.startsWith('generation')
+      const file = /^(generation|preparation)/.test(mutation.test)
         ? 'tests/generation.test.ts'
         : 'tests/exercise.test.ts';
       const run = spawnSync(

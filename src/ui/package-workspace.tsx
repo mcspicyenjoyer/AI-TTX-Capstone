@@ -10,11 +10,24 @@ import {
   type GenerationContext,
   type PackageDraftView,
   type GeneratedPosition,
+  type ReviewPreparation,
 } from '../contracts/generation.js';
 import { ApiError, request } from './api.js';
 
 const label = (value: string) => value.replaceAll('-', ' ');
 type Pending = { url: string; body: object };
+type PreparationEdit = Pick<ReviewPreparation, 'preparation' | 'roles'>;
+function preparationEdit(view: PackageDraftView): PreparationEdit {
+  return {
+    preparation: structuredClone(
+      view.draft.preparation ?? { sharedEvidence: [], exercisedPlanSourceId: '' },
+    ),
+    roles: view.draft.plan!.roles.map(({ roleId, briefingEvidence }) => ({
+      roleId,
+      briefingEvidence: structuredClone(briefingEvidence),
+    })),
+  };
+}
 
 export function PackageWorkspace({
   onSessionExpired,
@@ -29,11 +42,13 @@ export function PackageWorkspace({
   const [positionIndex, setPositionIndex] = useState(0);
   const [edit, setEdit] = useState<GeneratedPosition | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [preparation, setPreparation] = useState<PreparationEdit | null>(null);
+  const [preparationDirty, setPreparationDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
   const [error, setError] = useState('');
   const current = useRef({ dirty, busy, pending, selected });
-  current.current = { dirty, busy, pending, selected };
+  current.current = { dirty: dirty || preparationDirty, busy, pending, selected };
   function failure(error: unknown) {
     if (error instanceof ApiError && error.status === 401) onSessionExpired();
     else setError(error instanceof Error ? error.message : 'The package operation failed.');
@@ -43,6 +58,8 @@ export function PackageWorkspace({
     setView(value);
     setEdit(value.draft.plan ? structuredClone(value.draft.plan.positions[positionIndex]!) : null);
     setDirty(false);
+    setPreparation(value.draft.plan ? preparationEdit(value) : null);
+    setPreparationDirty(false);
   }
   async function refresh() {
     try {
@@ -60,8 +77,8 @@ export function PackageWorkspace({
     void refresh();
   }, []);
   useEffect(() => {
-    onGuardChange(pending ? 'pending' : dirty ? 'dirty' : null);
-  }, [pending, dirty, onGuardChange]);
+    onGuardChange(pending ? 'pending' : dirty || preparationDirty ? 'dirty' : null);
+  }, [pending, dirty, preparationDirty, onGuardChange]);
   useEffect(() => {
     if (!view || !['queued', 'running'].includes(view.draft.status)) return;
     const timer = window.setInterval(() => {
@@ -123,6 +140,7 @@ export function PackageWorkspace({
     }
   }
   const disabled = busy || !!pending;
+  const unsaved = dirty || preparationDirty;
   const editable = view?.draft.status === 'review';
   const inject = view?.preview?.injects[positionIndex];
   const claims = context?.profile?.environment?.claims ?? [];
@@ -144,7 +162,7 @@ export function PackageWorkspace({
           className="icon-button"
           aria-label="Refresh packages"
           title="Refresh packages"
-          disabled={disabled || dirty}
+          disabled={disabled || unsaved}
           onClick={() => void refresh()}
         >
           <RefreshCw size={18} />
@@ -196,7 +214,7 @@ export function PackageWorkspace({
           disabled={
             !context?.ready ||
             disabled ||
-            dirty ||
+            unsaved ||
             (!!view && ['queued', 'running'].includes(view.draft.status))
           }
           onClick={() => {
@@ -224,7 +242,7 @@ export function PackageWorkspace({
           <select
             aria-label="Package draft"
             value={selected}
-            disabled={disabled || dirty}
+            disabled={disabled || unsaved}
             onChange={(event) => {
               setPositionIndex(0);
               adopt(context.drafts.find((item) => item.draft.id === event.target.value)!);
@@ -275,13 +293,155 @@ export function PackageWorkspace({
                 .join('; ')}
             </p>
           </section>
+          {preparation && (
+            <section className="run-section package-preparation">
+              <h2>Preparation</h2>
+              <fieldset disabled={!editable || disabled || dirty}>
+                <legend>Baseline references and role knowledge</legend>
+                <label>
+                  Plan being exercised
+                  <select
+                    aria-label="Plan being exercised"
+                    value={preparation.preparation.exercisedPlanSourceId}
+                    onChange={(event) => {
+                      setPreparation({
+                        ...preparation,
+                        preparation: {
+                          ...preparation.preparation,
+                          exercisedPlanSourceId: event.target.value,
+                        },
+                      });
+                      setPreparationDirty(true);
+                    }}
+                  >
+                    <option value="">Select a confirmed source</option>
+                    {context?.profile?.sources
+                      .filter((source) => ['bcp', 'drp'].includes(source.kind))
+                      .map((source) => (
+                        <option key={source.id} value={source.id}>
+                          {source.title} / {source.version}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+                {[
+                  {
+                    id: 'shared',
+                    name: 'Shared Step 0 references',
+                    evidence: preparation.preparation.sharedEvidence,
+                  },
+                  ...preparation.roles.map((role) => ({
+                    id: role.roleId,
+                    name: `${view.preview!.roles.find((item) => item.id === role.roleId)!.name} briefing`,
+                    evidence: role.briefingEvidence,
+                  })),
+                ].map((selection) => (
+                  <label key={selection.id}>
+                    {selection.name}
+                    <select
+                      multiple
+                      size={5}
+                      aria-label={selection.name}
+                      value={selection.evidence.map((item) => item.claimId)}
+                      onChange={(event) => {
+                        const evidence = Array.from(event.target.selectedOptions, (option) => ({
+                          claimId: option.value,
+                          status: claims.find((claim) => claim.id === option.value)!.status,
+                        }));
+                        setPreparation(
+                          selection.id === 'shared'
+                            ? {
+                                ...preparation,
+                                preparation: {
+                                  ...preparation.preparation,
+                                  sharedEvidence: evidence,
+                                },
+                              }
+                            : {
+                                ...preparation,
+                                roles: preparation.roles.map((role) =>
+                                  role.roleId === selection.id
+                                    ? { ...role, briefingEvidence: evidence }
+                                    : role,
+                                ),
+                              },
+                        );
+                        setPreparationDirty(true);
+                      }}
+                    >
+                      {claims.map((claim) => (
+                        <option key={claim.id} value={claim.id}>
+                          {claimLabel(claim.id)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ))}
+              </fieldset>
+              {editable && (
+                <div className="package-review-actions">
+                  <button
+                    className="secondary"
+                    disabled={
+                      disabled ||
+                      dirty ||
+                      !preparationDirty ||
+                      !preparation.preparation.exercisedPlanSourceId
+                    }
+                    onClick={() =>
+                      void send({
+                        url: `/api/packages/${view.draft.id}/preparation`,
+                        body: {
+                          commandId: crypto.randomUUID(),
+                          expectedRevision: view.draft.revision,
+                          expectedHash: view.hash,
+                          ...preparation,
+                        },
+                      })
+                    }
+                  >
+                    <Save size={17} />
+                    Save preparation
+                  </button>
+                  {preparationDirty && (
+                    <button
+                      className="icon-button"
+                      title="Discard preparation edits"
+                      aria-label="Discard preparation edits"
+                      disabled={disabled}
+                      onClick={() => {
+                        setPreparation(preparationEdit(view));
+                        setPreparationDirty(false);
+                      }}
+                    >
+                      <RotateCcw size={17} />
+                    </button>
+                  )}
+                </div>
+              )}
+              <h3>Saved shared references</h3>
+              <ul>
+                {view.preview.briefing.references.map((reference) => (
+                  <li key={reference}>{reference}</li>
+                ))}
+              </ul>
+              <h3>Preparation gaps</h3>
+              <ul>
+                {view.preview.briefing.gaps.map((gap) => (
+                  <li key={gap.id}>
+                    {gap.disposition}: {gap.description}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           <div className="package-position-tabs" role="tablist" aria-label="Inject positions">
             {view.preview.injects.map((item, index) => (
               <button
                 role="tab"
                 aria-selected={index === positionIndex}
                 key={item.id}
-                disabled={disabled || dirty}
+                disabled={disabled || unsaved}
                 onClick={() => setPositionIndex(index)}
               >
                 {index + 1}. {item.title}
@@ -293,7 +453,7 @@ export function PackageWorkspace({
             <section className="run-section">
               <h2>{inject.title}</h2>
               <div className="package-editor-grid">
-                <fieldset disabled={!editable || disabled}>
+                <fieldset disabled={!editable || disabled || preparationDirty}>
                   <legend>Inject specification</legend>
                   <label>
                     Elapsed minutes
@@ -478,7 +638,7 @@ export function PackageWorkspace({
                 <div className="package-review-actions">
                   <button
                     className="secondary"
-                    disabled={disabled || !dirty}
+                    disabled={disabled || preparationDirty || !dirty}
                     onClick={() => review('pending')}
                   >
                     <Save size={17} />
@@ -486,7 +646,7 @@ export function PackageWorkspace({
                   </button>
                   <button
                     className="primary"
-                    disabled={disabled || dirty}
+                    disabled={disabled || unsaved}
                     onClick={() => review('accepted')}
                   >
                     <Check size={17} />
@@ -494,7 +654,7 @@ export function PackageWorkspace({
                   </button>
                   <button
                     className="secondary"
-                    disabled={disabled}
+                    disabled={disabled || preparationDirty}
                     onClick={() => review('rejected')}
                   >
                     <X size={17} />
@@ -530,7 +690,7 @@ export function PackageWorkspace({
                 className="primary"
                 disabled={
                   disabled ||
-                  dirty ||
+                  unsaved ||
                   view.draft.reviews.some((decision) => decision !== 'accepted')
                 }
                 onClick={() => {

@@ -52,6 +52,13 @@ export const generationProfile: Profile = {
       kind: 'setup',
       synthetic: true,
     },
+    {
+      id: 'test-plan',
+      title: 'Synthetic draft BCP',
+      version: 'draft-1',
+      kind: 'bcp',
+      synthetic: true,
+    },
   ],
   statements: [
     {
@@ -75,6 +82,12 @@ export const generationProfile: Profile = {
       entity('soc', 'third-party', 'Beacon Nine Security'),
     ],
     claims: [
+      claim(
+        'shared-route',
+        'soc',
+        'fact',
+        'SHARED_ROUTE: use the facilitator for simulated supplier contact.',
+      ),
       claim('dependency', 'service', 'fact', null, 'depends-on', 'fs'),
       claim('reference', 'service', 'fact', '2026-09-28T09:00:00+08:00'),
       claim(

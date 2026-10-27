@@ -2,6 +2,16 @@
 
 Accepted means a direction for the user's authorised baseline, not organisation deployment or data approval.
 
+## ADR-033 - Bounded package preparation review and AI-player trial
+
+Accepted on 27 October 2026 after the user reviewed the live five-inject proposal. Add one preparation edit operation to the existing package workspace: edit existing role briefing claim selections, select shared Step 0 reference claims, and identify an existing BCP/DRP source as the plan being exercised. Store optional reviewer-owned metadata in the current draft JSON; render an explicit exercise-assumption gap. Do not change the confirmed profile, promote PROPOSAL/UNKNOWN/CONFLICT labels, regenerate with AI or migrate the database. Preparation changes invalidate all inject acceptances and remain subject to exact revision/hash review and immutable freeze.
+
+Shared reviewed references may be consulted before technical Step 0 for generated packages; role-private briefing knowledge remains gated until Ready. Prepared answers, criteria and future injects remain private. Suppress repeated baseline passages in inject presentation while retaining grounding IDs. Existing fixture and operational preparation policies are unchanged. Alternative: patch the saved database or hard-code this organisation's briefing. Rejected because it bypasses reusable human review/provenance. Maintenance is confined to existing contracts, review API/UI, rendering/projection and targeted tests; no new dependency or preparation framework.
+
+Keep the five events and fictional clock. Consolidate questions at their decision/evaluation position; leadership records decisions at positions 2, 3 and 5. A restoration hold with evidence requirements, authoriser, owner and next review time is valid. The facilitator answers only from the confirmed profile/package, otherwise records "not known at this time" as an information request. For the labelled three-agent trial, engineering and IT contribute first and business leadership submits the agreed team response. Individual contributions belong in the private rehearsal transcript, not fabricated team-response revisions or a new chat feature. This is a facilitation protocol, not a new server-side restriction on which assigned participant may submit.
+
+Bound the trial to Step 0 plus five positions, one initial role-input round and at most one clarification round per position. Fresh role-only agent contexts and distinct participant sessions receive no parent history, full profile or future injects. Completion establishes only recorded workflow execution, not actual containment/restoration, human training effectiveness or OS isolation of agents. WORK records execution and checkpoints.
+
 ## ADR-032 - Confirmed-profile five-inject composition
 
 Accepted on 27 October 2026 for the user's next generation milestone. The user explicitly authorised the assistant to confirm the reviewed revision-8 content, without further profile correction. Confirmation creates its own immutable revision/hash; intake workflow counters are not the confirmed profile revision. Bind the operator-configured target to that exact profile ID, revision ID and SHA-256, retaining the original review-8 hash separately. Reject example-sme-01/profile-r1 and all other bindings. This supersedes ADR-031's pending-confirmation status, not its incident limits.
