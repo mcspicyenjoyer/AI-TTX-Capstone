@@ -36,7 +36,11 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
         {review.package.revisionId}
         <span className="separator">/</span>Run revision {review.run.revision}
         <span className="separator">/</span>
-        {isSkeleton ? 'Development skeleton' : 'Engineering fixture'}
+        {isSkeleton
+          ? 'Development skeleton'
+          : review.package.kind === 'generated-five-inject'
+            ? 'Generated five-inject package'
+            : 'Engineering fixture'}
       </p>
       <div className="run-columns">
         <div>

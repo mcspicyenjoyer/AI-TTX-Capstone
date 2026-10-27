@@ -27,6 +27,10 @@ import { OutcomeService } from './outcome-service.js';
 import { registerOutcomeRoutes } from './outcome-routes.js';
 import { IntakeService, type ExtractionProvider } from './intake-service.js';
 import { registerIntakeRoutes } from './intake-routes.js';
+import { GenerationService } from './generation-service.js';
+import { readPackageTarget, initialisePackagePlayers } from './generation-setup.js';
+import { registerGenerationRoutes } from './generation-routes.js';
+import type { PackageTarget } from '../contracts/generation.js';
 
 export async function buildApp(options: {
   dataDirectory: string;
@@ -35,12 +39,14 @@ export async function buildApp(options: {
   staticDirectory?: string;
   extractionProvider?: ExtractionProvider;
   subscriptionEnabled?: boolean;
+  packageTarget?: PackageTarget;
 }) {
   const store = new Store(join(options.dataDirectory, 'ttx.sqlite'));
   try {
     initialiseDemo(store, options.dataDirectory);
     initialiseExercises(store, options.dataDirectory);
     store.extractions.recover();
+    store.transaction(() => store.generation.recover());
   } catch (error) {
     store.close();
     throw error;
@@ -200,6 +206,13 @@ export async function buildApp(options: {
     },
   );
   const exercises = new ExerciseService(store);
+  const packageTarget = options.packageTarget ?? readPackageTarget(options.dataDirectory);
+  if (packageTarget) initialisePackagePlayers(store, options.dataDirectory);
+  registerGenerationRoutes(
+    app,
+    sessions,
+    new GenerationService(store, packageTarget, !!options.subscriptionEnabled),
+  );
   registerExerciseRoutes(app, sessions, exercises, errors);
   registerOutcomeRoutes(app, sessions, new OutcomeService(store, exercises), errors);
   registerIntakeRoutes(

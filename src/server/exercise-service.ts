@@ -42,6 +42,11 @@ export class ExerciseService {
     if (!run || run.track !== track)
       throw new AppError(404, 'NOT_FOUND', 'That exercise is unavailable in this track.');
     const { definition, hash } = this.store.exercises.package(run.packageId, run.packageRevisionId);
+    if (
+      definition.kind === 'generated-five-inject' &&
+      !this.store.generation.isFrozen(definition.id, hash)
+    )
+      conflict('The generated package has not been approved and frozen.');
     const members = this.store.exercises.members(runId);
     checkRunBinding(run, definition, members);
     return { run, definition, hash, members, member, assignmentHash: fingerprint(members) };
@@ -235,7 +240,9 @@ export class ExerciseService {
       injectId: release.injectId,
       injectRevisionId: release.injectRevisionId,
       title: release.title,
-      body: release.body,
+      body: release.deliveries
+        ? (release.deliveries.find((delivery) => delivery.actorId === actor.id)?.body ?? '')
+        : release.body,
       releasedAt: release.releasedAt,
     }));
   }
@@ -442,6 +449,18 @@ export class ExerciseService {
         body: inject.body,
         releasedAt: new Date().toISOString(),
         recipientIds: [...recipients],
+        ...(inject.roleBodies
+          ? {
+              deliveries: recipients.map((actorId) => ({
+                actorId,
+                body: inject.roleBodies!.find(
+                  (body) =>
+                    body.roleId ===
+                    context.members.find((member) => member.actorId === actorId)!.roleId,
+                )!.body,
+              })),
+            }
+          : {}),
       };
       this.store.exercises.saveRelease(release);
       this.store.exercises.event(run, 'inject-released', actor.id, release.id);

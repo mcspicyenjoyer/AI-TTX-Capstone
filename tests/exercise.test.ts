@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../src/server/app.js';
-import { contentHash } from '../src/server/integrity.js';
+import { contentHash, fingerprint } from '../src/server/integrity.js';
 import { readPackage, checkRunBinding } from '../src/server/exercise-validation.js';
 import { technicalPackage } from '../src/server/technical-fixture.js';
 import { operationalPackage } from '../src/server/operational-fixture.js';
@@ -783,7 +783,7 @@ test('additive v1 migration preserves saved profiles, confirmations and original
     DROP TABLE step0_checks; DROP TABLE release_recipients; DROP TABLE inject_releases; DROP TABLE inject_approvals;
     DROP TABLE run_commands; DROP TABLE run_activity; DROP TABLE run_preparations;
     DROP TABLE run_members; DROP TABLE exercise_runs; DROP TABLE exercise_packages;
-    DELETE FROM actors WHERE username IN ('observer','operational'); PRAGMA user_version = 1;
+    DROP TABLE package_draft_commands; DROP TABLE package_draft_history; DROP TABLE package_drafts; DELETE FROM actors WHERE username IN ('observer','operational'); PRAGMA user_version = 1;
   `),
   );
   unlinkSync(join(directory, 'demo-track-access.json'));
@@ -795,7 +795,7 @@ test('additive v1 migration preserves saved profiles, confirmations and original
   );
   assert.equal(readFileSync(join(directory, 'demo-access.json'), 'utf8'), originalCodes);
   assert.equal((await review()).run.state, 'draft');
-  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 6));
+  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 7));
 });
 
 test('startup does not overwrite package content or restore revoked exercise membership', async () => {
@@ -974,7 +974,7 @@ test('v2 migration preserves records but never invents Step 0 evidence for an ol
   await app.close();
   database((db) =>
     db.exec(
-      "DROP TABLE extraction_jobs; DROP TABLE extraction_worker; DROP TABLE intake_receipts; DROP TABLE intake_revisions; DROP TABLE intakes; DROP TABLE run_completions; DROP TABLE position_closures; DROP TABLE response_dispositions; DROP TABLE team_responses; DROP TABLE step0_checks; DELETE FROM run_activity WHERE kind = 'step0-recorded'; DELETE FROM run_commands; PRAGMA user_version = 2;",
+      "DROP TABLE package_draft_commands; DROP TABLE package_draft_history; DROP TABLE package_drafts; DROP TABLE extraction_jobs; DROP TABLE extraction_worker; DROP TABLE intake_receipts; DROP TABLE intake_revisions; DROP TABLE intakes; DROP TABLE run_completions; DROP TABLE position_closures; DROP TABLE response_dispositions; DROP TABLE team_responses; DROP TABLE step0_checks; DELETE FROM run_activity WHERE kind = 'step0-recorded'; DELETE FROM run_commands; PRAGMA user_version = 2;",
     ),
   );
   app = await buildApp({ dataDirectory: directory, publicPort: 3000 });
@@ -1015,5 +1015,85 @@ test('v2 migration preserves records but never invents Step 0 evidence for an ol
     200,
   );
   assert.deepEqual((await review()).releases, [released]);
-  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 6));
+  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 7));
+});
+
+test('borrowed approval is rejected even when the run revisions line up', async () => {
+  const view = await start();
+  const first = await approve();
+  const store = new Store(join(directory, 'ttx.sqlite'));
+  try {
+    store.transaction(() => store.exercises.seedRun('other-check', technicalPackage, view.members));
+  } finally {
+    store.close();
+  }
+  const other = '/api/tracks/technical/runs/other-check';
+  await start(other);
+  // Advance the other run until its revision equals the borrowed approval's revision.
+  for (let guard = 0; guard < 20; guard++) {
+    const current = (await review(other)).run.revision;
+    if (current === first.runRevision) break;
+    assert.ok(current < first.runRevision, `other run overtook: ${current} > ${first.runRevision}`);
+    if (first.runRevision - current >= 2) {
+      const paused = await query(`${other}/pause`, {
+        expectedRunRevision: current,
+        idempotencyKey: randomUUID(),
+      });
+      assert.equal(paused.statusCode, 200, paused.body);
+      const resumed = await query(`${other}/resume`, {
+        expectedRunRevision: paused.json().revision,
+        idempotencyKey: randomUUID(),
+      });
+      assert.equal(resumed.statusCode, 200, resumed.body);
+    } else {
+      await approve(other);
+    }
+  }
+  const aligned = (await review(other)).run.revision;
+  assert.equal(aligned, first.runRevision, 'could not align revisions');
+  const borrowed = await query(`${other}/releases`, {
+    ...releaseInput(first),
+    expectedRunRevision: aligned,
+  });
+  assert.equal(borrowed.statusCode, 409, `borrowed approval accepted: ${borrowed.body}`);
+  assert.deepEqual((await review(other)).releases, []);
+});
+
+test('next inject cannot be approved or released while the previous position is open', async () => {
+  const definition = structuredClone(technicalPackage);
+  definition.id = 'sequence-gate';
+  definition.injects = Array.from({ length: 3 }, (_, index) => ({
+    ...definition.injects[0]!,
+    id: `inject-${index + 1}`,
+    title: `Synthetic gate entry ${index + 1}`,
+  }));
+  const members = (await review()).members;
+  const store = new Store(join(directory, 'ttx.sqlite'));
+  try {
+    store.transaction(() => {
+      store.exercises.seedPackage(definition);
+      store.exercises.seedRun('sequence-gate', definition, members);
+    });
+  } finally {
+    store.close();
+  }
+  const path = '/api/tracks/technical/runs/sequence-gate';
+  await start(path);
+  assert.equal(
+    (await query(`${path}/releases`, releaseInput(await approve(path)))).statusCode,
+    200,
+  );
+  const view = await review(path);
+  const second = view.package.injects[1]!;
+  const early = await query(`${path}/approvals`, {
+    expectedRunRevision: view.run.revision,
+    idempotencyKey: randomUUID(),
+    packageHash: view.packageHash,
+    injectId: second.id,
+    injectRevisionId: second.revisionId,
+    contentHash: fingerprint(second),
+    recipientIds: ['demo-participant'],
+  });
+  assert.equal(early.statusCode, 409, `inject 2 approved before inject 1 closed: ${early.body}`);
+  assert.equal((await query(`${path}/inbox`, undefined, 'participant')).json().length, 1);
 });

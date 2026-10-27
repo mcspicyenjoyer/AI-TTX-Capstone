@@ -37,6 +37,7 @@ import { ApiError, request, signOut } from './api.js';
 import './style.css';
 import { ExerciseWorkspace } from './exercise-workspace.js';
 import { IntakeWorkspace } from './intake-workspace.js';
+import { PackageWorkspace } from './package-workspace.js';
 
 type Status = ProfileView['profile']['statements'][number]['status'];
 const statusLabels: Record<Status, string> = {
@@ -65,7 +66,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [tab, setTab] = useState<'profile' | 'activity' | 'exercises' | 'intake'>('profile');
+  const [tab, setTab] = useState<'profile' | 'activity' | 'exercises' | 'intake' | 'packages'>(
+    'profile',
+  );
   const [intakeGuard, setIntakeGuard] = useState<'dirty' | 'pending' | null>(null);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
@@ -84,7 +87,7 @@ function App() {
   }, []);
 
   function canLeaveIntake() {
-    if (tab !== 'intake') return true;
+    if (tab !== 'intake' && tab !== 'packages') return true;
     if (intakeGuard === 'pending') {
       setError('Resolve the pending preparation request before leaving this view.');
       return false;
@@ -327,6 +330,15 @@ function App() {
                 </button>
               </>
             ) : null}
+            {actor.role === 'facilitator' && (
+              <button
+                className={tab === 'packages' ? 'nav-item selected' : 'nav-item'}
+                onClick={() => navigate('packages')}
+              >
+                <ShieldCheck size={18} />
+                Package generation
+              </button>
+            )}
             <button
               className={tab === 'exercises' ? 'nav-item selected' : 'nav-item'}
               onClick={() => navigate('exercises')}
@@ -356,6 +368,12 @@ function App() {
             )}
             {actor.role === 'participant' || tab === 'exercises' ? (
               <ExerciseWorkspace key={actor.id} actor={actor} onSessionExpired={expireSession} />
+            ) : tab === 'packages' ? (
+              <PackageWorkspace
+                key={actor.id}
+                onSessionExpired={expireSession}
+                onGuardChange={setIntakeGuard}
+              />
             ) : tab === 'intake' ? (
               <IntakeWorkspace
                 key={actor.id}

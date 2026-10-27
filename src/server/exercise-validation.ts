@@ -19,6 +19,34 @@ export function readPackage(value: unknown): ExercisePackage {
     throw new Error('Duplicate exercise reference.');
   if (definition.injects.some((inject) => inject.recipientRoleIds.some((role) => !roles.has(role))))
     throw new Error('Unknown recipient role.');
+  for (const inject of definition.injects) {
+    if (
+      inject.roleBodies &&
+      (new Set(inject.roleBodies.map((body) => body.roleId)).size !== inject.roleBodies.length ||
+        inject.roleBodies.length !== inject.recipientRoleIds.length ||
+        inject.roleBodies.some((body) => !inject.recipientRoleIds.includes(body.roleId)))
+    )
+      throw new Error('Role-specific bodies must match the exact recipient roles.');
+  }
+  if (
+    definition.kind === 'generated-five-inject' &&
+    (definition.injects.length !== 5 ||
+      definition.roles.length !== 3 ||
+      !definition.objectives ||
+      !definition.scenario ||
+      !definition.sourceReviewHash ||
+      !definition.facilitatorSupplierIds ||
+      definition.injects.some(
+        (inject, index) =>
+          inject.position !== index + 1 ||
+          !inject.roleBodies ||
+          inject.roleBodies.length !== 3 ||
+          !inject.expectedActions ||
+          !inject.evaluationCriteria ||
+          !inject.groundingClaimIds,
+      ))
+  )
+    throw new Error('Generated package content is incomplete.');
   if ((definition.kind === 'development-skeleton') !== (definition.injects.length === 0))
     throw new Error(
       'A skeleton cannot contain playable injects; an engineering fixture needs content.',

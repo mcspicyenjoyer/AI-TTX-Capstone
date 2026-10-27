@@ -16,6 +16,7 @@ export const RunStateSchema = Type.Union([
 export const PackageKindSchema = Type.Union([
   Type.Literal('engineering-fixture'),
   Type.Literal('development-skeleton'),
+  Type.Literal('generated-five-inject'),
 ]);
 export const RoleSchema = Type.Object(
   { id: IdSchema, name: text(120), briefing: text(3000) },
@@ -29,6 +30,17 @@ export const InjectSchema = Type.Object(
     body: text(6000),
     recipientRoleIds: Type.Array(IdSchema, { minItems: 1, maxItems: 20, uniqueItems: true }),
     facilitatorNotes: text(3000),
+    roleBodies: Type.Optional(
+      Type.Array(Type.Object({ roleId: IdSchema, body: text(6000) }, strict), {
+        minItems: 1,
+        maxItems: 3,
+      }),
+    ),
+    position: Type.Optional(Type.Integer({ minimum: 1, maximum: 15 })),
+    decisionPoint: Type.Optional(Type.Union([text(80), Type.Null()])),
+    expectedActions: Type.Optional(Type.Array(text(500), { minItems: 1, maxItems: 6 })),
+    evaluationCriteria: Type.Optional(Type.Array(text(700), { minItems: 1, maxItems: 6 })),
+    groundingClaimIds: Type.Optional(Type.Array(IdSchema, { minItems: 1, maxItems: 30 })),
   },
   strict,
 );
@@ -43,6 +55,10 @@ export const PackageSchema = Type.Object(
     profileId: IdSchema,
     profileRevisionId: IdSchema,
     profileHash: hash,
+    objectives: Type.Optional(Type.Array(text(700), { minItems: 3, maxItems: 3 })),
+    scenario: Type.Optional(text(3000)),
+    sourceReviewHash: Type.Optional(hash),
+    facilitatorSupplierIds: Type.Optional(Type.Array(IdSchema, { minItems: 2, maxItems: 2 })),
     briefing: Type.Object(
       {
         revisionId: IdSchema,
@@ -169,6 +185,12 @@ export const ReleaseSchema = Type.Object(
     body: text(6000),
     releasedAt: at,
     recipientIds: Type.Array(IdSchema, { minItems: 1, maxItems: 50, uniqueItems: true }),
+    deliveries: Type.Optional(
+      Type.Array(Type.Object({ actorId: IdSchema, body: text(6000) }, strict), {
+        minItems: 1,
+        maxItems: 50,
+      }),
+    ),
   },
   strict,
 );

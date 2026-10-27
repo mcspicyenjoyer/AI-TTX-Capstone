@@ -450,7 +450,7 @@ test('additive v3 migration preserves existing records, credentials and historic
   await app.close();
   database((db) =>
     db.exec(
-      'DROP TABLE extraction_jobs; DROP TABLE extraction_worker; DROP TABLE intake_receipts; DROP TABLE intake_revisions; DROP TABLE intakes; DROP TABLE run_completions; DROP TABLE position_closures; DROP TABLE response_dispositions; DROP TABLE team_responses; PRAGMA user_version = 3;',
+      'DROP TABLE package_draft_commands; DROP TABLE package_draft_history; DROP TABLE package_drafts; DROP TABLE extraction_jobs; DROP TABLE extraction_worker; DROP TABLE intake_receipts; DROP TABLE intake_revisions; DROP TABLE intakes; DROP TABLE run_completions; DROP TABLE position_closures; DROP TABLE response_dispositions; DROP TABLE team_responses; PRAGMA user_version = 3;',
     ),
   );
   await boot();
@@ -462,5 +462,5 @@ test('additive v3 migration preserves existing records, credentials and historic
   assert.deepEqual(result.positions[0]!.dispositions, []);
   assert.equal(result.positions[0]!.closure, null);
   assert.equal(result.completion, null);
-  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 6));
+  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 7));
 });

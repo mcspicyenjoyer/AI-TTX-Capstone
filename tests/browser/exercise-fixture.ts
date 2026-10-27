@@ -7,10 +7,15 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 // Each exercise case has its own real server and disposable database.
-export const test = base.extend<{ exerciseServer: string; subscriptionEnabled: boolean }>({
+export const test = base.extend<{
+  exerciseServer: string;
+  subscriptionEnabled: boolean;
+  generationEnabled: boolean;
+}>({
   subscriptionEnabled: [false, { option: true }],
+  generationEnabled: [false, { option: true }],
   exerciseServer: [
-    async ({ baseURL, subscriptionEnabled }, use) => {
+    async ({ baseURL, subscriptionEnabled, generationEnabled }, use) => {
       const directory = mkdtempSync(join(tmpdir(), 'ttx-browser-case-'));
       let server: ChildProcess | undefined;
       let startupError: Error | undefined;
@@ -22,6 +27,7 @@ export const test = base.extend<{ exerciseServer: string; subscriptionEnabled: b
             TTX_DATA_DIR: directory,
             TTX_BROWSER_PORT: new URL(baseURL!).port,
             TTX_BROWSER_SUBSCRIPTION: String(subscriptionEnabled),
+            TTX_BROWSER_GENERATION: String(generationEnabled),
           },
           stdio: 'ignore',
         });
@@ -57,9 +63,11 @@ export { expect };
 export function access(username: string): string {
   const directory = process.env.TTX_EXERCISE_BROWSER_DATA_DIR;
   if (!directory) throw new Error('Missing exercise test directory.');
-  const filename = ['facilitator', 'participant'].includes(username)
-    ? 'demo-access.json'
-    : 'demo-track-access.json';
+  const filename = username.startsWith('player-')
+    ? 'package-player-access.json'
+    : ['facilitator', 'participant'].includes(username)
+      ? 'demo-access.json'
+      : 'demo-track-access.json';
   return JSON.parse(readFileSync(join(directory, filename), 'utf8'))[username];
 }
 export async function login(page: Page, username: string) {

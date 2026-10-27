@@ -1365,3 +1365,107 @@ input[type='checkbox'] {
     transition: none !important;
   }
 }
+/* Package review uses the same unframed workspace and controls as exercise play. */
+.package-binding code,
+.package-binding dd {
+  overflow-wrap: anywhere;
+}
+.package-binding dl {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 8px 16px;
+}
+.package-binding dd {
+  margin: 0;
+}
+.package-picker {
+  display: grid;
+  gap: 8px;
+  margin: 20px 0;
+}
+.package-position-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-bottom: 1px solid #c8d2d4;
+}
+.package-position-tabs button {
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  padding: 12px 8px;
+  white-space: normal;
+  height: 96px;
+  overflow-wrap: anywhere;
+}
+.package-position-tabs button[aria-selected='true'] {
+  border-bottom-color: #157568;
+  background: #f0f7f5;
+}
+.package-position-tabs span {
+  display: block;
+  font-size: 12px;
+  margin-top: 6px;
+}
+.package-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 28px;
+}
+.package-editor-grid fieldset {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+.package-editor-grid label {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+.package-editor-grid select,
+.package-editor-grid input {
+  width: 100%;
+  min-width: 0;
+}
+.package-editor-grid option {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.package-editor-grid details {
+  padding: 12px 0;
+  border-bottom: 1px solid #d5dcdf;
+}
+.package-editor-grid summary {
+  font-weight: 600;
+  cursor: pointer;
+}
+.package-role-edit {
+  border-top: 1px solid #d5dcdf;
+  padding-top: 12px;
+  margin-top: 16px;
+}
+.package-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+.preserve-lines {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 800px) {
+  .package-editor-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .package-position-tabs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .package-position-tabs button {
+    height: auto;
+    min-height: 54px;
+    text-align: left;
+  }
+  .package-binding dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

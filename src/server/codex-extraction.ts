@@ -5,10 +5,17 @@ import { join, resolve } from 'node:path';
 import type { IntakeSource } from '../contracts/intake.js';
 import { ExtractionOutputSchema } from '../contracts/extraction.js';
 import { extractionPrompt } from './extraction-prompt.js';
+import type { TSchema } from '@sinclair/typebox';
 
 export const CODEX_VERSION = 'codex-cli 0.164.0-alpha.11.1';
 export const CODEX_SHA256 = '1103e9e09c71fa2cd0afd6d8f3b9a2d63174fe8efd7cb5bd09f1cb14ef58a098';
 export const EXTRACTION_MODEL = 'gpt-6.1-sol';
+// The provider's JSON Schema subset omits uniqueItems; application validation retains it.
+export function codexOutputSchema(schema: TSchema): TSchema {
+  return JSON.parse(
+    JSON.stringify(schema, (key, value: unknown) => (key === 'uniqueItems' ? undefined : value)),
+  );
+}
 export function isDisabledCodeModeNotice(
   item: { type?: string; message?: string } | undefined,
 ): boolean {
@@ -205,7 +212,12 @@ export async function boundedProcess(
   });
 }
 
-export async function prepareCodex(executable: string, directory: string) {
+export async function prepareCodex(
+  executable: string,
+  directory: string,
+  schema: TSchema = ExtractionOutputSchema,
+  instruction = 'You extract structured synthetic organisation evidence. Do not use tools. Return only the requested JSON.',
+) {
   if (process.platform !== 'win32')
     throw new Error('This reviewed local subscription adapter currently supports Windows only.');
   if (
@@ -236,13 +248,12 @@ export async function prepareCodex(executable: string, directory: string) {
   model.node_repl_disabled = true;
   model.supports_search_tool = false;
   delete model.tool_mode;
-  model.base_instructions =
-    'You extract structured synthetic organisation evidence. Do not use tools. Return only the requested JSON.';
+  model.base_instructions = instruction;
   delete model.model_messages;
   await writeFile(join(directory, 'model.json'), JSON.stringify({ models: [model] }), {
     mode: 0o600,
   });
-  await writeFile(join(directory, 'schema.json'), JSON.stringify(ExtractionOutputSchema), {
+  await writeFile(join(directory, 'schema.json'), JSON.stringify(codexOutputSchema(schema)), {
     mode: 0o600,
   });
 }
@@ -263,6 +274,15 @@ export async function runCodexExtraction(
   sources: readonly IntakeSource[],
   signal?: AbortSignal,
 ) {
+  return runCodexStructured(executable, directory, extractionPrompt(sources), signal);
+}
+
+export async function runCodexStructured(
+  executable: string,
+  directory: string,
+  prompt: string,
+  signal?: AbortSignal,
+) {
   let output: unknown,
     completed = false,
     inputTokens = 0,
@@ -270,7 +290,7 @@ export async function runCodexExtraction(
   await checkChatGptLogin(executable, directory);
   await boundedProcess(resolve(executable), codexArgs(directory), {
     directory,
-    input: extractionPrompt(sources),
+    input: prompt,
     signal,
     onLine: (line) => {
       const event = JSON.parse(line);

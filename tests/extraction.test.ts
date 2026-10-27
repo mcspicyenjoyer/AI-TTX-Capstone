@@ -303,10 +303,12 @@ test('v5 migration preserves existing intake revisions, source hashes and receip
   const { store, service, view, path } = await setup(t);
   const before = store.intakes.get(view.draft.id);
   const db = new DatabaseSync(path);
-  db.exec('DROP TABLE extraction_jobs; DROP TABLE extraction_worker; PRAGMA user_version = 5;');
+  db.exec(
+    'DROP TABLE package_draft_commands; DROP TABLE package_draft_history; DROP TABLE package_drafts; DROP TABLE extraction_jobs; DROP TABLE extraction_worker; PRAGMA user_version = 5;',
+  );
   const migrated = new Store(path);
   try {
-    assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 6);
+    assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 7);
     assert.deepEqual(migrated.intakes.get(view.draft.id), before);
     assert.deepEqual(service.get(actor, view.draft.id).draft, view.draft);
     assert.equal(migrated.extractions.latest(view.draft.id), null);
