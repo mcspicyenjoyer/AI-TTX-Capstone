@@ -1,12 +1,12 @@
 # Interpretation Label Review
 
-Status: user-approved corrections applied; revised fingerprints await review **before freezing**. No prompt tuning or live interpretation/AAR call has been made.
+Status: corrections verified by the user and corpus **frozen** at the unchanged fingerprints below. [The freeze receipt](../../evaluation/interpretation-freeze.json) records approval and the sole comparison-policy change: symmetric typographic-quote mapping and whitespace collapse, with everything else exact. The unchanged manifest retains its historical pre-freeze status; the receipt supersedes it. No prompt tuning or live interpretation/AAR call had occurred at freeze.
 
 ## Revised Review Gate
 
 See [only the changed cases and new fingerprints](interpretation-label-changes.md). These fifteen short assistant-authored synthetic answers now incorporate the user's corrections; they are not copies of the trial responses or an independently authored blind benchmark.
 
-The split remains ten development and five held-out cases, one held-out case per position. Case IDs are stable: the H/B suffix is not the split. Membership comes from the manifest and the development/holdout files. The five held-out cases are visible for human review, but must not inform prompt tuning. Do not freeze or tune until the revised fingerprints have been shown and that gate is resolved. Freeze the prompt/schema/validators before the held-out model pass; report errors rather than retuning against them. Mechanical JSON/quote checks are not semantic model evaluation.
+The frozen split is ten development and five held-out cases, one held-out case per position. Case IDs are stable: the H/B suffix is not the split. Membership comes from the manifest and the development/holdout files. The five held-out cases are visible for human review, but must not inform prompt tuning. The user resolved the corpus review gate; freeze the prompt/schema/validators before the held-out model pass and report errors rather than retuning against them. Mechanical JSON/quote checks are not semantic model evaluation.
 
 ## Label Rules
 
@@ -29,7 +29,7 @@ An evidence-based "do not restore yet" decision can be **present** for restorati
 - Package SHA-256: `cc10e600b562fae583c827bc8a18471ab61710a5eeb6db1ff502638db3183eb8`.
 - Completed trial: `run-fce04f9b-e99b-49a9-9eac-a01b0b142a68`.
 - Provider input will contain only that position's released role bodies, expected actions/criteria and the response. No full profile, briefings, other positions, labels, trial dispositions or private transcript.
-- The package is frozen; this corrected evaluation corpus is **not yet frozen**.
+- The package and evaluation corpus are both frozen; their separate hashes identify different artefacts.
 
 ## Quick Label Map
 
@@ -344,7 +344,7 @@ This is a tested validation boundary, not an integrated interpreter: the subscri
 
 ## Revised Corpus Fingerprints
 
-Raw file-byte SHA-256 values after formatting. These identify the corrected files presented for review, not a completed corpus freeze.
+Raw file-byte SHA-256 values after formatting, subsequently frozen unchanged by the separate receipt. Quote normalisation affects comparisons, never these bytes.
 
 - [Manifest](../../evaluation/interpretation-manifest.json): `5671c438859cd7f183051a516a6a61ce54f8e03b2c062569405d5a0641bef18a`.
 - [Development cases](../../evaluation/interpretation-development.json): `4cb0fefd370c2b4c9e989a6c53c4b5746d06e527669161499801f74ceb9973e1`.

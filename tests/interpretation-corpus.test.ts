@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import { actionKinds } from '../src/contracts/generation.js';
 
@@ -46,6 +47,27 @@ const manifest = read('interpretation-manifest.json') as {
 const development = read('interpretation-development.json') as Case[];
 const holdout = read('interpretation-holdout.json') as Case[];
 const all = [...development, ...holdout];
+
+test('approved interpretation corpus freeze pins unchanged file bytes and symmetric quote policy', () => {
+  const freeze = read('interpretation-freeze.json') as {
+    status: string;
+    files: Record<string, string>;
+    quoteNormalisation: { version: string };
+  };
+  assert.equal(freeze.status, 'frozen');
+  assert.equal(freeze.quoteNormalisation.version, 'quotes-and-whitespace-1');
+  assert.deepEqual(Object.keys(freeze.files).sort(), [
+    'interpretation-development.json',
+    'interpretation-holdout.json',
+    'interpretation-manifest.json',
+  ]);
+  for (const [name, expected] of Object.entries(freeze.files)) {
+    const actual = createHash('sha256')
+      .update(readFileSync(new URL(`../evaluation/${name}`, import.meta.url)))
+      .digest('hex');
+    assert.equal(actual, expected, name);
+  }
+});
 
 // These checks validate authored data, not the semantic correctness of its proposed labels.
 test('interpretation corpus has ten development and five distinct held-out cases', () => {

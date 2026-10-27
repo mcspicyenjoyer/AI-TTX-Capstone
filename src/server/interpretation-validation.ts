@@ -7,18 +7,19 @@ import {
 } from '../contracts/interpretation.js';
 import { readStored } from './validation.js';
 
+export function normaliseResponseQuote(text: string): string {
+  return text
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201c\u201d]/g, '"')
+    .replace(/\s+/g, ' ');
+}
+
 function hasNonDirectiveOccurrence(text: string, quote: string): boolean {
   // An explicit AI addressee marks the rest of that line as a directive,
   // not a team action. This bounded check is not general injection detection.
-  const directiveSpans = [
-    ...text.matchAll(/\bAI\s+(?:REVIEWER|EVALUATOR|ASSISTANT)\s*:[^\r\n]*/gi),
-  ];
-  for (let start = text.indexOf(quote); start >= 0; start = text.indexOf(quote, start + 1)) {
-    const end = start + quote.length;
-    if (!directiveSpans.some((span) => start < span.index + span[0].length && end > span.index))
-      return true;
-  }
-  return false;
+  return text
+    .split(/\bAI\s+(?:REVIEWER|EVALUATOR|ASSISTANT)\s*:[^\r\n]*/gi)
+    .some((part) => normaliseResponseQuote(part).includes(normaliseResponseQuote(quote)));
 }
 
 // Validate proposal evidence without gold labels or any exercise-state writes.
@@ -47,7 +48,7 @@ export function readActionAssessments(
     }
     for (const evidence of item.evidence) {
       const text = response[evidence.field];
-      if (!text.includes(evidence.quote))
+      if (!normaliseResponseQuote(text).includes(normaliseResponseQuote(evidence.quote)))
         throw new Error('Interpretation quote is not an exact response substring.');
       if (!hasNonDirectiveOccurrence(text, evidence.quote))
         throw new Error('AI-directed instructions are not supporting action evidence.');

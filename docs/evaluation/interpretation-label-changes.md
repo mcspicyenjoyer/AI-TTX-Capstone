@@ -1,6 +1,6 @@
 # Interpretation Label Changes
 
-Corrections applied; **not frozen**. Only changed cases and protocol changes are shown here. No tuning or live AI calls.
+Historical correction review, now verified by the user. [The freeze receipt](../../evaluation/interpretation-freeze.json) freezes the unchanged corpus fingerprints below and records the subsequent symmetric quote/whitespace comparison policy. The change list below is retained as reviewed; no corpus contents changed at freeze.
 
 ## Rule And Split Changes
 

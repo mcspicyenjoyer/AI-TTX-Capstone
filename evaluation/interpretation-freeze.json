@@ -1,0 +1,20 @@
+{
+  "version": "interpretation-corpus-freeze-1",
+  "status": "frozen",
+  "approvedBy": "user",
+  "recordedAt": "2026-10-27T08:22:02.000Z",
+  "files": {
+    "interpretation-manifest.json": "5671c438859cd7f183051a516a6a61ce54f8e03b2c062569405d5a0641bef18a",
+    "interpretation-development.json": "4cb0fefd370c2b4c9e989a6c53c4b5746d06e527669161499801f74ceb9973e1",
+    "interpretation-holdout.json": "0375262f537d9425e56a55d78300ee250663a72498d72c4f944923494eed61ca"
+  },
+  "authority": "User verified the corrections and authorised freezing these exact fingerprints after symmetric quote and whitespace normalisation. Corpus bytes, case labels and split are unchanged.",
+  "supersedes": "The unchanged manifest's pre-freeze status and literal quote comparison policy only. All other corpus rules and call limits remain in force.",
+  "quoteNormalisation": {
+    "version": "quotes-and-whitespace-1",
+    "singleQuotes": ["U+2018", "U+2019", "U+0027"],
+    "doubleQuotes": ["U+201C", "U+201D", "U+0022"],
+    "whitespace": "Replace each run of JavaScript whitespace with one U+0020 space on both response and quote; do not trim, fold case or change any other punctuation, character or word.",
+    "originalEvidence": "Retain the original response and supplied quote; normalisation is for comparison only. Preserve original line boundaries when excluding explicitly marked AI directives."
+  }
+}
