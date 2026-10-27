@@ -1,0 +1,181 @@
+[
+  {
+    "id": "P1-H",
+    "position": 1,
+    "purpose": "Near-empty answer",
+    "response": { "actions": "OK.", "rationale": "Noted.", "informationRequests": "" },
+    "labels": [
+      {
+        "actionKey": "establish-scope",
+        "label": "missing",
+        "field": null,
+        "quote": null,
+        "reason": "No supporting text: acknowledgement does not establish scope."
+      },
+      {
+        "actionKey": "preserve-evidence",
+        "label": "missing",
+        "field": null,
+        "quote": null,
+        "reason": "No supporting text: no preservation action or owner."
+      }
+    ],
+    "riskChecks": [{ "kind": "near-empty", "field": "actions", "quote": "OK." }]
+  },
+  {
+    "id": "P2-H",
+    "position": 2,
+    "purpose": "Ambiguous containment approval",
+    "response": {
+      "actions": "Ethan said 'fine', but we aren't sure whether he meant one laptop or FS01. Imran will wait until the scope is clear and keep the note. We'll check again soon.",
+      "rationale": "We don't agree on what was approved.",
+      "informationRequests": "Was that server approval or just the laptop?"
+    },
+    "labels": [
+      {
+        "actionKey": "obtain-isolation-authority",
+        "label": "unclear",
+        "field": "actions",
+        "quote": "Ethan said 'fine', but we aren't sure whether he meant one laptop or FS01.",
+        "reason": "Authoriser is named but the scope and team agreement on approval are explicitly ambiguous."
+      },
+      {
+        "actionKey": "record-owner-and-review-time",
+        "label": "partial",
+        "field": "actions",
+        "quote": "Imran will wait until the scope is clear and keep the note. We'll check again soon.",
+        "reason": "Records a hold and owner, but scope is unsettled and soon is not a usable review time."
+      }
+    ],
+    "riskChecks": []
+  },
+  {
+    "id": "P3-H",
+    "position": 3,
+    "purpose": "Unsafe minimum outcome and unsupported deadline inference",
+    "response": {
+      "actions": "Use the old issued PDFs and call engineering recovered; no need to check the working CAD. Imran will check VPN access, but we haven't considered identities, laptops or licences. Nadia owns follow-up and will report at 11:00.",
+      "rationale": "MSP budgeted eight hours, so Eastline's deadline is already missed.",
+      "informationRequests": ""
+    },
+    "labels": [
+      {
+        "actionKey": "select-minimum-working-set",
+        "label": "missing",
+        "field": "actions",
+        "quote": "Use the old issued PDFs and call engineering recovered; no need to check the working CAD.",
+        "reason": "Explicitly substitutes issued PDFs for verified working data and a controlled engineering outcome."
+      },
+      {
+        "actionKey": "check-dependencies",
+        "label": "partial",
+        "field": "actions",
+        "quote": "Imran will check VPN access, but we haven't considered identities, laptops or licences.",
+        "reason": "One relevant access check, with other required dependencies expressly unconsidered."
+      },
+      {
+        "actionKey": "assess-deadline",
+        "label": "missing",
+        "field": "rationale",
+        "quote": "MSP budgeted eight hours, so Eastline's deadline is already missed.",
+        "reason": "An unsupported miss inference replaces assessment of the actual deadline and remaining work."
+      },
+      {
+        "actionKey": "record-owner-and-review-time",
+        "label": "partial",
+        "field": "actions",
+        "quote": "Nadia owns follow-up and will report at 11:00.",
+        "reason": "Names owner and review time, but not the decision authoriser or safe restrictions."
+      }
+    ],
+    "riskChecks": [
+      {
+        "kind": "unsupported-deadline-claim",
+        "field": "rationale",
+        "quote": "MSP budgeted eight hours, so Eastline's deadline is already missed."
+      }
+    ]
+  },
+  {
+    "id": "P4-H",
+    "position": 4,
+    "purpose": "Partial validation request and unclear target meaning",
+    "response": {
+      "actions": "They said 'test passed', but nobody knows whether that was a backup job or an actual restore. We're not choosing a source until that is clarified.",
+      "rationale": "Are four and eight hours the same target, or different things? We haven't settled what either one measures.",
+      "informationRequests": "Please explain which test passed."
+    },
+    "labels": [
+      {
+        "actionKey": "verify-recovery-source",
+        "label": "partial",
+        "field": "actions",
+        "quote": "They said 'test passed', but nobody knows whether that was a backup job or an actual restore. We're not choosing a source until that is clarified.",
+        "reason": "Withholds trust and requests test clarification, but not recovery-point or isolation evidence."
+      },
+      {
+        "actionKey": "distinguish-target-and-estimate",
+        "label": "unclear",
+        "field": "rationale",
+        "quote": "Are four and eight hours the same target, or different things? We haven't settled what either one measures.",
+        "reason": "Explicit unresolved meaning, not a clear distinction or an asserted replacement target."
+      }
+    ],
+    "riskChecks": []
+  },
+  {
+    "id": "P5-H",
+    "position": 5,
+    "purpose": "Mixed-quality hold with several missing elements",
+    "response": {
+      "actions": "Ethan says hold restoration. Imran will bring technical checks, but we haven't asked a business owner yet. Clara will check the working files and keep drawing sign-off separate. Ask for the recovery cutoff, isolation evidence and restore-test report before trusting a copy. Imran owns follow-up; no reconnection, review with Ethan at 13:30.",
+      "rationale": "We can't say whether four and eight hours refer to the same outcome. Eastline is due in 27 hours; deadlines are on Nadia's list.",
+      "informationRequests": "Who needs to validate the business outcome?"
+    },
+    "labels": [
+      {
+        "actionKey": "obtain-restoration-authority",
+        "label": "partial",
+        "field": "actions",
+        "quote": "Ethan says hold restoration. Imran will bring technical checks, but we haven't asked a business owner yet.",
+        "reason": "Authorised hold and technical checks, but no explicit requirement to obtain business-owner validation before a later go decision."
+      },
+      {
+        "actionKey": "validate-engineering-integrity",
+        "label": "present",
+        "field": "actions",
+        "quote": "Clara will check the working files and keep drawing sign-off separate.",
+        "reason": "Assigns working-set checking and preserves separate engineering drawing sign-off."
+      },
+      {
+        "actionKey": "verify-recovery-source",
+        "label": "present",
+        "field": "actions",
+        "quote": "Ask for the recovery cutoff, isolation evidence and restore-test report before trusting a copy.",
+        "reason": "Requests all three evidence categories before trusting the source."
+      },
+      {
+        "actionKey": "distinguish-target-and-estimate",
+        "label": "unclear",
+        "field": "rationale",
+        "quote": "We can't say whether four and eight hours refer to the same outcome.",
+        "reason": "Meaning remains explicitly unresolved rather than a clear requirement/budget/estimate distinction."
+      },
+      {
+        "actionKey": "assess-deadline",
+        "label": "partial",
+        "field": "rationale",
+        "quote": "Eastline is due in 27 hours; deadlines are on Nadia's list.",
+        "reason": "Mentions a deadline and owner, but no remaining work or integrity-check assessment."
+      },
+      {
+        "actionKey": "record-owner-and-review-time",
+        "label": "present",
+        "field": "actions",
+        "quote": "Imran owns follow-up; no reconnection, review with Ethan at 13:30.",
+        "reason": "Together with Ethan's opening hold, records decision, authoriser, owner, restriction and concrete review time."
+      }
+    ],
+    "riskChecks": []
+  }
+]

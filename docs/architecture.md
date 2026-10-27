@@ -22,6 +22,20 @@ Generation must use the confirmed organisation revision, not merely change the c
 
 The same technical engine now accepts a frozen generated five-position package as well as the original one-position fixture. The operational skeleton remains separate and non-playable. Generation supports one bounded incident family, not a general threat library, branch engine, live AI interpretation or AAR output.
 
+### Interpretation and AAR boundary
+
+Authorised design under [ADR-034](DECISIONS.md#adr-034---bounded-interpretation-and-record-only-aar-at-five), not implemented at the label-review checkpoint. Use the existing contracts/application-service/store/provider/UI separation and pinned subscription worker; do not extract a general job framework. No package/profile/storyline edit, branch engine or retrospective run mutation belongs to this slice.
+
+| Operation | Input boundary | Persisted proposal/review boundary |
+| --- | --- | --- |
+| Interpret one response | Actual released role bodies for that position, frozen expected actions/criteria and the exact response fields; no profile, other positions, labels or dispositions | Release/response identity and content binding, complete action-key coverage, validated field-specific quotations, attributed summary, empty future recommendation, attempt outcome/usage and explicit facilitator review |
+| Draft AAR | Fixed, hashed Step 0/release/response/disposition/closure/completion/activity snapshot; no private trial transcripts or full source/profile | Three objective sections with source-attributed findings and resolvable record IDs; proposed improvements with unassigned owners; snapshot identity, limits and facilitator review |
+| Log future clarification | Facilitator text and valid claim IDs from the run's confirmed profile, with run/position context | New attributed timeline evidence; no backdating, completed-run backfill or implicit participant delivery |
+
+Post-completion analysis must be separate from active-only exercise outcome commands. Interpretation review cannot alter an existing disposition or closure, and response revision invalidates the old interpretation rather than editing its evidence. AAR findings cite the frozen record inventory, not later generated interpretation as if it were observed exercise behaviour. An unresolvable or wrong-snapshot reference fails validation. A quotation is evidence that a team made a statement, not proof of an executed action or recovered service.
+
+Future-run clarification logging closes a demonstrated provenance gap without importing the private trial answers. When the app snapshot cannot establish whether a gap was pre-existing or surfaced in discussion, keep its origin uncertain. Template source, approval gate, live-call caps and the branch-proposal stop rule are in ADR-034; executed checks and the real external evidence location are in WORK.
+
 ### Confirmed-profile package generation
 
 Implemented under ADR-032 in [contracts](../src/contracts/generation.ts), [composition/validation](../src/server/generation-content.ts), [service](../src/server/generation-service.ts), [store](../src/server/generation-store.ts) and [review UI](../src/ui/package-workspace.tsx).

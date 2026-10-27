@@ -1,0 +1,61 @@
+{
+  "version": "interpretation-evaluation-1",
+  "approval": "pending-user-review",
+  "packageId": "package-dd197d8b-a3d3-4c75-b714-84c0468fb58b",
+  "packageRevisionId": "package-15",
+  "packageHash": "cc10e600b562fae583c827bc8a18471ab61710a5eeb6db1ff502638db3183eb8",
+  "runId": "run-fce04f9b-e99b-49a9-9eac-a01b0b142a68",
+  "developmentFile": "interpretation-development.json",
+  "holdoutFile": "interpretation-holdout.json",
+  "labels": {
+    "present": "Substantively addresses the expected action as a discussion decision, proposed action or justified hold. Does not prove execution or successful recovery.",
+    "partial": "Contains relevant, substantive support but omits a required element. A vague or incomplete action is not a full match.",
+    "missing": "No substantive support, or the response explicitly does the opposite. An opposite statement may be quoted as negative evidence, not credited as support.",
+    "unclear": "Meaning, agreement or scope is genuinely ambiguous or contradictory, preventing a defensible classification. Ordinary omitted details use partial or missing instead."
+  },
+  "positions": [
+    { "position": 1, "actionKeys": ["establish-scope", "preserve-evidence"] },
+    { "position": 2, "actionKeys": ["obtain-isolation-authority", "record-owner-and-review-time"] },
+    {
+      "position": 3,
+      "actionKeys": [
+        "select-minimum-working-set",
+        "check-dependencies",
+        "assess-deadline",
+        "record-owner-and-review-time"
+      ]
+    },
+    { "position": 4, "actionKeys": ["verify-recovery-source", "distinguish-target-and-estimate"] },
+    {
+      "position": 5,
+      "actionKeys": [
+        "obtain-restoration-authority",
+        "validate-engineering-integrity",
+        "verify-recovery-source",
+        "distinguish-target-and-estimate",
+        "assess-deadline",
+        "record-owner-and-review-time"
+      ]
+    }
+  ],
+  "liveBudget": {
+    "interpretationMaximum": 30,
+    "aarMaximum": 3,
+    "developmentAttemptMaximum": 20,
+    "reservedHoldoutCases": 5,
+    "reservedTrialCases": 5,
+    "failuresConsumeAttempt": true,
+    "unreportedUsage": "unknown",
+    "paidFallback": false
+  },
+  "evaluationRules": [
+    "No prompt tuning or live interpretation before user approval of labels and split.",
+    "Development cases alone may inform prompt changes. Do not put evaluation labels or rationales in provider input.",
+    "Freeze and hash the prompt, output schema and validators before opening held-out model results. Score each held-out case once; no tuning against held-out errors.",
+    "Structural integrity checks may read held-out JSON to verify counts, keys and exact quote substrings, but must not use held-out labels for prompt design or model optimisation.",
+    "Treat the five recorded trial responses as additional qualitative cases without gold labels. Do not feed or score against their facilitator dispositions.",
+    "Report per-action exact-label agreement and a four-label confusion matrix separately for development and holdout, plus invalid outputs, quote validity, unsupported-action promotion and attempts/failures. Do not count schema validation as semantic accuracy.",
+    "Report wrong claims and AI-directed instructions separately from per-action labels. They are untrusted response content, never system facts or evaluator instructions.",
+    "This is a small assistant-authored, user-reviewed synthetic set, not an independent blind benchmark or a human effectiveness study."
+  ]
+}
