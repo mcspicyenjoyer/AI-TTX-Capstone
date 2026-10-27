@@ -1,0 +1,17 @@
+{
+  "frozenAt": "2026-10-27T08:53:08.110Z",
+  "corpus": {
+    "interpretation-manifest.json": "5671c438859cd7f183051a516a6a61ce54f8e03b2c062569405d5a0641bef18a",
+    "interpretation-development.json": "4cb0fefd370c2b4c9e989a6c53c4b5746d06e527669161499801f74ceb9973e1",
+    "interpretation-holdout.json": "0375262f537d9425e56a55d78300ee250663a72498d72c4f944923494eed61ca"
+  },
+  "files": {
+    "src/contracts/interpretation.ts": "3ea4acf946ac476ccd551017bf8b5a79bbd52a2eb5c0477e8583b1406479ff67",
+    "src/server/interpretation-content.ts": "a89ca4073366775f991035f646de3d924dc453b2eaed4482d8140d819a0761ee",
+    "src/server/interpretation-validation.ts": "dd0e5fb5bf9d85b1c1206649d999a298c5037f367a445d9c7b87acc55990b337",
+    "src/server/interpretation-service.ts": "96c04b43de5e1c0d48a778b42fff6220de3357e78c2e0c8ecc385fbdafa7780f",
+    "src/server/subscription-worker.ts": "177f5d37fd296ee2d74233d5f4b6b3f807ba63b890d05432587b835fbff6edac",
+    "src/server/codex-extraction.ts": "9eee917accdd5500350e48f45c2a231b6cd82346a94d370c12b0e491de646115"
+  },
+  "developmentAttempts": 10
+}

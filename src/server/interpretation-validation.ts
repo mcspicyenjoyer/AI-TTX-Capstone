@@ -4,6 +4,7 @@ import {
   InterpretationResponseSchema,
   type ActionAssessment,
   type InterpretationResponse,
+  ResponseEvidenceSchema,
 } from '../contracts/interpretation.js';
 import { readStored } from './validation.js';
 
@@ -20,6 +21,22 @@ function hasNonDirectiveOccurrence(text: string, quote: string): boolean {
   return text
     .split(/\bAI\s+(?:REVIEWER|EVALUATOR|ASSISTANT)\s*:[^\r\n]*/gi)
     .some((part) => normaliseResponseQuote(part).includes(normaliseResponseQuote(quote)));
+}
+
+export function validateResponseEvidence(
+  value: unknown,
+  response: InterpretationResponse,
+  allowDirective = false,
+): void {
+  const evidence = readStored(ResponseEvidenceSchema, value);
+  if (evidence === 'no supporting text') return;
+  for (const item of evidence) {
+    const text = response[item.field];
+    if (!normaliseResponseQuote(text).includes(normaliseResponseQuote(item.quote)))
+      throw new Error('Interpretation quote is not an exact response substring.');
+    if (!allowDirective && !hasNonDirectiveOccurrence(text, item.quote))
+      throw new Error('AI-directed instructions are not supporting action evidence.');
+  }
 }
 
 // Validate proposal evidence without gold labels or any exercise-state writes.
@@ -46,13 +63,7 @@ export function readActionAssessments(
         throw new Error('An interpretation label other than missing needs response evidence.');
       continue;
     }
-    for (const evidence of item.evidence) {
-      const text = response[evidence.field];
-      if (!normaliseResponseQuote(text).includes(normaliseResponseQuote(evidence.quote)))
-        throw new Error('Interpretation quote is not an exact response substring.');
-      if (!hasNonDirectiveOccurrence(text, evidence.quote))
-        throw new Error('AI-directed instructions are not supporting action evidence.');
-    }
+    validateResponseEvidence(item.evidence, response);
   }
   return structuredClone(assessments);
 }

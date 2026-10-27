@@ -31,6 +31,8 @@ import { GenerationService } from './generation-service.js';
 import { readPackageTarget, initialisePackagePlayers } from './generation-setup.js';
 import { registerGenerationRoutes } from './generation-routes.js';
 import type { PackageTarget } from '../contracts/generation.js';
+import { InterpretationService } from './interpretation-service.js';
+import { registerInterpretationRoutes } from './interpretation-routes.js';
 
 export async function buildApp(options: {
   dataDirectory: string;
@@ -47,6 +49,7 @@ export async function buildApp(options: {
     initialiseExercises(store, options.dataDirectory);
     store.extractions.recover();
     store.transaction(() => store.generation.recover());
+    store.transaction(() => store.interpretations.recover());
   } catch (error) {
     store.close();
     throw error;
@@ -212,6 +215,11 @@ export async function buildApp(options: {
     app,
     sessions,
     new GenerationService(store, packageTarget, !!options.subscriptionEnabled),
+  );
+  registerInterpretationRoutes(
+    app,
+    sessions,
+    new InterpretationService(store, !!options.subscriptionEnabled),
   );
   registerExerciseRoutes(app, sessions, exercises, errors);
   registerOutcomeRoutes(app, sessions, new OutcomeService(store, exercises), errors);

@@ -1460,6 +1460,63 @@ input[type='checkbox'] {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.interpretation-panel {
+  border-top: 1px solid #d5dcdf;
+  margin-top: 24px;
+  padding-top: 16px;
+  min-width: 0;
+}
+.interpretation-panel p {
+  overflow-wrap: anywhere;
+}
+.interpretation-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.interpretation-editor {
+  border: 0;
+  padding: 16px 0;
+  min-width: 0;
+}
+.interpretation-editor legend {
+  font-weight: 600;
+}
+.interpretation-editor label {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.interpretation-action {
+  border-bottom: 1px solid #d5dcdf;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+.interpretation-editor select,
+.interpretation-editor textarea {
+  width: 100%;
+  min-width: 0;
+}
+.interpretation-quote {
+  display: grid;
+  grid-template-columns: minmax(130px, 180px) minmax(0, 1fr) 36px;
+  align-items: start;
+  gap: 8px;
+  margin: 8px 0;
+}
+.interpretation-evidence .field-label {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .interpretation-quote {
+    grid-template-columns: minmax(0, 1fr) 36px;
+  }
+  .interpretation-quote select {
+    grid-column: 1 / -1;
+  }
+}
 @media (max-width: 800px) {
   .package-editor-grid {
     grid-template-columns: minmax(0, 1fr);

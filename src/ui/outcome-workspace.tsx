@@ -6,6 +6,11 @@ import { useOutcomes } from './use-outcomes.js';
 import { ResponseForm, OutcomeText } from './response-form.js';
 import { DispositionForm } from './disposition-form.js';
 import { date } from './exercise-format.js';
+import {
+  useInterpretations,
+  InterpretationPanel,
+  InterpretationStatus,
+} from './interpretation-workspace.js';
 
 function SavedResponse({ response }: { response: ResponseView }) {
   return (
@@ -48,6 +53,11 @@ export function OutcomeWorkspace({
     onSessionExpired,
   );
   const { view, error, pending, busy, saved, submit } = model;
+  const interpretations = useInterpretations(
+    actor.role === 'facilitator' && track === 'technical',
+    '/api/tracks/' + track + '/runs/' + runId,
+    onSessionExpired,
+  );
   const [rationale, setRationale] = useState('');
   const disabled = blocked || busy || !!pending || !!error;
   return (
@@ -77,6 +87,7 @@ export function OutcomeWorkspace({
         </button>
       )}
       {!view && !error && <p role="status">Loading outcomes...</p>}
+      {actor.role === 'facilitator' && <InterpretationStatus model={interpretations} />}
       {view && (
         <>
           {view.run.state === 'paused' && (
@@ -123,6 +134,14 @@ export function OutcomeWorkspace({
                   ))}
                   {position.closure && (
                     <p className="run-notice">Closure: {position.closure.rationale}</p>
+                  )}
+                  {position.response && (
+                    <InterpretationPanel
+                      model={interpretations}
+                      releaseId={position.releaseId}
+                      responseId={position.response.id}
+                      blocked={blocked || view.run.state === 'paused'}
+                    />
                   )}
                   {!position.closed && view.run.state !== 'completed' && (
                     <DispositionForm

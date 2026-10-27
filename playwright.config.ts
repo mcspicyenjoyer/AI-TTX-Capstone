@@ -20,7 +20,8 @@ export default defineConfig({
     { name: 'profile', testMatch: 'profile.spec.ts', use: { baseURL: 'http://127.0.0.1:3001' } },
     {
       name: 'exercise',
-      testMatch: /(?:exercise|step0|outcomes|intake|extraction|generation)\.spec\.ts/,
+      testMatch:
+        /(?:exercise|step0|outcomes|intake|extraction|generation|interpretation)\.spec\.ts/,
       use: { baseURL: 'http://127.0.0.1:3002' },
     },
     { name: 'recovery', testMatch: 'recovery.spec.ts', use: { baseURL: 'http://127.0.0.1:3003' } },

@@ -16,3 +16,11 @@
 !tests/**
 !scripts/
 !scripts/**
+!evaluation/
+!evaluation/interpretation-manifest.json
+!evaluation/interpretation-development.json
+!evaluation/interpretation-holdout.json
+!evaluation/interpretation-freeze.json
+!docs/
+!docs/evaluation/
+!docs/evaluation/interpretation-label-review.md
