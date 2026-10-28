@@ -106,6 +106,50 @@ function review(view: InterpretationView, decision: ReviewInterpretation['decisi
   });
 }
 
+test('all twenty exercise records inherit their release clock while reviews remain post-exercise analysis', () => {
+  // The miniature fixture does not release its reference claim; add explicit
+  // release evidence here to distinguish it from the unreleased package clock.
+  const release = store.exercises.releases(context.runId)[0]!;
+  release.deliveries![0]!.body +=
+    '\nFACT / Test service / description: Company-wide fictional reference time: synthetic reference (2026-09-28T11:00:00+08:00).';
+  database((db) =>
+    db
+      .prepare('UPDATE inject_releases SET payload=? WHERE id=?')
+      .run(JSON.stringify(release), release.id),
+  );
+  const reviewed = review(ready()),
+    before = sourceRows();
+  const view = capture();
+  assert.deepEqual(sourceRows(), before);
+  for (let position = 1; position <= 5; position++) {
+    const records = view.report.records.filter(
+      (record) => record.position === position && record.kind !== 'interpretation',
+    );
+    assert.equal(records.length, 4);
+    const released = records.find((record) => record.kind === 'release')!;
+    const expectedTime = ['11:00:00', '11:30:00', '12:00:00', '12:30:00', '13:00:00'][position - 1];
+    for (const record of records) {
+      const clock = record.fields.find((field) => field.label === 'fictionalExerciseClock')!;
+      assert.equal(
+        clock.value,
+        `+${(position - 1) * 30} elapsed minutes / 2026-09-28 ${expectedTime} (UTC+08:00)`,
+      );
+      assert.deepEqual(clock.citations, [...new Set([record.id, released.id, release.id])]);
+    }
+  }
+  const analysis = view.report.records.find((record) => record.id === reviewed.record.id)!;
+  assert.equal(analysis.recordedAt, reviewed.record.review!.recordedAt);
+  assert(
+    analysis.fields.some(
+      (field) =>
+        field.label === 'analysisPhase' &&
+        field.value === 'Post-exercise analysis; not an exercise event.',
+    ),
+  );
+  assert(!analysis.fields.some((field) => field.label === 'fictionalExerciseClock'));
+  checkReportReferences(view.report);
+});
+
 test('record report captures all five positions under three objectives with resolvable line citations and no source writes', () => {
   for (let i = 0; i < 110; i++)
     store.exercises.event(store.exercises.run(context.runId)!, 'run-paused', context.actor.id);

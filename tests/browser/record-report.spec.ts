@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { test, expect, login, fits } from './exercise-fixture.js';
 import { Store } from '../../src/server/storage.js';
 import { InterpretationService } from '../../src/server/interpretation-service.js';
@@ -16,6 +17,17 @@ test('facilitator captures immutable cited reports after review; participant can
   try {
     const context = prepareInterpretationRun(store, true),
       interpreter = new InterpretationService(store);
+    const release = store.exercises.releases(context.runId)[0]!;
+    release.deliveries![0]!.body +=
+      '\nFACT / Test service / description: Company-wide fictional reference time: synthetic reference (2026-09-28T09:00:00+08:00).';
+    const fixtureDb = new DatabaseSync(join(exerciseServer, 'ttx.sqlite'));
+    try {
+      fixtureDb
+        .prepare('UPDATE inject_releases SET payload=? WHERE id=?')
+        .run(JSON.stringify(release), release.id);
+    } finally {
+      fixtureDb.close();
+    }
     const draft = interpreter.request(context.actor, context.runId, {
       commandId: randomUUID(),
       releaseId: context.release.id,
@@ -81,6 +93,35 @@ test('facilitator captures immutable cited reports after review; participant can
     await page.getByRole('tab', { name: 'Timeline', exact: true }).click();
     const timeline = page.getByRole('region', { name: 'Record timeline', exact: true });
     await expect(timeline.getByRole('heading', { name: /Reviewed interpretation/ })).toBeVisible();
+    const events = timeline.getByRole('region', { name: 'Exercise event records', exact: true });
+    const analysis = timeline.getByRole('region', { name: 'Post-exercise analysis', exact: true });
+    await expect(events.locator('.report-clock')).toHaveCount(20);
+    await expect(events.getByRole('heading', { name: /Reviewed interpretation/ })).toHaveCount(0);
+    await expect(analysis.locator('.report-clock')).toHaveCount(0);
+    await expect(analysis.locator('.report-analysis')).toContainText(
+      'Post-exercise analysis / Not an exercise event.',
+    );
+    const snapshot = store.recordReports.get(secondId)!.report;
+    for (const record of snapshot.records.filter((r) =>
+      ['release', 'response', 'disposition', 'closure'].includes(r.kind),
+    )) {
+      const panel = events.locator('[data-record-id="' + record.id + '"]');
+      const expectedTime = ['09:00:00', '09:30:00', '10:00:00', '10:30:00', '11:00:00'][
+        record.position! - 1
+      ];
+      await expect(panel.locator('.report-clock')).toContainText(
+        `+${(record.position! - 1) * 30} elapsed minutes / 2026-09-28 ${expectedTime} (UTC+08:00)`,
+      );
+      await expect(panel.locator('p.muted')).toContainText('Recorded ');
+    }
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 960 });
+      await events
+        .locator('[data-record-id="' + context.response.id + '"]')
+        .scrollIntoViewIfNeeded();
+      await fits(page);
+      await page.screenshot({ path: testInfo.outputPath('timeline-clock-' + width + '.png') });
+    }
     const sourceIds = await timeline
       .locator('[data-record-id]')
       .evaluateAll((items) => items.map((item) => item.getAttribute('data-record-id')));

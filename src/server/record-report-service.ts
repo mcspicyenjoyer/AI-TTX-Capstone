@@ -12,6 +12,7 @@ import { ExerciseService } from './exercise-service.js';
 import { InterpretationService } from './interpretation-service.js';
 import { validateInterpretation } from './interpretation-content.js';
 import { AppError } from './errors.js';
+import { releasedExerciseClocks } from './record-report-clock.js';
 
 function conflict(message: string): never {
   throw new AppError(409, 'REPORT_CONFLICT', message);
@@ -135,6 +136,7 @@ export class RecordReportService {
           check.actorId,
         );
       const releasePositions = new Map<string, number>();
+      const clocks = releasedExerciseClocks(releases);
       const responseIds = new Set<string>();
       for (const [index, inject] of definition.injects.entries()) {
         const position = index + 1;
@@ -228,6 +230,13 @@ export class RecordReportService {
           closure.recordedAt,
           closure.actorId,
         );
+        const clock = clocks.get(release.id)!;
+        for (const record of report.records.filter((item) => item.position === position))
+          record.fields.push({
+            label: 'fictionalExerciseClock',
+            value: clock.value,
+            citations: [...new Set([record.id, ...clock.citations])],
+          });
       }
       add(
         completion.id,
@@ -284,6 +293,7 @@ export class RecordReportService {
           'interpretation',
           {
             reviewed: 'true',
+            analysisPhase: 'Post-exercise analysis; not an exercise event.',
             decision: review.decision,
             notes: review.notes,
             responseId: saved.responseId,
@@ -340,6 +350,8 @@ export class RecordReportService {
             'Team statements and facilitator-reviewed interpretations are not evidence of executed actions or successful recovery.',
           snapshotPolicy:
             'Fixed at capture. Later interpretation reviews require a new snapshot; earlier reports do not change.',
+          clockPolicy:
+            'Fictional exercise clocks use each released simulation offset and the explicit fictional reference recorded in the releases, not app recording timestamps. Related responses, dispositions and closures inherit their release position, not a separately observed action time. Missing or conflicting clock evidence stays unavailable. Interpretation reviews are post-exercise analysis, not exercise events.',
           reviewedInterpretations: String(reviewed),
           excludedUnreviewedInterpretations: String(unreviewed),
           excludedStaleInterpretations: String(stale),

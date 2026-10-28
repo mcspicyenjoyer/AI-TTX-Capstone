@@ -38,36 +38,53 @@ function fieldLabel(label: string) {
 }
 
 function RecordDetail({ record }: { record: ReportRecord }) {
+  const clock = record.fields.find((field) => field.label === 'fictionalExerciseClock');
   return (
     <section className="report-record" id={'record-' + record.id} data-record-id={record.id}>
       <h4>
         {titles[record.kind]} <Citation id={record.id} />
       </h4>
+      {clock && (
+        <p className="report-clock">
+          <strong>Fictional exercise clock:</strong> {clock.value}{' '}
+          {clock.citations.map((id) => (
+            <Citation key={id} id={id} />
+          ))}
+        </p>
+      )}
+      {record.kind === 'interpretation' && (
+        <p className="report-analysis">
+          <strong>Post-exercise analysis</strong> / Not an exercise event.{' '}
+          <Citation id={record.id} />
+        </p>
+      )}
       {(record.recordedAt || record.actorId || record.revision) && (
         <p className="muted">
-          {record.recordedAt && date(record.recordedAt)}
+          {record.recordedAt && 'Recorded ' + date(record.recordedAt)}
           {record.actorId && ' / ' + record.actorId}
           {record.revision && ' / revision ' + record.revision} <Citation id={record.id} />
         </p>
       )}
       <dl>
-        {record.fields.map((field, index) => (
-          <div key={index}>
-            <dt>
-              {fieldLabel(field.label)} <Citation id={record.id} />
-            </dt>
-            <dd>
-              {field.value.split(/\r?\n/).map((line, i) => (
-                <p key={i}>
-                  {line || '[empty]'}{' '}
-                  {field.citations.map((id) => (
-                    <Citation key={id} id={id} />
-                  ))}
-                </p>
-              ))}
-            </dd>
-          </div>
-        ))}
+        {record.fields
+          .filter((field) => !['fictionalExerciseClock', 'analysisPhase'].includes(field.label))
+          .map((field, index) => (
+            <div key={index}>
+              <dt>
+                {fieldLabel(field.label)} <Citation id={record.id} />
+              </dt>
+              <dd>
+                {field.value.split(/\r?\n/).map((line, i) => (
+                  <p key={i}>
+                    {line || '[empty]'}{' '}
+                    {field.citations.map((id) => (
+                      <Citation key={id} id={id} />
+                    ))}
+                  </p>
+                ))}
+              </dd>
+            </div>
+          ))}
       </dl>
     </section>
   );
@@ -112,9 +129,25 @@ function Report({ view }: { view: RecordReportView }) {
           <h3>
             Timeline <Citation id={report.id} />
           </h3>
-          {report.timeline.map((id) => (
-            <RecordDetail key={id} record={byId.get(id)!} />
-          ))}
+          <section aria-label="Exercise event records">
+            {report.timeline
+              .filter((id) => byId.get(id)!.kind !== 'interpretation')
+              .map((id) => (
+                <RecordDetail key={id} record={byId.get(id)!} />
+              ))}
+          </section>
+          {report.timeline.some((id) => byId.get(id)!.kind === 'interpretation') && (
+            <section aria-label="Post-exercise analysis">
+              <h3>
+                Post-exercise analysis <Citation id={report.id} />
+              </h3>
+              {report.timeline
+                .filter((id) => byId.get(id)!.kind === 'interpretation')
+                .map((id) => (
+                  <RecordDetail key={id} record={byId.get(id)!} />
+                ))}
+            </section>
+          )}
         </section>
       ) : (
         <>

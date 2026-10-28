@@ -133,6 +133,8 @@ Review the five trial interpretations in **Exercises > Run** first. Then open th
 
 Capture again after further review to create a new snapshot; select an earlier snapshot to inspect its unchanged content/hash. A network-uncertain capture exposes an explicit retry for that same snapshot, not a new AI request. The report is facilitator-only and does not reopen the completed run. It contains recorded text and attributed reviews, not AI-drafted strengths, areas for improvement or improvement actions. Those are the next AAR step, within the separate three-call limit.
 
+New captures show a **Fictional exercise clock** next to each release, response, disposition and closure, with release citations. Related records use their release position's elapsed minutes/time, not an asserted time when an action happened. **Recorded** identifies the separate app timestamp. Reviewed interpretations appear as **Post-exercise analysis**, not exercise events. Missing or conflicting clock evidence stays unavailable; old snapshots are not rewritten.
+
 ### Verification commands
 
 ```sh

@@ -1578,6 +1578,14 @@ input[type='checkbox'] {
   margin: 0 0 8px;
   font-size: 15px;
 }
+.report-clock,
+.report-analysis {
+  padding-left: 10px;
+  border-left: 3px solid #256b50;
+}
+.report-analysis {
+  border-left-color: #9b6718;
+}
 .report-record dl > div {
   display: grid;
   grid-template-columns: minmax(120px, 24%) minmax(0, 1fr);
