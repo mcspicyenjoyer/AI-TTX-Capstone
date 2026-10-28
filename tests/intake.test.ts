@@ -499,11 +499,11 @@ test('v4 to v6 additive migration preserves fixture bytes and rejects stored int
   const fixture = store.profile('example-sme-01', 'profile-r1');
   const db = new DatabaseSync(path);
   db.exec(
-    'DROP TABLE record_reports; DROP TABLE interpretation_revisions; DROP TABLE package_draft_commands; DROP TABLE package_draft_history; DROP TABLE package_drafts; DROP TABLE extraction_jobs; DROP TABLE extraction_worker; DROP TABLE intake_receipts; DROP TABLE intake_revisions; DROP TABLE intakes; PRAGMA user_version = 4;',
+    'DROP TABLE aar_revisions; DROP TABLE clarification_records; DROP TABLE record_reports; DROP TABLE interpretation_revisions; DROP TABLE package_draft_commands; DROP TABLE package_draft_history; DROP TABLE package_drafts; DROP TABLE extraction_jobs; DROP TABLE extraction_worker; DROP TABLE intake_receipts; DROP TABLE intake_revisions; DROP TABLE intakes; PRAGMA user_version = 4;',
   );
   const migrated = new Store(path);
   try {
-    assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 9);
+    assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 10);
     assert.deepEqual(migrated.profile('example-sme-01', 'profile-r1'), fixture);
     const view = create(service);
     db.prepare(

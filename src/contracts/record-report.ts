@@ -23,6 +23,7 @@ export const ReportRecordSchema = Type.Object(
           'completion',
           'activity',
           'interpretation',
+          'clarification',
         ] as const
       ).map((value) => Type.Literal(value)),
     ),

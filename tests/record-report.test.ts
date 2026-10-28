@@ -346,16 +346,20 @@ test('report API is facilitator-only, owner/run-bound and rejects client-supplie
   }
 });
 
-test('v8 to v9 adds snapshot storage without altering completed runs or pending interpretations', () => {
+test('v8 to current adds snapshot storage without altering completed runs or pending interpretations', () => {
   ready();
   const before = sourceRows();
   store.close();
-  database((db) => db.exec('DROP TABLE record_reports; PRAGMA user_version=8;'));
+  database((db) =>
+    db.exec(
+      'DROP TABLE aar_revisions; DROP TABLE clarification_records; DROP TABLE record_reports; PRAGMA user_version=8;',
+    ),
+  );
   store = new Store(join(directory, 'ttx.sqlite'));
   service = new RecordReportService(store);
   assert.equal(
     database((db) => db.prepare('PRAGMA user_version').get()!.user_version),
-    9,
+    10,
   );
   assert.deepEqual(sourceRows(), before);
   assert.equal(capture().report.records.filter((r) => r.kind === 'interpretation').length, 0);

@@ -6,7 +6,11 @@ import { OutcomeService } from '../src/server/outcome-service.js';
 import { generationPlan, generationProfile, generationTarget } from './generation-fixture.js';
 import type { InterpretationInput, InterpretationOutput } from '../src/contracts/interpretation.js';
 
-export function prepareInterpretationRun(store: Store, complete = false) {
+export function prepareInterpretationRun(
+  store: Store,
+  complete = false,
+  onResponse?: (runId: string, releaseId: string) => void,
+) {
   const actor = store.loginIdentity('facilitator')!.actor;
   if (!store.profile(generationProfile.profileId, generationProfile.revisionId))
     store.transaction(() => store.publishIntakeProfile(structuredClone(generationProfile), actor));
@@ -84,6 +88,7 @@ export function prepareInterpretationRun(store: Store, complete = false) {
       rationale: 'Evidence is not ready.',
       informationRequests: 'What remains unknown?',
     });
+    onResponse?.(runId, release.id);
     if (complete) {
       const disposition = outcomes.disposition(actor, 'technical', runId, {
         ...state(),

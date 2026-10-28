@@ -11,6 +11,8 @@ import { ExtractionStore, migrateExtractions } from './extraction-store.js';
 import { GenerationStore, migrateGeneration } from './generation-store.js';
 import { InterpretationStore, migrateInterpretations } from './interpretation-store.js';
 import { RecordReportStore, migrateRecordReports } from './record-report-store.js';
+import { AarStore, migrateAar } from './aar-store.js';
+import { ClarificationStore } from './clarification-store.js';
 export { contentHash } from './integrity.js';
 
 export class Store {
@@ -22,12 +24,14 @@ export class Store {
   readonly generation: GenerationStore;
   readonly interpretations: InterpretationStore;
   readonly recordReports: RecordReportStore;
+  readonly aars: AarStore;
+  readonly clarifications: ClarificationStore;
 
   constructor(path: string) {
     this.db = new DatabaseSync(path, { timeout: 5000 });
     this.db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;');
     const version = Number(this.db.prepare('PRAGMA user_version').get()?.user_version);
-    if (![0, 1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(version))) {
+    if (![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(Number(version))) {
       this.db.close();
       throw new Error('Unsupported database version. No migration was performed.');
     }
@@ -51,6 +55,7 @@ export class Store {
     if (version < 7) this.transaction(() => migrateGeneration(this.db));
     if (version < 8) this.transaction(() => migrateInterpretations(this.db));
     if (version < 9) this.transaction(() => migrateRecordReports(this.db));
+    if (version < 10) this.transaction(() => migrateAar(this.db));
     this.exercises = new ExerciseStore(this.db);
     this.outcomes = new OutcomeStore(this.db);
     this.intakes = new IntakeStore(this.db);
@@ -58,6 +63,8 @@ export class Store {
     this.generation = new GenerationStore(this.db);
     this.interpretations = new InterpretationStore(this.db);
     this.recordReports = new RecordReportStore(this.db);
+    this.aars = new AarStore(this.db);
+    this.clarifications = new ClarificationStore(this.db);
   }
 
   transaction<T>(operation: () => T): T {

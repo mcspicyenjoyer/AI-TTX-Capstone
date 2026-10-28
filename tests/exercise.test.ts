@@ -777,7 +777,7 @@ test('additive v1 migration preserves saved profiles, confirmations and original
   // Reconstruct the previous schema in this disposable test DB, never demonstration data.
   database((db) =>
     db.exec(`
-    DROP TABLE record_reports; DROP TABLE interpretation_revisions; DROP TABLE extraction_jobs; DROP TABLE extraction_worker;
+    DROP TABLE aar_revisions; DROP TABLE clarification_records; DROP TABLE record_reports; DROP TABLE interpretation_revisions; DROP TABLE extraction_jobs; DROP TABLE extraction_worker;
     DROP TABLE intake_receipts; DROP TABLE intake_revisions; DROP TABLE intakes;
     DROP TABLE run_completions; DROP TABLE position_closures; DROP TABLE response_dispositions; DROP TABLE team_responses;
     DROP TABLE step0_checks; DROP TABLE release_recipients; DROP TABLE inject_releases; DROP TABLE inject_approvals;
@@ -795,7 +795,7 @@ test('additive v1 migration preserves saved profiles, confirmations and original
   );
   assert.equal(readFileSync(join(directory, 'demo-access.json'), 'utf8'), originalCodes);
   assert.equal((await review()).run.state, 'draft');
-  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 9));
+  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 10));
 });
 
 test('startup does not overwrite package content or restore revoked exercise membership', async () => {
@@ -974,7 +974,7 @@ test('v2 migration preserves records but never invents Step 0 evidence for an ol
   await app.close();
   database((db) =>
     db.exec(
-      "DROP TABLE record_reports; DROP TABLE interpretation_revisions; DROP TABLE package_draft_commands; DROP TABLE package_draft_history; DROP TABLE package_drafts; DROP TABLE extraction_jobs; DROP TABLE extraction_worker; DROP TABLE intake_receipts; DROP TABLE intake_revisions; DROP TABLE intakes; DROP TABLE run_completions; DROP TABLE position_closures; DROP TABLE response_dispositions; DROP TABLE team_responses; DROP TABLE step0_checks; DELETE FROM run_activity WHERE kind = 'step0-recorded'; DELETE FROM run_commands; PRAGMA user_version = 2;",
+      "DROP TABLE aar_revisions; DROP TABLE clarification_records; DROP TABLE record_reports; DROP TABLE interpretation_revisions; DROP TABLE package_draft_commands; DROP TABLE package_draft_history; DROP TABLE package_drafts; DROP TABLE extraction_jobs; DROP TABLE extraction_worker; DROP TABLE intake_receipts; DROP TABLE intake_revisions; DROP TABLE intakes; DROP TABLE run_completions; DROP TABLE position_closures; DROP TABLE response_dispositions; DROP TABLE team_responses; DROP TABLE step0_checks; DELETE FROM run_activity WHERE kind = 'step0-recorded'; DELETE FROM run_commands; PRAGMA user_version = 2;",
     ),
   );
   app = await buildApp({ dataDirectory: directory, publicPort: 3000 });
@@ -1015,7 +1015,7 @@ test('v2 migration preserves records but never invents Step 0 evidence for an ol
     200,
   );
   assert.deepEqual((await review()).releases, [released]);
-  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 9));
+  database((db) => assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 10));
 });
 
 test('borrowed approval is rejected even when the run revisions line up', async () => {

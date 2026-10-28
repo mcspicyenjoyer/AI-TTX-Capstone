@@ -21,7 +21,7 @@ export default defineConfig({
     {
       name: 'exercise',
       testMatch:
-        /(?:exercise|step0|outcomes|intake|extraction|generation|interpretation|record-report)\.spec\.ts/,
+        /(?:exercise|step0|outcomes|intake|extraction|generation|interpretation|record-report|aar)\.spec\.ts/,
       use: { baseURL: 'http://127.0.0.1:3002' },
     },
     { name: 'recovery', testMatch: 'recovery.spec.ts', use: { baseURL: 'http://127.0.0.1:3003' } },

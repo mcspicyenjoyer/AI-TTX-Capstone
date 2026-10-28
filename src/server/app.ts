@@ -35,6 +35,9 @@ import { InterpretationService } from './interpretation-service.js';
 import { registerInterpretationRoutes } from './interpretation-routes.js';
 import { RecordReportService } from './record-report-service.js';
 import { registerRecordReportRoutes } from './record-report-routes.js';
+import { AarService } from './aar-service.js';
+import { registerAarRoutes } from './aar-routes.js';
+import { ClarificationService, registerClarificationRoutes } from './clarification-service.js';
 
 export async function buildApp(options: {
   dataDirectory: string;
@@ -52,6 +55,7 @@ export async function buildApp(options: {
     store.extractions.recover();
     store.transaction(() => store.generation.recover());
     store.transaction(() => store.interpretations.recover());
+    store.transaction(() => store.aars.recover());
   } catch (error) {
     store.close();
     throw error;
@@ -225,6 +229,8 @@ export async function buildApp(options: {
   );
   registerExerciseRoutes(app, sessions, exercises, errors);
   registerRecordReportRoutes(app, sessions, new RecordReportService(store));
+  registerAarRoutes(app, sessions, new AarService(store, !!options.subscriptionEnabled));
+  registerClarificationRoutes(app, sessions, new ClarificationService(store));
   registerOutcomeRoutes(app, sessions, new OutcomeService(store, exercises), errors);
   registerIntakeRoutes(
     app,

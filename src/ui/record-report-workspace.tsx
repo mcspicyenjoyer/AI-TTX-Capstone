@@ -9,6 +9,7 @@ import {
 } from '../contracts/record-report.js';
 import { ApiError, request } from './api.js';
 import { date } from './exercise-format.js';
+import { AarWorkspace } from './aar-workspace.js';
 
 const titles: Record<ReportRecord['kind'], string> = {
   boundary: 'Snapshot boundaries',
@@ -22,6 +23,7 @@ const titles: Record<ReportRecord['kind'], string> = {
   completion: 'Completion',
   activity: 'Activity',
   interpretation: 'Reviewed interpretation',
+  clarification: 'Facilitator clarification',
 };
 
 function Citation({ id }: { id: string }) {
@@ -315,7 +317,16 @@ export function RecordReportWorkspace({
           </select>
         </label>
       )}
-      {view && <Report key={view.report.id} view={view} />}
+      {view && (
+        <>
+          <AarWorkspace
+            key={'aar-' + view.report.id}
+            snapshot={view}
+            onSessionExpired={onSessionExpired}
+          />
+          <Report key={view.report.id} view={view} />
+        </>
+      )}
     </section>
   );
 }

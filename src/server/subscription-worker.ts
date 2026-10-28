@@ -25,13 +25,15 @@ import {
 } from '../contracts/interpretation.js';
 import { interpretationPrompt, interpretationPromptVersion } from './interpretation-content.js';
 import { fingerprint } from './integrity.js';
+import { AarJobSchema, AarOutputSchema } from '../contracts/aar.js';
+import { aarPrompt, aarPromptVersion } from './aar-content.js';
 
 const [executable, root, container, mode = 'extraction', execution = 'continuous'] =
   process.argv.slice(2);
 if (!['continuous', 'once'].includes(execution))
   throw new Error('Worker execution must be continuous or once.');
-if (!['extraction', 'packages', 'interpretations'].includes(mode))
-  throw new Error('Worker mode must be extraction, packages or interpretations.');
+if (!['extraction', 'packages', 'interpretations', 'aars'].includes(mode))
+  throw new Error('Worker mode must be extraction, packages, interpretations or aars.');
 if (!executable || !root || !container || !/^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,100}$/.test(container))
   throw new Error('Usage: subscription-worker CODEX_EXE ABSOLUTE_WORKER_DIRECTORY CONTAINER_NAME');
 const directory = prepareDataDirectory(root);
@@ -44,11 +46,13 @@ const bridge = spawn(
     '-i',
     container,
     'node',
-    mode === 'interpretations'
-      ? 'dist/server/interpretation-bridge.js'
-      : mode === 'packages'
-        ? 'dist/server/generation-bridge.js'
-        : 'dist/server/extraction-bridge.js',
+    mode === 'aars'
+      ? 'dist/server/aar-bridge.js'
+      : mode === 'interpretations'
+        ? 'dist/server/interpretation-bridge.js'
+        : mode === 'packages'
+          ? 'dist/server/generation-bridge.js'
+          : 'dist/server/extraction-bridge.js',
   ],
   { windowsHide: true, shell: false, stdio: ['pipe', 'pipe', 'pipe'] },
 );
@@ -73,7 +77,7 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const)
 async function rpc(request: unknown) {
   bridge.stdin.write(`${JSON.stringify(request)}\n`);
   const response = await iterator.next();
-  if (response.done || response.value.length > 1_000_000)
+  if (response.done || response.value.length > (mode === 'aars' ? 8_500_000 : 1_000_000))
     throw new Error('Local worker bridge closed.');
   const data = JSON.parse(response.value);
   if (data.error) throw new Error('Local worker request rejected.');
@@ -92,15 +96,26 @@ try {
       continue;
     }
     const job =
-      mode === 'interpretations'
-        ? readStored(InterpretationJobSchema, value)
-        : mode === 'packages'
-          ? readStored(GenerationJobSchema, value)
-          : readStored(JobSchema, value);
+      mode === 'aars'
+        ? readStored(AarJobSchema, value)
+        : mode === 'interpretations'
+          ? readStored(InterpretationJobSchema, value)
+          : mode === 'packages'
+            ? readStored(GenerationJobSchema, value)
+            : readStored(JobSchema, value);
     const started = Date.now();
     let result: { output: unknown; inputTokens: number; outputTokens: number; failed: boolean };
     try {
       await auditCodexBoundary(resolve(executable), directory);
+      if ('snapshot' in job) {
+        if (job.promptVersion !== aarPromptVersion) throw new Error('AAR prompt version mismatch.');
+        await prepareCodex(
+          resolve(executable),
+          directory,
+          AarOutputSchema,
+          'Select and classify attributed tabletop discussion evidence from the fixed app snapshot. Recommendations are proposals, not facts or executed actions. No tools. Return only requested JSON.',
+        );
+      }
       if ('input' in job) {
         if (job.promptVersion !== interpretationPromptVersion)
           throw new Error('Interpretation prompt version mismatch.');
@@ -119,26 +134,33 @@ try {
           'Compose structured synthetic tabletop packages from confirmed profile evidence. Do not use tools. Return only the requested JSON.',
         );
       result = {
-        ...('input' in job
+        ...('snapshot' in job
           ? await runCodexStructured(
               resolve(executable),
               directory,
-              interpretationPrompt(job.input),
+              aarPrompt(job.snapshot),
               controller.signal,
             )
-          : 'profile' in job
+          : 'input' in job
             ? await runCodexStructured(
                 resolve(executable),
                 directory,
-                generationPrompt(job.profile, job.target),
+                interpretationPrompt(job.input),
                 controller.signal,
               )
-            : await runCodexExtraction(
-                resolve(executable),
-                directory,
-                job.sources as IntakeSource[],
-                controller.signal,
-              )),
+            : 'profile' in job
+              ? await runCodexStructured(
+                  resolve(executable),
+                  directory,
+                  generationPrompt(job.profile, job.target),
+                  controller.signal,
+                )
+              : await runCodexExtraction(
+                  resolve(executable),
+                  directory,
+                  job.sources as IntakeSource[],
+                  controller.signal,
+                )),
         failed: false,
       };
     } catch {
@@ -154,20 +176,24 @@ try {
           model: EXTRACTION_MODEL,
           codexVersion: CODEX_VERSION,
           promptVersion:
-            'input' in job
-              ? interpretationPromptVersion
-              : 'profile' in job
-                ? generationPromptVersion
-                : PROMPT_VERSION,
+            'snapshot' in job
+              ? aarPromptVersion
+              : 'input' in job
+                ? interpretationPromptVersion
+                : 'profile' in job
+                  ? generationPromptVersion
+                  : PROMPT_VERSION,
           at: new Date().toISOString(),
           elapsedMs: Date.now() - started,
-          ...('input' in job
-            ? { inputHash: fingerprint(job.input) }
-            : 'profile' in job
-              ? { target: job.target }
-              : {
-                  sourceHashes: job.sources.map((s) => ({ title: s.title, hash: s.contentHash })),
-                }),
+          ...('snapshot' in job
+            ? { snapshotId: job.snapshot.report.id, snapshotHash: job.snapshot.hash }
+            : 'input' in job
+              ? { inputHash: fingerprint(job.input) }
+              : 'profile' in job
+                ? { target: job.target }
+                : {
+                    sourceHashes: job.sources.map((s) => ({ title: s.title, hash: s.contentHash })),
+                  }),
           ...result,
           saved: completion.saved,
         },

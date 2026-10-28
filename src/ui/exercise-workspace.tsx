@@ -6,6 +6,7 @@ import { FacilitatorExercise } from './facilitator-exercise.js';
 import { ParticipantExercise } from './participant-exercise.js';
 import { OutcomeWorkspace } from './outcome-workspace.js';
 import { RecordReportWorkspace } from './record-report-workspace.js';
+import { ClarificationWorkspace } from './clarification-workspace.js';
 
 export function ExerciseWorkspace({
   actor,
@@ -151,6 +152,13 @@ export function ExerciseWorkspace({
         )}
       <div hidden={tab !== 'run'}>
         {!loading && review && <FacilitatorExercise vm={vm} />}
+        {!loading && review?.package.kind === 'generated-five-inject' && (
+          <ClarificationWorkspace
+            key={'clarifications-' + selected}
+            review={review}
+            onSessionExpired={onSessionExpired}
+          />
+        )}
         {!loading && briefing && <ParticipantExercise vm={vm} />}
         {selected.startsWith('technical/') && (
           <OutcomeWorkspace

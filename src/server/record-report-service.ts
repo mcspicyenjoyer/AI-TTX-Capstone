@@ -250,6 +250,25 @@ export class RecordReportService {
         completion.recordedAt,
         completion.actorId,
       );
+      for (const answer of this.store.clarifications.list(runId))
+        add(
+          answer.id,
+          'clarification',
+          {
+            text: answer.text,
+            claimIds: answer.claimIds.join(', '),
+            knowledge: answer.unknown
+              ? 'Information request; not known at this time.'
+              : 'Facilitator-supplied answer citing confirmed-profile claims; not execution evidence.',
+            releaseId: answer.releaseId,
+            profileId: answer.profileId,
+            profileRevisionId: answer.profileRevisionId,
+            profileHash: answer.profileHash,
+          },
+          answer.position,
+          answer.recordedAt,
+          answer.actorId,
+        );
       for (const event of this.store.exercises.activity(runId, true))
         add(
           'activity-' + event.sequence,
@@ -344,8 +363,9 @@ export class RecordReportService {
         {
           method:
             'Deterministic app-record snapshot. No AI drafting, strengths, areas for improvement or new exercise run.',
-          clarificationLimit:
-            "This trial's clarification answers are outside the app record and are not included.",
+          clarificationLimit: this.store.clarifications.list(runId).length
+            ? 'Only the facilitator clarification answers explicitly logged in this snapshot are evidence. Unlogged answers remain outside the app record.'
+            : "This trial's clarification answers are outside the app record and are not included.",
           evidenceLimit:
             'Team statements and facilitator-reviewed interpretations are not evidence of executed actions or successful recovery.',
           snapshotPolicy:
