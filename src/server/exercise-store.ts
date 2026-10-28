@@ -281,10 +281,10 @@ export class ExerciseStore {
       .run(run.id, kind, actorId, new Date().toISOString(), referenceId, run.revision);
   }
 
-  activity(runId: string): RunActivity {
+  activity(runId: string, complete = false): RunActivity {
     const events = this.db
-      .prepare('SELECT * FROM run_activity WHERE run_id = ? ORDER BY sequence DESC LIMIT 100')
-      .all(runId)
+      .prepare('SELECT * FROM run_activity WHERE run_id = ? ORDER BY sequence DESC LIMIT ?')
+      .all(runId, complete ? 10001 : 100)
       .reverse()
       .map((row) => ({
         sequence: row.sequence,
@@ -295,7 +295,7 @@ export class ExerciseStore {
         referenceId: row.reference_id,
         runRevision: row.run_revision,
       }));
-    return readStored(RunActivitySchema, events);
+    return readStored({ ...RunActivitySchema, maxItems: complete ? 10000 : 100 }, events);
   }
 
   recoverActiveRuns(): void {

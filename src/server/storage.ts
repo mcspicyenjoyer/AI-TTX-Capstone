@@ -10,6 +10,7 @@ import { IntakeStore, migrateIntakes } from './intake-store.js';
 import { ExtractionStore, migrateExtractions } from './extraction-store.js';
 import { GenerationStore, migrateGeneration } from './generation-store.js';
 import { InterpretationStore, migrateInterpretations } from './interpretation-store.js';
+import { RecordReportStore, migrateRecordReports } from './record-report-store.js';
 export { contentHash } from './integrity.js';
 
 export class Store {
@@ -20,12 +21,13 @@ export class Store {
   readonly extractions: ExtractionStore;
   readonly generation: GenerationStore;
   readonly interpretations: InterpretationStore;
+  readonly recordReports: RecordReportStore;
 
   constructor(path: string) {
     this.db = new DatabaseSync(path, { timeout: 5000 });
     this.db.exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;');
     const version = Number(this.db.prepare('PRAGMA user_version').get()?.user_version);
-    if (![0, 1, 2, 3, 4, 5, 6, 7, 8].includes(Number(version))) {
+    if (![0, 1, 2, 3, 4, 5, 6, 7, 8, 9].includes(Number(version))) {
       this.db.close();
       throw new Error('Unsupported database version. No migration was performed.');
     }
@@ -48,12 +50,14 @@ export class Store {
     if (version < 6) this.transaction(() => migrateExtractions(this.db));
     if (version < 7) this.transaction(() => migrateGeneration(this.db));
     if (version < 8) this.transaction(() => migrateInterpretations(this.db));
+    if (version < 9) this.transaction(() => migrateRecordReports(this.db));
     this.exercises = new ExerciseStore(this.db);
     this.outcomes = new OutcomeStore(this.db);
     this.intakes = new IntakeStore(this.db);
     this.extractions = new ExtractionStore(this.db);
     this.generation = new GenerationStore(this.db);
     this.interpretations = new InterpretationStore(this.db);
+    this.recordReports = new RecordReportStore(this.db);
   }
 
   transaction<T>(operation: () => T): T {

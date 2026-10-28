@@ -1,9 +1,11 @@
-import { Inbox, LoaderCircle, RefreshCw, TriangleAlert } from 'lucide-react';
+import { useState } from 'react';
+import { FileText, Inbox, List, LoaderCircle, RefreshCw, TriangleAlert } from 'lucide-react';
 import type { Actor } from '../contracts/profile.js';
 import { useExerciseWorkspace } from './use-exercise-workspace.js';
 import { FacilitatorExercise } from './facilitator-exercise.js';
 import { ParticipantExercise } from './participant-exercise.js';
 import { OutcomeWorkspace } from './outcome-workspace.js';
+import { RecordReportWorkspace } from './record-report-workspace.js';
 
 export function ExerciseWorkspace({
   actor,
@@ -13,6 +15,7 @@ export function ExerciseWorkspace({
   onSessionExpired: () => void;
 }) {
   const vm = useExerciseWorkspace(actor, onSessionExpired);
+  const [tab, setTab] = useState<'run' | 'report'>('run');
   const {
     disabled,
     editing,
@@ -98,6 +101,7 @@ export function ExerciseWorkspace({
             value={selected}
             disabled={disabled || editing.current}
             onChange={(event) => {
+              setTab('run');
               clearStep0();
               void reload(event.target.value);
             }}
@@ -121,18 +125,55 @@ export function ExerciseWorkspace({
           <p>No exercises assigned.</p>
         </div>
       ) : null}
-      {!loading && review && <FacilitatorExercise vm={vm} />}
-      {!loading && briefing && <ParticipantExercise vm={vm} />}
-      {selected.startsWith('technical/') && (
-        <OutcomeWorkspace
-          key={selected}
-          actor={actor}
-          selected={selected}
-          blocked={disabled || editing.current}
-          onChanged={() => void reload()}
-          onSessionExpired={onSessionExpired}
-        />
-      )}
+      {!loading &&
+        review?.run.state === 'completed' &&
+        review.package.kind === 'generated-five-inject' && (
+          <div className="workspace-tabs" role="tablist" aria-label="Exercise views">
+            <button
+              role="tab"
+              aria-selected={tab === 'run'}
+              disabled={disabled || editing.current}
+              onClick={() => setTab('run')}
+            >
+              <List size={17} />
+              Run
+            </button>
+            <button
+              role="tab"
+              aria-selected={tab === 'report'}
+              disabled={disabled || editing.current}
+              onClick={() => setTab('report')}
+            >
+              <FileText size={17} />
+              Record report
+            </button>
+          </div>
+        )}
+      <div hidden={tab !== 'run'}>
+        {!loading && review && <FacilitatorExercise vm={vm} />}
+        {!loading && briefing && <ParticipantExercise vm={vm} />}
+        {selected.startsWith('technical/') && (
+          <OutcomeWorkspace
+            key={selected}
+            actor={actor}
+            selected={selected}
+            blocked={disabled || editing.current}
+            onChanged={() => void reload()}
+            onSessionExpired={onSessionExpired}
+          />
+        )}
+      </div>
+      <div hidden={tab !== 'report'}>
+        {!loading &&
+          review?.run.state === 'completed' &&
+          review.package.kind === 'generated-five-inject' && (
+            <RecordReportWorkspace
+              key={selected}
+              runId={review.run.id}
+              onSessionExpired={onSessionExpired}
+            />
+          )}
+      </div>
     </section>
   );
 }

@@ -1533,3 +1533,86 @@ input[type='checkbox'] {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.workspace-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-bottom: 1px solid #d8e0de;
+  padding-block: 12px;
+  margin-bottom: 20px;
+}
+.workspace-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #202b2d;
+}
+.workspace-tabs button[aria-selected='true'] {
+  border-bottom-color: #256b50;
+  color: #256b50;
+  font-weight: 600;
+}
+.workspace-tabs button:hover:not(:disabled) {
+  background: #eaf0ee;
+}
+.record-report {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.record-report h3 {
+  margin-top: 28px;
+  font-size: 18px;
+}
+.report-record {
+  border-top: 1px solid #d8e0de;
+  padding-block: 14px;
+  scroll-margin-top: 20px;
+}
+.report-record h4 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.report-record dl > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 24%) minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.report-record dt {
+  font-size: 13px;
+  font-weight: 600;
+  color: #202b2d;
+}
+.report-record dd,
+.report-record dd p {
+  margin: 0;
+  text-align: left;
+}
+.report-record dd p + p {
+  margin-top: 6px;
+}
+.record-citation {
+  color: #526862;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  display: inline;
+  margin-left: 4px;
+}
+.report-hash {
+  font-family: monospace;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .report-record dl > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}

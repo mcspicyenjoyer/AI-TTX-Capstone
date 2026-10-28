@@ -33,6 +33,8 @@ import { registerGenerationRoutes } from './generation-routes.js';
 import type { PackageTarget } from '../contracts/generation.js';
 import { InterpretationService } from './interpretation-service.js';
 import { registerInterpretationRoutes } from './interpretation-routes.js';
+import { RecordReportService } from './record-report-service.js';
+import { registerRecordReportRoutes } from './record-report-routes.js';
 
 export async function buildApp(options: {
   dataDirectory: string;
@@ -222,6 +224,7 @@ export async function buildApp(options: {
     new InterpretationService(store, !!options.subscriptionEnabled),
   );
   registerExerciseRoutes(app, sessions, exercises, errors);
+  registerRecordReportRoutes(app, sessions, new RecordReportService(store));
   registerOutcomeRoutes(app, sessions, new OutcomeService(store, exercises), errors);
   registerIntakeRoutes(
     app,
