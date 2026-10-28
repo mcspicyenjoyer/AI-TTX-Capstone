@@ -221,6 +221,13 @@ test('AAR rejects false attribution, unsupported gap origins, execution fields a
   assert.throws(() => validateAar(output, snapshot), /origin/);
   finding.evidence = output.objectives[0]!.strengths[0]!.evidence;
   assert.throws(() => validateAar(output, snapshot), /attribution/);
+  const step0 = snapshot.report.records.find((r) => r.kind === 'step0')!;
+  const field = step0.fields.find((f) => f.label === 'rationale')!;
+  finding.category = 'origin-not-established';
+  finding.evidence = [{ recordId: step0.id, field: field.label, quote: field.value }];
+  assert.throws(() => validateAar(output, snapshot), /attribution/);
+  finding.category = 'facilitator-observation';
+  assert.deepEqual(validateAar(output, snapshot), output);
 });
 test('AAR distinguishes supported profile gaps from missing provenance and keeps unknown origins explicit', () => {
   const sample = structuredClone(snapshot),

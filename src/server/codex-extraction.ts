@@ -7,8 +7,8 @@ import { ExtractionOutputSchema } from '../contracts/extraction.js';
 import { extractionPrompt } from './extraction-prompt.js';
 import type { TSchema } from '@sinclair/typebox';
 
-export const CODEX_VERSION = 'codex-cli 0.164.0-alpha.11.1';
-export const CODEX_SHA256 = '1103e9e09c71fa2cd0afd6d8f3b9a2d63174fe8efd7cb5bd09f1cb14ef58a098';
+export const CODEX_VERSION = 'codex-cli 0.165.0-alpha.1.2';
+export const CODEX_SHA256 = '5c1b55966bf9f757dcbf00065c9a6cb862ead55d34b015f1be1939ff18e43943';
 export const EXTRACTION_MODEL = 'gpt-6.1-sol';
 // The provider's JSON Schema subset omits uniqueItems; application validation retains it.
 export function codexOutputSchema(schema: TSchema): TSchema {

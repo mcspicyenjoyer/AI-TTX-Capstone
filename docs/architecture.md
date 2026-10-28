@@ -53,6 +53,19 @@ The private operator evaluation bridge substitutes only synthetic response text 
 
 Future-run clarification logging closes a demonstrated provenance gap without importing the private trial answers. When the app snapshot cannot establish whether a gap was pre-existing or surfaced in discussion, keep its origin uncertain. Template source, approval gate, live-call caps and the branch-proposal stop rule are in ADR-034; executed checks and the real external evidence location are in WORK.
 
+### Proposed reviewed follow-ups
+
+Post-AAR proposal, 28 October; **not implemented or approved content**. Do not modify `package-15`, its completed trial or its confirmed profile. A future package revision would add a small reviewed follow-up set at the three existing decision points, not a new scenario generator or unrestricted branching tree.
+
+- Store a stable follow-up ID, parent decision position, objective/action references, trigger description, recipients, role bodies, facilitator notes, artefact IDs and a rejoin destination. Start with at most two alternatives per decision: an evidence-bearing supplier reply and a reply that leaves evidence unavailable or requires clarification. Both may lead to a valid hold; do not reward unsupported restoration.
+- Separate confirmed claim references from explicitly authored simulation assumptions/results. Every named system, service, person and supplier must resolve to the unchanged confirmed profile. Simulated results can describe a later fictional test but cannot retroactively turn the baseline's untested restore into tested capability, invent an FS01 agent or declare unknown backups corrupt.
+- Author supplier replies and bounded inert artefacts during package review, not during play: for example a simulated isolation-status note, working-set inventory or restore-test excerpt. Label both body and artefact `SIMULATED - EXERCISE ONLY`, include the fictional time, source supplier, limitations and profile/assumption references, and review consistency across alternatives. No executable attachments or real supplier communications.
+- Freeze the exact follow-up texts, artefact hashes, role recipients, eligibility descriptions and rejoin points with the package. An edit invalidates package acceptance. Keep unreleased alternatives and facilitator notes out of participant projections. No new model-authored supplier result may enter a running frozen package.
+- Interpretation may recommend only an approved eligible ID, with response evidence or abstention. The facilitator chooses, edits only through a newly reviewed package before play, or continues manually; the normal exact-content release approval still applies. Record the selection, reason, released simulated evidence and resulting response separately. Resolve the follow-up within its parent position before rejoining the next main position or ending after the final decision. This requires an explicit future engine contract; no extra main inject is silently added to this trial.
+- Future AARs cite those actual app release/selection records while retaining the simulation label. A simulated supplier test result is exercise evidence, never evidence of real recovery. Test unknown IDs, stale edits/approvals, wrong roles, contradictory simulation content, invalid transitions and manual fallback before a new trial.
+
+This proposal addresses the current trial's missing decision-enabling supplier evidence. It is not an invitation to repair the completed trial retrospectively. User review of the AAR and approval of the bounded follow-up design come before implementation; final ten-inject Form B acceptance remains separate.
+
 ### Confirmed-profile package generation
 
 Implemented under ADR-032 in [contracts](../src/contracts/generation.ts), [composition/validation](../src/server/generation-content.ts), [service](../src/server/generation-service.ts), [store](../src/server/generation-store.ts) and [review UI](../src/ui/package-workspace.tsx).
