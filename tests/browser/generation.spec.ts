@@ -64,6 +64,8 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   await page.getByLabel('Plan being exercised', { exact: true }).selectOption('test-plan');
   await page.getByLabel('Shared Step 0 references', { exact: true }).selectOption('shared-route');
   await page.getByLabel('Internal IT briefing', { exact: true }).selectOption(['it', 'restore']);
+  await page.getByLabel('Business leadership people', { exact: true }).selectOption(['imran']);
+  await page.getByLabel('Internal IT people', { exact: true }).selectOption(['ethan']);
   await expect(freeze).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Accept inject', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Save preparation', exact: true }).click();
@@ -77,6 +79,11 @@ test('generated package review edit reject freeze at desktop and mobile widths',
     'it',
     'restore',
   ]);
+  await expect(page.getByLabel('Business leadership people', { exact: true })).toHaveValues([
+    'imran',
+  ]);
+  await expect(page.getByLabel('Internal IT people', { exact: true })).toHaveValues(['ethan']);
+  await expect(page.getByText(/^Represent: Imran\./)).toBeAttached();
   for (let position = 0; position < 5; position++) {
     await page.getByRole('tab', { name: new RegExp(`^${position + 1}\\.`) }).click();
     await page.getByRole('button', { name: 'Accept inject', exact: true }).click();

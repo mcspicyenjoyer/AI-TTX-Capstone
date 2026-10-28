@@ -94,6 +94,53 @@ test('AAR draft is bound to snapshot, quoted and facilitator-reviewed with unass
   }
 });
 
+test('manual AAR adds a cited finding for an objective whose positions closed unanswered', async ({
+  page,
+  exerciseServer,
+}) => {
+  const store = new Store(join(exerciseServer, 'ttx.sqlite'));
+  try {
+    const context = prepareInterpretationRun(store, true, undefined, [2, 3, 4, 5]);
+    const snapshot = new RecordReportService(store).capture(
+      context.actor,
+      context.runId,
+      randomUUID(),
+    );
+    const disposition = snapshot.report.records.find(
+      (r) => r.kind === 'disposition' && r.position === 2,
+    )!;
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await login(page, 'facilitator');
+    await page.getByRole('button', { name: 'Exercises', exact: true }).click();
+    await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
+    await page.getByRole('tab', { name: 'Record report', exact: true }).click();
+    const workspace = page.getByRole('region', { name: 'AAR workspace', exact: true });
+    await workspace.getByRole('button', { name: 'New manual AAR', exact: true }).click();
+    await expect(workspace).toContainText('Status: manual');
+    const objective = workspace.getByRole('region', {
+      name: 'AAR minimum-continuity',
+      exact: true,
+    });
+    await objective.getByRole('button', { name: 'Add strength', exact: true }).click();
+    const finding = objective.locator('.aar-finding');
+    await expect(finding).toHaveCount(1);
+    await expect(finding.getByLabel('Finding category')).toHaveValue('facilitator-observation');
+    await expect(finding.getByLabel(/^Record/)).toHaveValue(disposition.id);
+    await finding
+      .getByLabel('Exact excerpt', { exact: true })
+      .fill(disposition.fields.find((f) => f.label === 'observations')!.value);
+    await workspace
+      .getByLabel('AAR review rationale', { exact: true })
+      .fill('Manual finding for an objective closed without a team response.');
+    await workspace.getByRole('button', { name: 'Save manual AAR', exact: true }).click();
+    await expect(workspace).toContainText('Facilitator-reviewed: override');
+    expect(errors).toEqual([]);
+  } finally {
+    store.close();
+  }
+});
+
 test('failed AAR leaves a manual draft and future clarification log never backfills a completed run', async ({
   page,
   exerciseServer,

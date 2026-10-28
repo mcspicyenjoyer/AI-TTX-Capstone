@@ -10,6 +10,7 @@ import {
   type AarView,
 } from '../contracts/aar.js';
 import type { RecordReportView } from '../contracts/record-report.js';
+import { findingDefault } from './aar-draft.js';
 import { ApiError, request } from './api.js';
 import { date } from './exercise-format.js';
 
@@ -296,13 +297,12 @@ function AarReview({
                     type="button"
                     className="icon-button"
                     title={'Add ' + (section === 'strengths' ? 'strength' : 'improvement finding')}
-                    disabled={objective[section].length >= 4}
+                    disabled={
+                      objective[section].length >= 4 || !findingDefault(snapshot.report, oi)
+                    }
                     onClick={() => {
-                      const source = snapshot.report.records.find(
-                        (r) =>
-                          r.kind === 'response' &&
-                          snapshot.report.objectives[oi]!.positions.includes(r.position!),
-                      )!;
+                      const source = findingDefault(snapshot.report, oi);
+                      if (!source) return;
                       setOutput({
                         ...output,
                         objectives: output.objectives.map((o, i) =>
@@ -311,13 +311,7 @@ function AarReview({
                                 ...o,
                                 [section]: [
                                   ...o[section],
-                                  {
-                                    id: 'finding-' + crypto.randomUUID(),
-                                    category: 'team-decision',
-                                    evidence: [
-                                      { recordId: source.id, field: 'actions', quote: '' },
-                                    ],
-                                  },
+                                  { id: 'finding-' + crypto.randomUUID(), ...source },
                                 ],
                               }
                             : o,

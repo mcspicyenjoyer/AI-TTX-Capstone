@@ -1437,6 +1437,9 @@ input[type='checkbox'] {
 .package-preparation select[multiple] {
   height: 192px;
 }
+.package-preparation select.people-select {
+  height: auto;
+}
 .package-editor-grid details {
   padding: 12px 0;
   border-bottom: 1px solid #d5dcdf;

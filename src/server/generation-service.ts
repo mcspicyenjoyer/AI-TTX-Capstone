@@ -77,6 +77,8 @@ export class GenerationService {
         drafts: [],
       };
     const profile = this.requireTarget(actor, this.target);
+    // Like the AAR and interpretation lists, a read shows a stalled worker as failed.
+    this.store.transaction(() => this.expire());
     return {
       target: this.target,
       profile,
@@ -119,6 +121,7 @@ export class GenerationService {
       const replay = this.replay(actor, input.commandId, hash);
       if (replay) return replay;
       if (!this.enabled) conflict('Subscription generation is disabled.');
+      this.expire();
       const all = this.store.generation.list();
       if (all.some((draft) => ['queued', 'running'].includes(draft.status)))
         conflict('A generation request is already pending.');
@@ -285,10 +288,13 @@ export class GenerationService {
         conflict('Preparation must cover each player role exactly once.');
       const next = structuredClone(draft);
       next.preparation = structuredClone(input.preparation);
-      for (const role of next.plan!.roles)
-        role.briefingEvidence = structuredClone(
-          input.roles.find((item) => item.roleId === role.roleId)!.briefingEvidence,
-        );
+      // The reviewer may correct which confirmed people represent each function. The plan
+      // validator still rejects unknown, non-person or duplicated assignments.
+      for (const role of next.plan!.roles) {
+        const edit = input.roles.find((item) => item.roleId === role.roleId)!;
+        role.personIds = [...edit.personIds];
+        role.briefingEvidence = structuredClone(edit.briefingEvidence);
+      }
       next.reviews = next.reviews.map(() => 'pending');
       next.revision++;
       next.updatedAt = new Date().toISOString();
@@ -298,7 +304,7 @@ export class GenerationService {
         throw new AppError(
           400,
           'INVALID_PACKAGE',
-          'Preparation violates the confirmed claims, plan source or content bounds.',
+          'Preparation violates the confirmed people, claims, plan source or content bounds.',
         );
       }
       this.store.generation.save(next, 'preparation-reviewed');

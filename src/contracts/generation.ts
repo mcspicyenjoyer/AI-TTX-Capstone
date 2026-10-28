@@ -196,7 +196,11 @@ export const ReviewPreparationSchema = Type.Object(
     ...revisionCommand,
     preparation: PackagePreparationSchema,
     roles: Type.Array(
-      Type.Pick(GeneratedPlanSchema.properties.roles.items, ['roleId', 'briefingEvidence']),
+      Type.Pick(GeneratedPlanSchema.properties.roles.items, [
+        'roleId',
+        'personIds',
+        'briefingEvidence',
+      ]),
       { minItems: 3, maxItems: 3 },
     ),
   },

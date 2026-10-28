@@ -10,6 +10,7 @@ export function prepareInterpretationRun(
   store: Store,
   complete = false,
   onResponse?: (runId: string, releaseId: string) => void,
+  unanswered: number[] = [],
 ) {
   const actor = store.loginIdentity('facilitator')!.actor;
   if (!store.profile(generationProfile.profileId, generationProfile.revisionId))
@@ -80,23 +81,27 @@ export function prepareInterpretationRun(
       ...state(),
       approvalId: approval.id,
     });
-    const answer = outcomes.respond(player, 'technical', runId, {
-      ...state(),
-      releaseId: release.id,
-      previousResponseId: null,
-      actions: 'Ethan proposes a hold; Imran owns follow-up. No reconnection; review at 13:30.',
-      rationale: 'Evidence is not ready.',
-      informationRequests: 'What remains unknown?',
-    });
-    onResponse?.(runId, release.id);
+    const answer = unanswered.includes(i + 1)
+      ? null
+      : outcomes.respond(player, 'technical', runId, {
+          ...state(),
+          releaseId: release.id,
+          previousResponseId: null,
+          actions: 'Ethan proposes a hold; Imran owns follow-up. No reconnection; review at 13:30.',
+          rationale: 'Evidence is not ready.',
+          informationRequests: 'What remains unknown?',
+        });
+    if (answer) onResponse?.(runId, release.id);
     if (complete) {
       const disposition = outcomes.disposition(actor, 'technical', runId, {
         ...state(),
         releaseId: release.id,
-        responseId: answer.id,
+        responseId: answer?.id ?? null,
         decision: 'reviewed',
         observations: 'Separate facilitator observation, never interpreter ground truth.',
-        unresolvedGaps: 'Test evidence absent.',
+        unresolvedGaps: answer
+          ? 'Test evidence absent.'
+          : 'Unanswered; no team response is inferred.',
       });
       outcomes.close(actor, 'technical', runId, {
         ...state(),

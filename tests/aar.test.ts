@@ -16,8 +16,9 @@ import { ClarificationService } from '../src/server/clarification-service.js';
 import { prepareInterpretationRun, fakeInterpretation } from './interpretation-fixture.js';
 import { generationTarget, generationProfile } from './generation-fixture.js';
 import { fakeAar } from './aar-fixture.js';
+import { findingDefault } from '../src/ui/aar-draft.js';
 import type { RecordReportView } from '../src/contracts/record-report.js';
-import type { AarView } from '../src/contracts/aar.js';
+import type { AarOutput, AarView } from '../src/contracts/aar.js';
 
 let directory: string,
   app: FastifyInstance,
@@ -274,6 +275,48 @@ test('AAR manual review validates citations and version, with accept edit reject
   ready = review(ready, 'edit', output);
   assert.deepEqual(ready.record.review!.output, output);
   assert.deepEqual(sourceRows(), before);
+});
+test('new AAR findings start from a facilitator record when an objective has no team response', () => {
+  const partial = prepareInterpretationRun(store, true, undefined, [2, 3, 4, 5]);
+  const view = new RecordReportService(store).capture(partial.actor, partial.runId, randomUUID());
+  const records = view.report.records;
+  assert.deepEqual(
+    records.filter((r) => r.kind === 'response').map((r) => r.position),
+    [1],
+  );
+  const defaults = view.report.objectives.map((_, i) => findingDefault(view.report, i)!);
+  assert.deepEqual(
+    defaults.map((d) => [d.category, records.find((r) => r.id === d.evidence[0]!.recordId)!.kind]),
+    [
+      ['team-decision', 'response'],
+      ['facilitator-observation', 'disposition'],
+      ['facilitator-observation', 'disposition'],
+    ],
+  );
+  for (const [i, d] of defaults.entries()) {
+    const record = records.find((r) => r.id === d.evidence[0]!.recordId)!;
+    assert.ok(view.report.objectives[i]!.positions.includes(record.position!));
+  }
+  // Filling only the exact excerpt yields an AAR the server accepts, with no invented response.
+  const output: AarOutput = {
+    scope: 'discussion-only',
+    objectives: view.report.objectives.map((objective, i) => {
+      const evidence = defaults[i]!.evidence[0]!;
+      const quote = records
+        .find((r) => r.id === evidence.recordId)!
+        .fields.find((f) => f.label === evidence.field)!.value;
+      return {
+        objectiveId: objective.id,
+        strengths: [],
+        areasForImprovement: [
+          { id: 'finding-' + i, ...defaults[i]!, evidence: [{ ...evidence, quote }] },
+        ],
+      };
+    }),
+    improvementActions: [],
+  };
+  assert.deepEqual(validateAar(output, view), output);
+  assert.equal(findingDefault({ ...view.report, records: [] }, 1), null);
 });
 test('AAR three-attempt budget counts failures invalid output and unknown usage; manual continuation stays available', () => {
   for (let i = 0; i < 3; i++) {

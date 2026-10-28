@@ -22,8 +22,9 @@ function preparationEdit(view: PackageDraftView): PreparationEdit {
     preparation: structuredClone(
       view.draft.preparation ?? { sharedEvidence: [], exercisedPlanSourceId: '' },
     ),
-    roles: view.draft.plan!.roles.map(({ roleId, briefingEvidence }) => ({
+    roles: view.draft.plan!.roles.map(({ roleId, personIds, briefingEvidence }) => ({
       roleId,
+      personIds: [...personIds],
       briefingEvidence: structuredClone(briefingEvidence),
     })),
   };
@@ -145,6 +146,7 @@ export function PackageWorkspace({
   const inject = view?.preview?.injects[positionIndex];
   const claims = context?.profile?.environment?.claims ?? [];
   const entities = context?.profile?.environment?.entities ?? [];
+  const people = entities.filter((entity) => entity.kind === 'role');
   const claimLabel = (id: string) => {
     const claim = claims.find((item) => item.id === id);
     return claim
@@ -324,6 +326,40 @@ export function PackageWorkspace({
                       ))}
                   </select>
                 </label>
+                {preparation.roles.map((role) => {
+                  const name = `${view.preview!.roles.find((item) => item.id === role.roleId)!.name} people`;
+                  return (
+                    <label key={'people-' + role.roleId}>
+                      {name}
+                      <select
+                        multiple
+                        className="people-select"
+                        size={Math.min(5, Math.max(2, people.length))}
+                        aria-label={name}
+                        value={role.personIds}
+                        onChange={(event) => {
+                          const personIds = Array.from(
+                            event.target.selectedOptions,
+                            (option) => option.value,
+                          );
+                          setPreparation({
+                            ...preparation,
+                            roles: preparation.roles.map((item) =>
+                              item.roleId === role.roleId ? { ...item, personIds } : item,
+                            ),
+                          });
+                          setPreparationDirty(true);
+                        }}
+                      >
+                        {people.map((person) => (
+                          <option key={person.id} value={person.id}>
+                            {person.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  );
+                })}
                 {[
                   {
                     id: 'shared',
@@ -386,7 +422,8 @@ export function PackageWorkspace({
                       disabled ||
                       dirty ||
                       !preparationDirty ||
-                      !preparation.preparation.exercisedPlanSourceId
+                      !preparation.preparation.exercisedPlanSourceId ||
+                      preparation.roles.some((role) => !role.personIds.length)
                     }
                     onClick={() =>
                       void send({

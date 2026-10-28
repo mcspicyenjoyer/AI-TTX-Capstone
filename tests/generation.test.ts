@@ -110,8 +110,9 @@ function preparationCommand(view: PackageDraftView): ReviewPreparation {
       sharedEvidence: [{ claimId: 'shared-route', status: 'fact' }],
       exercisedPlanSourceId: 'test-plan',
     },
-    roles: view.draft.plan!.roles.map(({ roleId, briefingEvidence }) => ({
+    roles: view.draft.plan!.roles.map(({ roleId, personIds, briefingEvidence }) => ({
       roleId,
+      personIds: [...personIds],
       briefingEvidence: [
         ...briefingEvidence,
         ...(roleId === 'internal-it' ? [{ claimId: 'restore', status: 'unknown' as const }] : []),
@@ -180,6 +181,38 @@ test('preparation rejects invalid plan source role coverage and changed knowledg
   assert.equal(service.get(actor, view.draft.id).draft.revision, view.draft.revision);
 });
 
+test('preparation corrects person assignments, resets acceptance and rejects invalid people', async () => {
+  let view = acceptAll(proposed());
+  const url = `/api/packages/${view.draft.id}/preparation`;
+  const swap = preparationCommand(view);
+  swap.roles.find((role) => role.roleId === 'business-leadership')!.personIds = ['imran'];
+  swap.roles.find((role) => role.roleId === 'internal-it')!.personIds = ['ethan'];
+  const response = await query(url, swap);
+  assert.equal(response.statusCode, 200, response.body);
+  view = response.json();
+  assert.deepEqual(view.draft.reviews, Array(5).fill('pending'));
+  assert.deepEqual(
+    view.draft.plan!.roles.map((role) => [role.roleId, role.personIds]),
+    [
+      ['business-leadership', ['imran']],
+      ['engineering-projects', ['nadia']],
+      ['internal-it', ['ethan']],
+    ],
+  );
+  const briefing = (id: string) => view.preview!.roles.find((role) => role.id === id)!.briefing;
+  assert.match(briefing('business-leadership'), /^Represent: Imran\./);
+  assert.match(briefing('internal-it'), /^Represent: Ethan\./);
+  // Duplicated, non-person, unknown and empty assignments are refused without a new revision.
+  for (const personIds of [['nadia'], ['fs'], ['missing'], []]) {
+    const input = preparationCommand(view);
+    input.roles.find((role) => role.roleId === 'business-leadership')!.personIds = personIds;
+    assert.equal((await query(url, input)).statusCode, 400);
+  }
+  assert.equal(service.get(actor, view.draft.id).draft.revision, view.draft.revision);
+  view = acceptAll(view);
+  view = service.freeze(actor, view.draft.id, command(view));
+  assert.equal((await query(url, preparationCommand(view))).statusCode, 409);
+});
 test('preparation shared Step 0 references do not disclose role knowledge or future injects', async () => {
   let view = proposed();
   view = service.reviewPreparation(actor, view.draft.id, preparationCommand(view));
@@ -520,6 +553,43 @@ test('generation request replay is single-call and worker recovery retains failu
   assert.equal(service.claim(), null);
   store.transaction(() => store.generation.recover());
   assert.equal(service.get(actor, view.draft.id).draft.status, 'failed');
+  assert.equal(service.claim(), null);
+});
+test('a stalled generation worker is shown failed and no longer blocks a new explicit request', () => {
+  const stall = (id: string) => {
+    const running = store.generation.get(id)!.draft;
+    assert.equal(running.status, 'running');
+    store.transaction(() =>
+      store.generation.save(
+        { ...running, revision: running.revision + 1, updatedAt: '2000-01-01T00:00:00.000Z' },
+        'test-stalled-worker',
+      ),
+    );
+  };
+  const first = service.generate(actor, binding());
+  assert.equal(service.claim()!.id, first.draft.id);
+  assert.throws(() => service.generate(actor, binding()), /pending/);
+  stall(first.draft.id);
+  // The request path expires the stalled job itself; no worker claim or page read is needed.
+  const second = service.generate(actor, binding());
+  assert.equal(second.draft.status, 'queued');
+  assert.equal(store.generation.get(first.draft.id)!.draft.status, 'failed');
+  assert.match(store.generation.get(first.draft.id)!.draft.error!, /five minutes/);
+  assert.equal(
+    service.complete({
+      id: first.draft.id,
+      failed: false,
+      output: generationPlan(),
+      inputTokens: 1,
+      outputTokens: 1,
+    }).saved,
+    false,
+  );
+  assert.equal(service.claim()!.id, second.draft.id);
+  stall(second.draft.id);
+  // An ordinary package page read also shows the stalled job as failed.
+  const shown = service.context(actor).drafts.find((d) => d.draft.id === second.draft.id)!;
+  assert.equal(shown.draft.status, 'failed');
   assert.equal(service.claim(), null);
 });
 test('generation prompt contains only confirmed profile packet not intake source documents', () => {
