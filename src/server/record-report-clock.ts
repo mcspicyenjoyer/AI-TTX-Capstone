@@ -20,7 +20,8 @@ export function planClockReference(profile: Profile, claimId: string): ClockRefe
 // The frozen releases predate structured clock fields. Read only their simulation header and
 // the plan's released reference line, never response text or wall time.
 export function releasedExerciseClocks(releases: ReleasedText[], reference: ClockReference | null) {
-  const line = reference && '\n' + reference.text + '\n';
+  // Compare line endings only; keep source text and all other characters unchanged.
+  const line = reference && '\n' + reference.text.replace(/\r\n/g, '\n') + '\n';
   const source =
     line &&
     releases.find((release) =>

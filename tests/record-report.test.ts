@@ -224,6 +224,49 @@ test('report refuses a missing frozen objective identity source without writing 
   assert.equal(service.list(context.actor, context.runId).length, 0);
 });
 
+for (const field of ['value', 'explanation'] as const) {
+  for (const [label, ending] of [
+    ['LF', '\n'],
+    ['CRLF', '\r\n'],
+  ] as const) {
+    test(`report retains all twenty clocks with ${label} reference ${field} line endings`, () => {
+      const profile = structuredClone(generationProfile);
+      profile.profileId = `clock-${field}-${label.toLowerCase()}`;
+      const claim = profile.environment!.claims.find((item) => item.id === 'reference')!;
+      claim[field] = `${claim[field]}${ending}Synthetic continuation.`;
+      const target = {
+        ...generationTarget,
+        profileId: profile.profileId,
+        profileHash: contentHash(JSON.stringify(profile)),
+      };
+      const plan = generationPlan(target);
+      plan.positions[0]!.messages[0]!.evidence.push({ claimId: 'reference', status: 'fact' });
+      context = prepareInterpretationRun(store, true, undefined, [], plan, profile, target);
+      const before = sourceRows();
+      const snapshot = capture();
+      assert.deepEqual(sourceRows(), before);
+      const clocked = snapshot.report.records.filter((record) =>
+        record.fields.some((field) => field.label === 'fictionalExerciseClock'),
+      );
+      assert.equal(clocked.length, 20);
+      const releases = store.exercises.releases(context.runId);
+      const times = ['09:00:00', '09:30:00', '10:00:00', '10:30:00', '11:00:00'];
+      for (const record of clocked) {
+        const position = record.position!;
+        const clock = record.fields.find((field) => field.label === 'fictionalExerciseClock')!;
+        assert.equal(
+          clock.value,
+          `+${(position - 1) * 30} elapsed minutes / 2026-09-28 ${times[position - 1]} (UTC+08:00)`,
+        );
+        assert.deepEqual(clock.citations, [
+          ...new Set([record.id, releases[position - 1]!.id, releases[0]!.id]),
+        ]);
+      }
+      checkReportReferences(snapshot.report);
+    });
+  }
+}
+
 test('all twenty exercise records inherit their release clock while reviews remain post-exercise analysis', () => {
   // The miniature fixture does not release its reference claim. Before release evidence exists
   // no record has an exercise time; then release the plan's exact rendered reference line.

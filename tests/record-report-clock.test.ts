@@ -108,6 +108,68 @@ test('only the plan reference claim, rendered exactly and released, sets exercis
   assert.equal(planClockReference(generationProfile, 'missing-claim'), null);
 });
 
+for (const field of ['value', 'explanation'] as const) {
+  for (const [referenceLabel, referenceEnding] of [
+    ['LF', '\n'],
+    ['CRLF', '\r\n'],
+  ] as const) {
+    for (const [releaseLabel, releaseEnding] of [
+      ['LF', '\n'],
+      ['CRLF', '\r\n'],
+    ] as const) {
+      test(`clock matches ${field} with ${referenceLabel} reference and ${releaseLabel} release line endings`, () => {
+        const profile = structuredClone(generationProfile);
+        const claim = profile.environment!.claims.find((item) => item.id === 'reference')!;
+        claim[field] = `${claim[field]}${referenceEnding}Synthetic continuation.`;
+        const planned = planClockReference(profile, 'reference')!;
+        const inputs = [
+          release('reference-release', 0, planned.text),
+          release('later-release', 30),
+        ];
+        for (const input of inputs)
+          for (const delivery of input.deliveries)
+            delivery.body = delivery.body.replace(/\r?\n/g, releaseEnding);
+        const original = structuredClone({ profile, planned, inputs });
+        const clocks = releasedExerciseClocks(inputs, planned);
+        assert.deepEqual(
+          [...clocks.values()],
+          [
+            {
+              value: '+0 elapsed minutes / 2026-09-28 09:00:00 (UTC+08:00)',
+              citations: ['reference-release'],
+            },
+            {
+              value: '+30 elapsed minutes / 2026-09-28 09:30:00 (UTC+08:00)',
+              citations: ['later-release', 'reference-release'],
+            },
+          ],
+        );
+        assert.deepEqual({ profile, planned, inputs }, original);
+      });
+    }
+  }
+}
+
+test('clock line-ending tolerance does not accept changed words whitespace or knowledge state', () => {
+  const profile = structuredClone(generationProfile);
+  const claim = profile.environment!.claims.find((item) => item.id === 'reference')!;
+  claim.explanation = 'Synthetic reference.\r\nConfirmed for this exercise.';
+  const planned = planClockReference(profile, 'reference')!;
+  for (const fact of [
+    planned.text.replace('Synthetic', 'Altered'),
+    planned.text.replace('Synthetic reference.', 'Synthetic  reference.'),
+    planned.text.replace(/\r\n/g, ' '),
+    planned.text.replace(/\r\n/g, '\r'),
+    planned.text.replace('FACT /', 'PROPOSAL /'),
+    ' ' + planned.text,
+    planned.text + ' Additional text.',
+  ]) {
+    const clock = releasedExerciseClocks([release('r', 30, fact)], planned).get('r')!;
+    assert.equal(clock.value, '+30 elapsed minutes / exercise time unavailable');
+    assert.deepEqual(clock.citations, ['r']);
+  }
+});
+
 test('missing inconsistent and out-of-range role headers never borrow another position clock', () => {
   for (const badBody of [
     'No clock supplied.',
