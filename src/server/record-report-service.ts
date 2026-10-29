@@ -116,7 +116,7 @@ export class RecordReportService {
           value: objective.text,
           citations: [definition.id],
         });
-      for (const check of this.store.exercises.step0Checks(runId))
+      for (const check of this.store.exercises.step0Checks(runId, true))
         add(
           check.id,
           'step0',
@@ -250,11 +250,36 @@ export class RecordReportService {
         completion.recordedAt,
         completion.actorId,
       );
+      for (const debrief of this.store.debriefs.list(runId))
+        add(
+          debrief.id,
+          'debrief',
+          {
+            basis:
+              'Facilitator-recorded debrief after completion. Participant feedback is the facilitator summary, not verbatim and not evidence of executed actions.',
+            // Blank notes are omitted rather than shown as quotable placeholders.
+            ...Object.fromEntries(
+              (
+                [
+                  ['participantFeedback', debrief.participantFeedback],
+                  ['facilitatorObservations', debrief.facilitatorObservations],
+                  ['exerciseDesignNotes', debrief.exerciseDesignNotes],
+                ] as const
+              ).filter(([, value]) => value.trim()),
+            ),
+            respondentIds: debrief.respondentIds.join(', ') || '[none]',
+            runRevision: String(debrief.runRevision),
+          },
+          null,
+          debrief.recordedAt,
+          debrief.actorId,
+        );
       for (const answer of this.store.clarifications.list(runId))
         add(
           answer.id,
           'clarification',
           {
+            question: answer.question ?? '[question not recorded]',
             text: answer.text,
             claimIds: answer.claimIds.join(', '),
             knowledge: answer.unknown
@@ -369,7 +394,7 @@ export class RecordReportService {
           evidenceLimit:
             'Team statements and facilitator-reviewed interpretations are not evidence of executed actions or successful recovery.',
           snapshotPolicy:
-            'Fixed at capture. Later interpretation reviews require a new snapshot; earlier reports do not change.',
+            'Fixed at capture. Later interpretation reviews and debrief entries require a new snapshot; earlier reports do not change.',
           clockPolicy:
             'Fictional exercise clocks use each released simulation offset and the explicit fictional reference recorded in the releases, not app recording timestamps. Related responses, dispositions and closures inherit their release position, not a separately observed action time. Missing or conflicting clock evidence stays unavailable. Interpretation reviews are post-exercise analysis, not exercise events.',
           reviewedInterpretations: String(reviewed),

@@ -1,4 +1,4 @@
-import { Type, type Static } from '@sinclair/typebox';
+import { Type, type Static, type TSchema } from '@sinclair/typebox';
 import { IdSchema } from './profile.js';
 import { decisions } from './generation.js';
 import { RecordReportViewSchema } from './record-report.js';
@@ -33,37 +33,49 @@ const FindingSchema = Type.Object(
   },
   strict,
 );
-export const AarOutputSchema = Type.Object(
+const actionBase = {
+  id: IdSchema,
+  findingIds: Type.Array(IdSchema, { minItems: 1, maxItems: 4, uniqueItems: true }),
+  proposal: text(800),
+};
+// AI drafts can only propose: the owner stays blank for a person to decide.
+export const ProposedActionSchema = Type.Object(
+  { ...actionBase, status: Type.Literal('proposed'), owner: Type.Literal('') },
+  strict,
+);
+// Only a facilitator review assigns an owner (a person in the run's confirmed profile) and a
+// due date. Assignment is not completion; action-closure tracking remains out of scope.
+export const AssignedActionSchema = Type.Object(
   {
-    scope: Type.Literal('discussion-only'),
-    objectives: Type.Array(
-      Type.Object(
-        {
-          objectiveId: choice(decisions),
-          strengths: Type.Array(FindingSchema, { maxItems: 4 }),
-          areasForImprovement: Type.Array(FindingSchema, { maxItems: 4 }),
-        },
-        strict,
-      ),
-      { minItems: 3, maxItems: 3 },
-    ),
-    improvementActions: Type.Array(
-      Type.Object(
-        {
-          id: IdSchema,
-          findingIds: Type.Array(IdSchema, { minItems: 1, maxItems: 4, uniqueItems: true }),
-          proposal: text(800),
-          status: Type.Literal('proposed'),
-          owner: Type.Literal(''),
-        },
-        strict,
-      ),
-      { maxItems: 12 },
-    ),
+    ...actionBase,
+    status: Type.Literal('assigned'),
+    owner: IdSchema,
+    dueDate: Type.String({ pattern: '^\\d{4}-\\d{2}-\\d{2}$' }),
   },
   strict,
 );
+const outputProperties = <T extends TSchema>(action: T) => ({
+  scope: Type.Literal('discussion-only'),
+  objectives: Type.Array(
+    Type.Object(
+      {
+        objectiveId: choice(decisions),
+        strengths: Type.Array(FindingSchema, { maxItems: 4 }),
+        areasForImprovement: Type.Array(FindingSchema, { maxItems: 4 }),
+      },
+      strict,
+    ),
+    { minItems: 3, maxItems: 3 },
+  ),
+  improvementActions: Type.Array(action, { maxItems: 12 }),
+});
+export const AarOutputSchema = Type.Object(outputProperties(ProposedActionSchema), strict);
+export const ReviewedAarOutputSchema = Type.Object(
+  outputProperties(Type.Union([ProposedActionSchema, AssignedActionSchema])),
+  strict,
+);
 const nullableOutput = Type.Union([AarOutputSchema, Type.Null()]);
+const nullableReviewedOutput = Type.Union([ReviewedAarOutputSchema, Type.Null()]);
 export const AarRecordSchema = Type.Object(
   {
     id: IdSchema,
@@ -89,7 +101,7 @@ export const AarRecordSchema = Type.Object(
           notes: text(1500),
           actorId: IdSchema,
           recordedAt: at,
-          output: nullableOutput,
+          output: nullableReviewedOutput,
         },
         strict,
       ),
@@ -104,6 +116,8 @@ export const AarListSchema = Type.Object(
     enabled: Type.Boolean(),
     remainingCalls: Type.Integer({ minimum: 0, maximum: 3 }),
     records: Type.Array(AarViewSchema, { maxItems: 20 }),
+    // People in the run's confirmed profile who may be assigned improvement actions.
+    people: Type.Array(Type.Object({ id: IdSchema, name: text(160) }, strict), { maxItems: 150 }),
   },
   strict,
 );
@@ -123,7 +137,7 @@ export const ReviewAarSchema = Type.Object(
     expectedHash: hash,
     decision: choice(['accept', 'edit', 'reject', 'override'] as const),
     notes: text(1500),
-    output: nullableOutput,
+    output: nullableReviewedOutput,
   },
   strict,
 );
@@ -146,6 +160,8 @@ export const AarResultSchema = Type.Object(
   strict,
 );
 export type AarOutput = Static<typeof AarOutputSchema>;
+export type ReviewedAarOutput = Static<typeof ReviewedAarOutputSchema>;
+export type ImprovementAction = ReviewedAarOutput['improvementActions'][number];
 export type AarFinding = AarOutput['objectives'][number]['strengths'][number];
 export type AarRecord = Static<typeof AarRecordSchema>;
 export type AarView = Static<typeof AarViewSchema>;

@@ -20,6 +20,7 @@ import {
   validateGeneratedPlan,
   generationPrompt,
   compileGeneratedPackage,
+  objectiveCoverageProblems,
 } from '../src/server/generation-content.js';
 import { generationProfile, generationTarget, generationPlan } from './generation-fixture.js';
 import { codexOutputSchema } from '../src/server/codex-extraction.js';
@@ -513,6 +514,96 @@ test('generation proposals stay private until all exact injects are accepted and
       }),
     /under review/,
   );
+});
+test('generation objective coverage accepts the frozen package-15 action shape and blocks freezing gaps', () => {
+  // Action keys of the user-accepted package-15 (decisions at positions 2, 3 and 5).
+  const package15: [GeneratedPlan['positions'][number]['decision'], string[]][] = [
+    [null, ['establish-scope', 'preserve-evidence']],
+    ['containment', ['obtain-isolation-authority', 'record-owner-and-review-time']],
+    [
+      'minimum-continuity',
+      [
+        'select-minimum-working-set',
+        'check-dependencies',
+        'assess-deadline',
+        'record-owner-and-review-time',
+      ],
+    ],
+    [null, ['verify-recovery-source', 'distinguish-target-and-estimate']],
+    [
+      'authorised-restoration',
+      [
+        'obtain-restoration-authority',
+        'validate-engineering-integrity',
+        'verify-recovery-source',
+        'distinguish-target-and-estimate',
+        'record-owner-and-review-time',
+      ],
+    ],
+  ];
+  const shaped = generationPlan();
+  shaped.positions.forEach((position, index) => {
+    position.decision = package15[index]![0];
+    position.expectedActions = package15[index]![1] as typeof position.expectedActions;
+    position.evaluationCriteria = [...position.expectedActions];
+  });
+  assert.deepEqual(objectiveCoverageProblems(shaped), []);
+  assert.deepEqual(objectiveCoverageProblems(generationPlan()), []);
+  const misplaced = generationPlan();
+  const set = (index: number, keys: GeneratedPlan['positions'][number]['expectedActions']) => {
+    misplaced.positions[index]!.expectedActions = [...keys];
+    misplaced.positions[index]!.evaluationCriteria = [...keys];
+  };
+  set(1, ['record-owner-and-review-time']);
+  set(2, ['record-owner-and-review-time', 'select-minimum-working-set']);
+  set(3, [
+    'record-owner-and-review-time',
+    'verify-recovery-source',
+    'check-dependencies',
+    'distinguish-target-and-estimate',
+  ]);
+  assert.deepEqual(objectiveCoverageProblems(misplaced), [
+    'Positions 2-3 must evaluate check-dependencies or distinguish-target-and-estimate for the minimum-continuity objective.',
+  ]);
+
+  const gap = generationPlan();
+  gap.positions[0]!.expectedActions = ['record-owner-and-review-time', 'establish-scope'];
+  gap.positions[0]!.evaluationCriteria = ['record-owner-and-review-time', 'establish-scope'];
+  gap.positions[1]!.expectedActions = ['record-owner-and-review-time'];
+  gap.positions[1]!.evaluationCriteria = ['record-owner-and-review-time'];
+  assert.deepEqual(objectiveCoverageProblems(gap), [
+    'Position 1 (containment decision) must evaluate obtain-isolation-authority.',
+    'No position evaluates preserve-evidence.',
+    'No position evaluates check-dependencies.',
+  ]);
+  let view = acceptAll(proposed(gap));
+  assert.equal(view.draft.status, 'review');
+  assert.equal(view.coverage.length, 3);
+  assert.throws(
+    () => service.freeze(actor, view.draft.id, command(view)),
+    /Resolve objective coverage before freezing. Position 1 \(containment decision\)/,
+  );
+  const first = structuredClone(view.draft.plan!.positions[0]!);
+  first.expectedActions = generationPlan().positions[0]!.expectedActions;
+  first.evaluationCriteria = generationPlan().positions[0]!.evaluationCriteria;
+  view = service.review(actor, view.draft.id, {
+    ...command(view),
+    position: first,
+    decision: 'accepted',
+  });
+  assert.deepEqual(view.coverage, ['No position evaluates check-dependencies.']);
+  const second = structuredClone(view.draft.plan!.positions[1]!);
+  second.expectedActions = generationPlan().positions[1]!.expectedActions;
+  second.evaluationCriteria = generationPlan().positions[1]!.evaluationCriteria;
+  view = service.review(actor, view.draft.id, {
+    ...command(view),
+    position: second,
+    decision: 'accepted',
+  });
+  assert.deepEqual(view.coverage, []);
+  view = service.freeze(actor, view.draft.id, command(view));
+  assert.equal(view.draft.status, 'frozen');
+  assert.deepEqual(view.coverage, []);
 });
 test('generation edit invalidates acceptance and stale package approval', () => {
   let view = acceptAll(proposed());

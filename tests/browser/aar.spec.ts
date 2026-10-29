@@ -54,12 +54,22 @@ test('AAR draft is bound to snapshot, quoted and facilitator-reviewed with unass
     await draft
       .getByLabel('Improvement proposal 1', { exact: true })
       .fill('Document the agreed evidence requirements before the next exercise.');
+    const due = draft.getByLabel('Improvement due date 1', { exact: true });
+    await expect(due).toBeDisabled();
+    await draft.getByLabel('Improvement owner 1', { exact: true }).selectOption({ label: 'Imran' });
     await draft
       .getByLabel('AAR review rationale', { exact: true })
       .fill('Reviewed against the fixed app snapshot.');
     await expect(draft.getByRole('button', { name: 'Accept AAR', exact: true })).toBeDisabled();
-    await draft.getByRole('button', { name: 'Save AAR edits', exact: true }).click();
+    const save = draft.getByRole('button', { name: 'Save AAR edits', exact: true });
+    await expect(save).toBeDisabled();
+    await due.fill('2026-11-30');
+    await save.click();
     await expect(draft).toContainText('Facilitator-reviewed: edit');
+    const actions = draft.getByRole('region', { name: 'Proposed improvement actions' });
+    await expect(actions).toContainText('Imran');
+    await expect(actions).toContainText('2026-11-30');
+    await expect(actions).toContainText('Assigned');
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 960 });
       await draft.scrollIntoViewIfNeeded();
@@ -189,9 +199,17 @@ test('facilitator records future active-position clarification and unknown witho
     await page.getByRole('button', { name: 'Exercises', exact: true }).click();
     await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
     const panel = page.getByRole('region', { name: 'Facilitator clarification log', exact: true });
+    const record = panel.getByRole('button', { name: 'Record clarification', exact: true });
     await panel.getByLabel('Not known at this time', { exact: true }).check();
-    await panel.getByRole('button', { name: 'Record clarification', exact: true }).click();
+    await expect(record).toBeDisabled();
+    await panel
+      .getByLabel('Participant question', { exact: true })
+      .fill('Has the MSP confirmed a clean restore point?');
+    await record.click();
     await expect(panel.locator('.report-record')).toHaveCount(1);
+    await expect(panel.locator('.report-record')).toContainText(
+      'Question: Has the MSP confirmed a clean restore point?',
+    );
     await panel.getByLabel('Not known at this time', { exact: true }).uncheck();
     await panel
       .getByLabel('Clarification answer', { exact: true })
@@ -201,9 +219,17 @@ test('facilitator records future active-position clarification and unknown witho
     await panel
       .getByLabel('Confirmed claim IDs', { exact: true })
       .fill(generationProfile.environment!.claims[0]!.id);
-    await panel.getByRole('button', { name: 'Record clarification', exact: true }).click();
+    await expect(record).toBeDisabled();
+    await panel
+      .getByLabel('Participant question', { exact: true })
+      .fill('Which route do we use for the SOC?');
+    await record.click();
     await expect(panel.locator('.report-record')).toHaveCount(2);
     expect(store.clarifications.list(context.runId).every((r) => r.position === 1)).toBe(true);
+    expect(store.clarifications.list(context.runId).map((r) => r.question)).toEqual([
+      'Has the MSP confirmed a clean restore point?',
+      'Which route do we use for the SOC?',
+    ]);
     expect(context.exercises.inbox(context.player, 'technical', context.runId)).toEqual(before);
   } finally {
     store.close();

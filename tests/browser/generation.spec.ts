@@ -53,6 +53,23 @@ test('generated package review edit reject freeze at desktop and mobile widths',
       .getByText('What evidence should be preserved before disruptive action?', { exact: false })
       .first(),
   ).toBeVisible();
+  // Dropping the containment decision's own criterion blocks freezing until it is restored.
+  const criteria = page.getByLabel('evaluationCriteria', { exact: true });
+  const covered = [
+    'record-owner-and-review-time',
+    'establish-scope',
+    'preserve-evidence',
+    'obtain-isolation-authority',
+  ];
+  await criteria.selectOption(covered.slice(0, 3));
+  await page.getByRole('button', { name: 'Save edit', exact: true }).click();
+  const coverage = page.getByRole('status', { name: 'Objective coverage', exact: true });
+  await expect(coverage).toContainText(
+    'Position 1 (containment decision) must evaluate obtain-isolation-authority.',
+  );
+  await criteria.selectOption(covered);
+  await page.getByRole('button', { name: 'Save edit', exact: true }).click();
+  await expect(coverage).toHaveCount(0);
   for (let position = 0; position < 5; position++) {
     await page.getByRole('tab', { name: new RegExp(`^${position + 1}\\.`) }).click();
     await page.getByRole('button', { name: 'Accept inject', exact: true }).click();

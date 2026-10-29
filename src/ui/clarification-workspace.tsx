@@ -9,6 +9,7 @@ import {
 import type { Review } from '../contracts/exercise.js';
 import { ApiError, request } from './api.js';
 import { date } from './exercise-format.js';
+import { useUnsavedGuard } from './unsaved-guard.js';
 
 export function ClarificationWorkspace({
   review,
@@ -19,12 +20,14 @@ export function ClarificationWorkspace({
 }) {
   const root = '/api/tracks/technical/runs/' + review.run.id + '/clarifications';
   const [records, setRecords] = useState<Clarification[]>([]),
+    [question, setQuestion] = useState(''),
     [text, setText] = useState(''),
     [claims, setClaims] = useState('');
   const [unknown, setUnknown] = useState(false),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<ClarificationInput | null>(null);
+  useUnsavedGuard(!!pending || !!question.trim() || !!text.trim() || !!claims.trim());
   const release = review.releases.at(-1);
   const editable = review.run.state === 'active' && !!release;
   function failure(cause: unknown) {
@@ -48,8 +51,10 @@ export function ClarificationWorkspace({
     try {
       await request(ClarificationSchema, root, input);
       setPending(null);
+      setQuestion('');
       setText('');
       setClaims('');
+      setUnknown(false);
       await reload();
     } catch (cause) {
       if (cause instanceof ApiError && cause.status < 500) setPending(null);
@@ -72,7 +77,13 @@ export function ClarificationWorkspace({
           <p>
             Inject {r.position} / {date(r.recordedAt)} / {r.actorId}
           </p>
-          <p>{r.text}</p>
+          <p>
+            <strong>Question:</strong>{' '}
+            {r.question ?? 'Not recorded (logged before questions were stored)'}
+          </p>
+          <p>
+            <strong>Answer:</strong> {r.text}
+          </p>
           <p>
             {r.unknown ? 'Information request' : r.claimIds.join(', ')} / {r.id}
           </p>
@@ -81,6 +92,15 @@ export function ClarificationWorkspace({
       {editable && (
         <fieldset className="clarification-form" disabled={busy || !!pending}>
           <legend>Current position answer</legend>
+          <label>
+            Participant question
+            <textarea
+              rows={2}
+              maxLength={2000}
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+            />
+          </label>
           <label className="clarification-unknown">
             <input
               type="checkbox"
@@ -107,11 +127,12 @@ export function ClarificationWorkspace({
             </>
           )}
           <button
-            disabled={!unknown && (!text.trim() || !claims.trim())}
+            disabled={!question.trim() || (!unknown && (!text.trim() || !claims.trim()))}
             onClick={() =>
               void save({
                 commandId: crypto.randomUUID(),
                 releaseId: release!.id,
+                question,
                 text: unknown ? 'not known at this time' : text,
                 unknown,
                 claimIds: unknown ? [] : claims.split(/[\s,]+/).filter(Boolean),

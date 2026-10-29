@@ -112,6 +112,24 @@ export const generationTarget: PackageTarget = {
   reviewRevision: 8,
   reviewHash: '8'.repeat(64),
 };
+// Each position keeps 'record-owner-and-review-time' first and adds the actions that cover its
+// objective: decisions at positions 1 (containment), 3 (continuity) and 5 (restoration).
+const coveredActions: GeneratedPlan['positions'][number]['expectedActions'][] = [
+  [
+    'record-owner-and-review-time',
+    'establish-scope',
+    'preserve-evidence',
+    'obtain-isolation-authority',
+  ],
+  ['record-owner-and-review-time', 'check-dependencies'],
+  ['record-owner-and-review-time', 'select-minimum-working-set', 'distinguish-target-and-estimate'],
+  ['record-owner-and-review-time', 'verify-recovery-source'],
+  [
+    'record-owner-and-review-time',
+    'validate-engineering-integrity',
+    'obtain-restoration-authority',
+  ],
+];
 export function generationPlan(): GeneratedPlan {
   const claimIds = ['leadership', 'engineering', 'it'];
   return {
@@ -153,8 +171,8 @@ export function generationPlan(): GeneratedPlan {
         evidence: [{ claimId: claimIds[roleIndex]!, status: 'fact' }],
         questions: ['record-owner-and-review-time'],
       })),
-      expectedActions: ['record-owner-and-review-time'],
-      evaluationCriteria: ['record-owner-and-review-time'],
+      expectedActions: [...coveredActions[index]!],
+      evaluationCriteria: [...coveredActions[index]!],
       facilitatorNotes: [
         'simulation-only',
         'no-agent-alert',

@@ -153,6 +153,56 @@ test('facilitator captures immutable cited reports after review; participant can
   }
 });
 
+test('facilitator records a debrief that only a later snapshot includes', async ({
+  page,
+  exerciseServer,
+}, testInfo) => {
+  const store = new Store(join(exerciseServer, 'ttx.sqlite'));
+  try {
+    const context = prepareInterpretationRun(store, true);
+    await login(page, 'facilitator');
+    await page.getByRole('button', { name: 'Exercises', exact: true }).click();
+    await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
+    await page.getByRole('tab', { name: 'Record report', exact: true }).click();
+    await page.getByRole('button', { name: 'Capture record snapshot', exact: true }).click();
+    const report = page.getByRole('article', { name: 'Fixed app-record report' });
+    await expect(report).toBeVisible();
+    const debrief = page.getByRole('region', { name: 'Debrief', exact: true });
+    const record = debrief.getByRole('button', { name: 'Record debrief', exact: true });
+    const feedback = debrief.getByLabel('Participant feedback (your summary)', { exact: true });
+    const design = 'No simulated supplier reply carried restore-test evidence.';
+    await expect(record).toBeDisabled();
+    await feedback.fill('Players wanted supplier restore evidence before deciding.');
+    await expect(record).toBeDisabled();
+    await debrief.getByLabel('Internal IT', { exact: true }).check();
+    await debrief.getByLabel('Exercise design limitations', { exact: true }).fill(design);
+    await record.click();
+    await expect(debrief.locator('.report-record')).toHaveCount(1);
+    await expect(debrief.locator('.report-record')).toContainText('Participants: Internal IT');
+    await expect(feedback).toHaveValue('');
+    // The captured snapshot is fixed; the debrief appears only in a new capture.
+    await expect(report.getByText(design)).toHaveCount(0);
+    await page.getByRole('button', { name: 'Capture record snapshot', exact: true }).click();
+    const section = report.getByRole('region', { name: 'Post-exercise debrief', exact: true });
+    await expect(section).toContainText(design);
+    await report.getByRole('tab', { name: 'Timeline', exact: true }).click();
+    await expect(
+      report.getByRole('region', { name: 'Exercise event records', exact: true }),
+    ).not.toContainText(design);
+    await expect(section).toContainText(design);
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 960 });
+      await debrief.scrollIntoViewIfNeeded();
+      await fits(page);
+      await page.screenshot({ path: testInfo.outputPath('debrief-' + width + '.png') });
+    }
+    expect(store.debriefs.list(context.runId)).toHaveLength(1);
+    expect(store.recordReports.list(context.runId, context.actor.id)).toHaveLength(2);
+  } finally {
+    store.close();
+  }
+});
+
 test('lost snapshot response retries the exact capture without creating a duplicate', async ({
   page,
   exerciseServer,

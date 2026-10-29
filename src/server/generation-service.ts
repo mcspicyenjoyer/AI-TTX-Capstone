@@ -17,6 +17,7 @@ import { contentHash, fingerprint } from './integrity.js';
 import { readStored } from './validation.js';
 import {
   compileGeneratedPackage,
+  objectiveCoverageProblems,
   sameBinding,
   validateGeneratedPlan,
 } from './generation-content.js';
@@ -103,7 +104,9 @@ export class GenerationService {
         : draft.plan
           ? compileGeneratedPackage(draft, profile)
           : null;
-    return { ...saved, preview };
+    const coverage =
+      draft.status !== 'frozen' && draft.plan ? objectiveCoverageProblems(draft.plan) : [];
+    return { ...saved, preview, coverage };
   }
 
   private replay(actor: Actor, commandId: string, hash: string): PackageDraftView | null {
@@ -322,6 +325,9 @@ export class GenerationService {
       const { draft } = this.editable(actor, id, input);
       if (draft.reviews.length !== 5 || draft.reviews.some((decision) => decision !== 'accepted'))
         conflict('Review and accept all five exact injects before freezing the package.');
+      const coverage = objectiveCoverageProblems(draft.plan!);
+      if (coverage.length)
+        conflict(('Resolve objective coverage before freezing. ' + coverage[0]).slice(0, 300));
       const next: PackageDraft = {
         ...draft,
         revision: draft.revision + 1,

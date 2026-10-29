@@ -21,7 +21,7 @@ import {
   type Proposal,
 } from '../src/contracts/intake.js';
 import type { Actor } from '../src/contracts/profile.js';
-import { diagram, docxBase64, pdfFixture } from './intake-fixtures.js';
+import { diagram, docx, docxBase64, pdfFixture } from './intake-fixtures.js';
 
 const actor: Actor = { id: 'reviewer', role: 'facilitator', displayName: 'Synthetic reviewer' };
 const other: Actor = { id: 'other', role: 'facilitator', displayName: 'Other reviewer' };
@@ -123,6 +123,38 @@ test('DOCX body paragraphs and table rows have stable locators and preserve prop
   assert.equal(parsed.units[1]!.text, 'RPO | 1 hour; feasibility unverified.');
   await assert.rejects(
     parseSource({ format: 'docx', content: Buffer.from('not a zip').toString('base64') }),
+  );
+});
+test('DOCX content controls and custom XML keep their text; unsupported body text fails explicitly', async () => {
+  const text = (value: string) => `<w:p><w:r><w:t>${value}</w:t></w:r></w:p>`;
+  const cell = (value: string) => `<w:tc>${text(value)}</w:tc>`;
+  const control = (content: string) =>
+    `<w:sdt><w:sdtPr><w:alias w:val="Plan field"/></w:sdtPr><w:sdtContent>${content}</w:sdtContent></w:sdt>`;
+  const parsed = await parseSource({
+    format: 'docx',
+    content: docx(
+      control(text('Restoration needs the documented approval.')) +
+        text('Ordinary paragraph.') +
+        `<w:tbl><w:tblPr/>${control(`<w:tr>${cell('RTO')}${control(cell('4 hours'))}</w:tr>`)}</w:tbl>` +
+        `<w:customXml w:element="plan"><w:customXmlPr/>${text('Custom XML paragraph.')}</w:customXml>` +
+        '<w:bookmarkStart w:id="0" w:name="end"/><w:sectPr/>',
+    ),
+  });
+  assert.deepEqual(
+    parsed.units.map((unit) => [unit.locator, unit.text]),
+    [
+      ['word/document.xml; paragraph 1', 'Restoration needs the documented approval.'],
+      ['word/document.xml; paragraph 2', 'Ordinary paragraph.'],
+      ['word/document.xml; table 1; row 1', 'RTO | 4 hours'],
+      ['word/document.xml; paragraph 3', 'Custom XML paragraph.'],
+    ],
+  );
+  await assert.rejects(
+    parseSource({
+      format: 'docx',
+      content: docx('<m:oMathPara><m:oMath><m:r><m:t>RTO = 4</m:t></m:r></m:oMath></m:oMathPara>'),
+    }),
+    /Unsupported DOCX body content contains text/,
   );
 });
 test('PDF text is page-linked; no-text and invalid PDFs fail explicitly without OCR claims', async () => {
@@ -261,6 +293,97 @@ test('accepted service recovery proposals, explicit conflict and unknown control
       ['proposal', null],
       ['proposal', 4],
       ['unknown', null],
+      ['conflict', null],
+    ],
+  );
+});
+test('confirmation refuses contradictory accepted values unless a conflict claim records them', async (t) => {
+  const { service } = setup(t);
+  let view = await network(service);
+  view = await service.upload(actor, view.draft.id, {
+    ...command(view),
+    title: 'BCP',
+    version: '1',
+    kind: 'bcp',
+    format: 'docx',
+    content: docxBase64,
+    synthetic: true,
+  });
+  const source = view.draft.sources[1]!;
+  const evidence = [
+    { sourceId: source.id, locator: source.units[0]!.locator, excerpt: source.units[0]!.text },
+  ];
+  const server = view.draft.entities[0]!;
+  const claim = (
+    id: string,
+    subjectId: string,
+    predicate: 'rto-hours' | 'restore-tested',
+    status: 'proposal' | 'fact' | 'unknown' | 'conflict',
+    value: number | boolean | null,
+  ) => ({
+    id,
+    subjectId,
+    predicate,
+    objectId: null,
+    value,
+    status,
+    explanation: 'Synthetic reconciliation case.',
+    evidence: status === 'unknown' ? [] : evidence,
+    review: 'accepted' as const,
+  });
+  const base = reviewed(view);
+  base.entities.push({
+    id: 'engineering',
+    kind: 'service',
+    name: 'Engineering service',
+    evidence,
+    review: 'accepted',
+  });
+  base.claims.push(
+    claim('rto-four', 'engineering', 'rto-hours', 'proposal', 4),
+    claim('rto-eight', 'engineering', 'rto-hours', 'proposal', 8),
+  );
+  view = service.review(actor, view.draft.id, base);
+  assert.match(
+    view.questions[0]!,
+    /^Engineering service rto-hours: accepted values 4 and 8 disagree/,
+  );
+  const confirm = () =>
+    service.confirm(actor, view.draft.id, { ...command(view), acknowledgeUncertainties: true });
+  assert.throws(confirm, /accepted values 4 and 8 disagree/);
+  const tested = claim('tested', server.id, 'restore-tested', 'fact', true);
+  const untested = claim('untested', server.id, 'restore-tested', 'unknown', null);
+  view = service.review(actor, view.draft.id, {
+    ...base,
+    ...command(view),
+    claims: [
+      ...base.claims.map((item) =>
+        item.id === 'rto-eight' ? { ...item, review: 'rejected' as const } : item,
+      ),
+      tested,
+      untested,
+    ],
+  });
+  assert.throws(confirm, /File server restore-tested: accepted as both a fact and unknown/);
+  view = service.review(actor, view.draft.id, {
+    ...base,
+    ...command(view),
+    claims: [
+      ...base.claims,
+      tested,
+      { ...untested, review: 'rejected' as const },
+      claim('rto-conflict', 'engineering', 'rto-hours', 'conflict', null),
+    ],
+  });
+  assert.ok(!view.questions.some((question) => question.includes('disagree')));
+  const result = confirm();
+  assert.deepEqual(
+    result.profile.profile
+      .environment!.claims.filter((item) => item.predicate === 'rto-hours')
+      .map((item) => [item.status, item.value]),
+    [
+      ['proposal', 4],
+      ['proposal', 8],
       ['conflict', null],
     ],
   );
@@ -499,11 +622,11 @@ test('v4 to v6 additive migration preserves fixture bytes and rejects stored int
   const fixture = store.profile('example-sme-01', 'profile-r1');
   const db = new DatabaseSync(path);
   db.exec(
-    'DROP TABLE aar_revisions; DROP TABLE clarification_records; DROP TABLE record_reports; DROP TABLE interpretation_revisions; DROP TABLE package_draft_commands; DROP TABLE package_draft_history; DROP TABLE package_drafts; DROP TABLE extraction_jobs; DROP TABLE extraction_worker; DROP TABLE intake_receipts; DROP TABLE intake_revisions; DROP TABLE intakes; PRAGMA user_version = 4;',
+    'DROP TABLE run_debriefs; DROP TABLE aar_revisions; DROP TABLE clarification_records; DROP TABLE record_reports; DROP TABLE interpretation_revisions; DROP TABLE package_draft_commands; DROP TABLE package_draft_history; DROP TABLE package_drafts; DROP TABLE extraction_jobs; DROP TABLE extraction_worker; DROP TABLE intake_receipts; DROP TABLE intake_revisions; DROP TABLE intakes; PRAGMA user_version = 4;',
   );
   const migrated = new Store(path);
   try {
-    assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 10);
+    assert.equal(db.prepare('PRAGMA user_version').get()!.user_version, 11);
     assert.deepEqual(migrated.profile('example-sme-01', 'profile-r1'), fixture);
     const view = create(service);
     db.prepare(

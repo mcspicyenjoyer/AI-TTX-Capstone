@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useUnsavedGuard } from './unsaved-guard.js';
 import { CheckCircle2, RefreshCw, TriangleAlert } from 'lucide-react';
 import type { Actor } from '../contracts/profile.js';
 import { CompletionSchema, type ResponseView } from '../contracts/outcomes.js';
@@ -59,6 +60,7 @@ export function OutcomeWorkspace({
     onSessionExpired,
   );
   const [rationale, setRationale] = useState('');
+  useUnsavedGuard(!!rationale.trim());
   const disabled = blocked || busy || !!pending || !!error;
   return (
     <section className="run-section outcomes" aria-label="Responses and outcomes">

@@ -10,6 +10,7 @@ import {
 import { ApiError, request } from './api.js';
 import { date } from './exercise-format.js';
 import { AarWorkspace } from './aar-workspace.js';
+import { DebriefWorkspace } from './debrief-workspace.js';
 
 const titles: Record<ReportRecord['kind'], string> = {
   boundary: 'Snapshot boundaries',
@@ -24,6 +25,7 @@ const titles: Record<ReportRecord['kind'], string> = {
   activity: 'Activity',
   interpretation: 'Reviewed interpretation',
   clarification: 'Facilitator clarification',
+  debrief: 'Debrief',
 };
 
 function Citation({ id }: { id: string }) {
@@ -92,6 +94,22 @@ function RecordDetail({ record }: { record: ReportRecord }) {
   );
 }
 
+// Debriefs follow completion; they are post-exercise records, not exercise events.
+function DebriefRecords({ report }: { report: RecordReportView['report'] }) {
+  const records = report.records.filter((r) => r.kind === 'debrief');
+  if (!records.length) return null;
+  return (
+    <section aria-label="Post-exercise debrief">
+      <h3>
+        Post-exercise debrief <Citation id={report.id} />
+      </h3>
+      {records.map((r) => (
+        <RecordDetail key={r.id} record={r} />
+      ))}
+    </section>
+  );
+}
+
 function Report({ view }: { view: RecordReportView }) {
   const { report } = view;
   const [tab, setTab] = useState<'objectives' | 'timeline'>('objectives');
@@ -133,7 +151,7 @@ function Report({ view }: { view: RecordReportView }) {
           </h3>
           <section aria-label="Exercise event records">
             {report.timeline
-              .filter((id) => byId.get(id)!.kind !== 'interpretation')
+              .filter((id) => !['interpretation', 'debrief'].includes(byId.get(id)!.kind))
               .map((id) => (
                 <RecordDetail key={id} record={byId.get(id)!} />
               ))}
@@ -150,6 +168,7 @@ function Report({ view }: { view: RecordReportView }) {
                 ))}
             </section>
           )}
+          <DebriefRecords report={report} />
         </section>
       ) : (
         <>
@@ -199,6 +218,7 @@ function Report({ view }: { view: RecordReportView }) {
                 <RecordDetail key={r.id} record={r} />
               ))}
           </section>
+          <DebriefRecords report={report} />
         </>
       )}
     </article>
@@ -207,9 +227,11 @@ function Report({ view }: { view: RecordReportView }) {
 
 export function RecordReportWorkspace({
   runId,
+  participants,
   onSessionExpired,
 }: {
   runId: string;
+  participants: { actorId: string; displayName: string }[];
   onSessionExpired: () => void;
 }) {
   const root = '/api/tracks/technical/runs/' + runId + '/record-reports';
@@ -263,6 +285,11 @@ export function RecordReportWorkspace({
 
   return (
     <section className="record-report-workspace" aria-label="Record report workspace">
+      <DebriefWorkspace
+        runId={runId}
+        participants={participants}
+        onSessionExpired={onSessionExpired}
+      />
       <div className="run-actions">
         <button
           className="primary"

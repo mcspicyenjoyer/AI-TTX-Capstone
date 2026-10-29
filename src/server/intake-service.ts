@@ -18,7 +18,7 @@ import { Store } from './storage.js';
 import { AppError } from './errors.js';
 import { fingerprint } from './integrity.js';
 import { readStored } from './validation.js';
-import { validateProposal } from './organisation-validation.js';
+import { scalarContradictions, validateProposal } from './organisation-validation.js';
 import { parseInWorker } from './intake-parser.js';
 
 // Offline tests inject this interface; live subscription extraction uses the durable worker queue.
@@ -56,7 +56,11 @@ export class IntakeService {
     const result = this.store.intakes.get(id, revision);
     if (!result) throw new AppError(404, 'NOT_FOUND', 'Preparation draft not found.');
     const { draft } = result;
-    const questions: string[] = [];
+    // Contradictions block confirmation, so they come first.
+    const questions: string[] = scalarContradictions(
+      draft.entities,
+      draft.claims.filter((item) => item.review === 'accepted'),
+    ).map((question) => question.slice(0, 500));
     if (!draft.sources.some((source) => source.kind === 'network'))
       questions.push('Which supported diagram describes the organisation network?');
     for (const [kind, question] of [
@@ -472,6 +476,14 @@ export class IntakeService {
         if (!entities.length || !claims.length)
           invalid(
             'Confirm at least one sourced entity and claim; do not invent information to fill gaps.',
+          );
+        const contradictions = scalarContradictions(entities, claims);
+        if (contradictions.length)
+          invalid(
+            (
+              contradictions[0]! +
+              (contradictions.length > 1 ? ` ${contradictions.length - 1} more remain.` : '')
+            ).slice(0, 300),
           );
         const profile: Profile = {
           profileId: draft.id,

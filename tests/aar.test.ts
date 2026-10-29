@@ -19,6 +19,7 @@ import { fakeAar } from './aar-fixture.js';
 import { findingDefault } from '../src/ui/aar-draft.js';
 import type { RecordReportView } from '../src/contracts/record-report.js';
 import type { AarOutput, AarView } from '../src/contracts/aar.js';
+import type { Clarification } from '../src/contracts/clarification.js';
 
 let directory: string,
   app: FastifyInstance,
@@ -229,6 +230,35 @@ test('AAR rejects false attribution, unsupported gap origins, execution fields a
   assert.throws(() => validateAar(output, snapshot), /attribution/);
   finding.category = 'facilitator-observation';
   assert.deepEqual(validateAar(output, snapshot), output);
+});
+test('only a facilitator review assigns owners: a confirmed person with a real due date', () => {
+  const output = fakeAar(snapshot);
+  const assigned = {
+    ...output.improvementActions[0]!,
+    status: 'assigned' as const,
+    owner: 'imran',
+    dueDate: '2026-11-30',
+  };
+  // An AI draft can never assign ownership, even to a confirmed person.
+  assert.throws(() => validateAar({ ...output, improvementActions: [assigned] }, snapshot));
+  request();
+  finish();
+  const list = service.list(context.actor, context.runId);
+  assert.deepEqual(list.people.map((person) => person.id).sort(), ['ethan', 'imran', 'nadia']);
+  const view = list.records.at(-1)!;
+  for (const change of [
+    { owner: 'invented-person' },
+    { owner: 'msp' },
+    { dueDate: '2026-02-30' },
+    { dueDate: '' },
+  ])
+    assert.throws(
+      () => review(view, 'edit', { ...output, improvementActions: [{ ...assigned, ...change }] }),
+      /action ownership/,
+    );
+  const saved = review(view, 'edit', { ...output, improvementActions: [assigned] });
+  assert.deepEqual(saved.record.review!.output!.improvementActions[0], assigned);
+  assert.equal(saved.record.proposal!.improvementActions[0]!.owner, '');
 });
 test('AAR distinguishes supported profile gaps from missing provenance and keeps unknown origins explicit', () => {
   const sample = structuredClone(snapshot),
@@ -445,7 +475,9 @@ test('v9 migration preserves the exact captured bytes and completed evidence', (
   const before = sourceRows();
   store.close();
   database((db) =>
-    db.exec('DROP TABLE aar_revisions; DROP TABLE clarification_records; PRAGMA user_version=9;'),
+    db.exec(
+      'DROP TABLE run_debriefs; DROP TABLE aar_revisions; DROP TABLE clarification_records; PRAGMA user_version=9;',
+    ),
   );
   store = new Store(join(directory, 'ttx.sqlite'));
   service = new AarService(store, true);
@@ -453,7 +485,7 @@ test('v9 migration preserves the exact captured bytes and completed evidence', (
   assert.deepEqual(store.recordReports.get(snapshot.report.id), snapshot);
   assert.equal(
     database((db) => db.prepare('PRAGMA user_version').get()!.user_version),
-    10,
+    11,
   );
 });
 test('future clarification logging requires current open release and bound claims; no completed trial backfill or delivery', () => {
@@ -461,6 +493,7 @@ test('future clarification logging requires current open release and bound claim
   const input = {
     commandId: randomUUID(),
     releaseId: context.release.id,
+    question: 'Has the MSP confirmed a clean restore point?',
     text: 'not known at this time',
     claimIds: [],
     unknown: true,
@@ -472,6 +505,7 @@ test('future clarification logging requires current open release and bound claim
     before = future.outcomes.review(future.actor, 'technical', future.runId);
   const unknown = clarifications.record(future.actor, future.runId, base);
   assert.equal(unknown.unknown, true);
+  assert.equal(unknown.question, 'Has the MSP confirmed a clean restore point?');
   assert.deepEqual(clarifications.record(future.actor, future.runId, base), unknown);
   assert.throws(
     () => clarifications.record(future.player, future.runId, { ...base, commandId: randomUUID() }),
@@ -515,12 +549,56 @@ test('future clarification logging requires current open release and bound claim
     /active/,
   );
 });
+test('clarification API requires the participant question; an older record without one stays readable', async () => {
+  const future = prepareInterpretationRun(store);
+  const headers = { host: '127.0.0.1:3000', origin: 'http://127.0.0.1:3000' };
+  const code = JSON.parse(readFileSync(join(directory, 'demo-access.json'), 'utf8')).facilitator;
+  const signed = await app.inject({
+    method: 'POST',
+    url: '/api/session',
+    headers,
+    payload: { username: 'facilitator', accessCode: code },
+  });
+  const auth = { ...headers, cookie: signed.cookies.map((c) => c.name + '=' + c.value).join('; ') };
+  const url = '/api/tracks/technical/runs/' + future.runId + '/clarifications';
+  const payload = {
+    commandId: randomUUID(),
+    releaseId: future.release.id,
+    text: 'not known at this time',
+    claimIds: [],
+    unknown: true,
+  };
+  for (const body of [payload, { ...payload, question: '   ' }])
+    assert.equal(
+      (await app.inject({ method: 'POST', url, headers: auth, payload: body })).statusCode,
+      400,
+    );
+  assert.equal(store.clarifications.list(future.runId).length, 0);
+  const saved = await app.inject({
+    method: 'POST',
+    url,
+    headers: auth,
+    payload: { ...payload, question: 'Who approves server isolation?' },
+  });
+  assert.equal(saved.statusCode, 200, saved.body);
+  // Simulate a record stored before questions were recorded.
+  const legacy = JSON.parse(saved.body) as Clarification;
+  delete legacy.question;
+  store.clarifications.save({ ...legacy, id: 'clarification-legacy', commandId: randomUUID() });
+  const listed = await app.inject({ url, headers: auth });
+  assert.equal(listed.statusCode, 200, listed.body);
+  const records = JSON.parse(listed.body) as Clarification[];
+  assert.equal(records[0]!.question, 'Who approves server isolation?');
+  assert.equal(records[1]!.id, 'clarification-legacy');
+  assert.equal(records[1]!.question, undefined);
+});
 test('future clarification answers appear as cited timeline records in their completed snapshot only', () => {
   const service = new ClarificationService(store);
   const future = prepareInterpretationRun(store, true, (runId, releaseId) => {
     service.record(context.actor, runId, {
       commandId: randomUUID(),
       releaseId,
+      question: 'What evidence shows the scope?',
       text: 'not known at this time',
       unknown: true,
       claimIds: [],
@@ -535,6 +613,10 @@ test('future clarification answers appear as cited timeline records in their com
   assert.equal(answers.length, 5);
   for (const answer of answers) {
     assert(captured.report.timeline.includes(answer.id));
+    assert.equal(
+      answer.fields.find((f) => f.label === 'question')!.value,
+      'What evidence shows the scope?',
+    );
     assert.equal(answer.fields.find((f) => f.label === 'text')!.value, 'not known at this time');
     assert(answer.fields.every((f) => f.citations.includes(answer.id)));
   }

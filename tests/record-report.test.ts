@@ -297,6 +297,28 @@ test('report requires a complete frozen run and does not silently publish partia
   assert.equal(service.list(context.actor, context.runId).length, 0);
 });
 
+test('report includes every Step 0 check, not only the latest 100 shown on screen', () => {
+  const first = store.exercises.step0Checks(context.runId)[0]!;
+  // A long correction history is unusual; this checks the report cannot truncate it.
+  for (let index = 0; index < 100; index++)
+    store.exercises.saveStep0({
+      ...first,
+      id: `step0-extra-${index}`,
+      rationale: `Synthetic historical check ${index}.`,
+    });
+  assert.equal(store.exercises.step0Checks(context.runId).length, 100);
+  const all = store.exercises.step0Checks(context.runId, true);
+  assert.equal(all.length, 101);
+  const recorded = capture()
+    .report.records.filter((record) => record.kind === 'step0')
+    .map((record) => record.id);
+  assert.deepEqual(
+    recorded,
+    all.map((check) => check.id),
+  );
+  assert.equal(recorded[0], first.id);
+});
+
 test('report API is facilitator-only, owner/run-bound and rejects client-supplied report content', async () => {
   const view = capture(),
     base = '/api/tracks/technical/runs/' + context.runId + '/record-reports';
@@ -352,14 +374,14 @@ test('v8 to current adds snapshot storage without altering completed runs or pen
   store.close();
   database((db) =>
     db.exec(
-      'DROP TABLE aar_revisions; DROP TABLE clarification_records; DROP TABLE record_reports; PRAGMA user_version=8;',
+      'DROP TABLE run_debriefs; DROP TABLE aar_revisions; DROP TABLE clarification_records; DROP TABLE record_reports; PRAGMA user_version=8;',
     ),
   );
   store = new Store(join(directory, 'ttx.sqlite'));
   service = new RecordReportService(store);
   assert.equal(
     database((db) => db.prepare('PRAGMA user_version').get()!.user_version),
-    10,
+    11,
   );
   assert.deepEqual(sourceRows(), before);
   assert.equal(capture().report.records.filter((r) => r.kind === 'interpretation').length, 0);

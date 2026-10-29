@@ -723,32 +723,45 @@ export function PackageWorkspace({
                 Exercises.
               </p>
             ) : (
-              <button
-                className="primary"
-                disabled={
-                  disabled ||
-                  unsaved ||
-                  view.draft.reviews.some((decision) => decision !== 'accepted')
-                }
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      'Approve and freeze this exact package? Further edits will not be permitted. Participants still require Step 0 and explicit per-position release.',
+              <>
+                {view.coverage.length > 0 && (
+                  <div className="run-notice" role="status" aria-label="Objective coverage">
+                    <strong>Objective coverage must be resolved before freezing</strong>
+                    <ul>
+                      {view.coverage.map((problem) => (
+                        <li key={problem}>{problem}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <button
+                  className="primary"
+                  disabled={
+                    disabled ||
+                    unsaved ||
+                    view.coverage.length > 0 ||
+                    view.draft.reviews.some((decision) => decision !== 'accepted')
+                  }
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        'Approve and freeze this exact package? Further edits will not be permitted. Participants still require Step 0 and explicit per-position release.',
+                      )
                     )
-                  )
-                    void send({
-                      url: `/api/packages/${view.draft.id}/freeze`,
-                      body: {
-                        commandId: crypto.randomUUID(),
-                        expectedRevision: view.draft.revision,
-                        expectedHash: view.hash,
-                      },
-                    });
-                }}
-              >
-                <LockKeyhole size={17} />
-                Approve and freeze package
-              </button>
+                      void send({
+                        url: `/api/packages/${view.draft.id}/freeze`,
+                        body: {
+                          commandId: crypto.randomUUID(),
+                          expectedRevision: view.draft.revision,
+                          expectedHash: view.hash,
+                        },
+                      });
+                  }}
+                >
+                  <LockKeyhole size={17} />
+                  Approve and freeze package
+                </button>
+              </>
             )}
           </section>
         </>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useUnsavedGuard } from './unsaved-guard.js';
 import { Check, CheckCircle2, RefreshCw } from 'lucide-react';
 import type { Run } from '../contracts/exercise.js';
 import {
@@ -34,6 +35,7 @@ export function DispositionForm({
     draft.responseId !== (position.response?.id ?? null);
   const latest = position.dispositions.at(-1);
   const dirty = !!draft.observations || !!draft.unresolvedGaps || draft.decision !== 'reviewed';
+  useUnsavedGuard(dirty || !!rationale.trim());
   return (
     <fieldset className="step0-form" disabled={disabled}>
       <legend>Facilitator review</legend>

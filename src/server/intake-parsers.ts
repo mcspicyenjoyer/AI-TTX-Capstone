@@ -48,6 +48,27 @@ function visit(
     visit(children(node, tag), fn, node, depth + 1);
   }
 }
+// Word content controls (w:sdt) and custom XML wrap ordinary paragraphs, table rows or cells.
+// Read through the wrapper so their text is not silently dropped; properties hold no content.
+function unwrapDocx(nodes: Ordered[], depth = 0): Ordered[] {
+  if (depth > 20) throw new Error('Document nesting exceeds the supported limit.');
+  return nodes.flatMap((node) => {
+    const tag = tagOf(node);
+    if (tag === 'w:sdt')
+      return unwrapDocx(
+        children(node, tag)
+          .filter((item) => tagOf(item) === 'w:sdtContent')
+          .flatMap((item) => children(item, 'w:sdtContent')),
+        depth + 1,
+      );
+    if (tag === 'w:customXml')
+      return unwrapDocx(
+        children(node, tag).filter((item) => tagOf(item) !== 'w:customXmlPr'),
+        depth + 1,
+      );
+    return [node];
+  });
+}
 function textOf(nodes: Ordered[]): string {
   let text = '';
   visit(nodes, (tag, node) => {
@@ -225,20 +246,23 @@ async function docx(bytes: Buffer): Promise<{ units: SourceUnit[]; warnings: str
   const add = (locator: string, text: string) => {
     if (text) units.push({ id: `unit-${units.length + 1}`, locator, text, kind: 'text' });
   };
-  for (const node of body) {
+  for (const node of unwrapDocx(body)) {
     const tag = tagOf(node);
     if (tag === 'w:p')
       add(`word/document.xml; paragraph ${++paragraph}`, textOf(children(node, tag)));
-    if (tag === 'w:tbl') {
+    else if (tag === 'w:tbl') {
       table++;
       let row = 0;
-      for (const tr of children(node, tag).filter((item) => tagOf(item) === 'w:tr')) {
-        const cells = children(tr, 'w:tr')
+      for (const tr of unwrapDocx(children(node, tag)).filter((item) => tagOf(item) === 'w:tr')) {
+        const cells = unwrapDocx(children(tr, 'w:tr'))
           .filter((item) => tagOf(item) === 'w:tc')
           .map((cell) => textOf(children(cell, 'w:tc')));
         add(`word/document.xml; table ${table}; row ${++row}`, cells.join(' | '));
       }
-    }
+    } else if (textOf(children(node, tag)))
+      throw new Error(
+        'Unsupported DOCX body content contains text. Convert it to ordinary paragraphs or tables before importing.',
+      );
   }
   return {
     units: bounded(units),

@@ -7,6 +7,7 @@ import { ParticipantExercise } from './participant-exercise.js';
 import { OutcomeWorkspace } from './outcome-workspace.js';
 import { RecordReportWorkspace } from './record-report-workspace.js';
 import { ClarificationWorkspace } from './clarification-workspace.js';
+import { useCanLeave, useUnsavedGuard } from './unsaved-guard.js';
 
 export function ExerciseWorkspace({
   actor,
@@ -17,6 +18,7 @@ export function ExerciseWorkspace({
 }) {
   const vm = useExerciseWorkspace(actor, onSessionExpired);
   const [tab, setTab] = useState<'run' | 'report'>('run');
+  const canLeave = useCanLeave();
   const {
     disabled,
     editing,
@@ -34,6 +36,7 @@ export function ExerciseWorkspace({
     review,
     briefing,
   } = vm;
+  useUnsavedGuard(editing.current);
   return (
     <section className="exercise-workspace">
       <div className="page-heading">
@@ -102,6 +105,7 @@ export function ExerciseWorkspace({
             value={selected}
             disabled={disabled || editing.current}
             onChange={(event) => {
+              if (!canLeave()) return;
               setTab('run');
               clearStep0();
               void reload(event.target.value);
@@ -178,6 +182,7 @@ export function ExerciseWorkspace({
             <RecordReportWorkspace
               key={selected}
               runId={review.run.id}
+              participants={review.members.filter((member) => member.kind === 'participant')}
               onSessionExpired={onSessionExpired}
             />
           )}

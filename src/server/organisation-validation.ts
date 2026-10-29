@@ -65,6 +65,47 @@ export function validateEnvironment(entities: Entity[], claims: Claim[]): void {
   }
 }
 
+// A subject has one value for these attributes. Different accepted values, or a value that is
+// also recorded as unknown, need an explicit conflict claim rather than silent confirmation.
+export const singleValuePredicates = new Set([
+  'quantity',
+  'rto-hours',
+  'rpo-hours',
+  'recovery-priority',
+  'mfa',
+  'backup-isolation',
+  'restore-tested',
+]);
+
+export function scalarContradictions(entities: Entity[], claims: Claim[]): string[] {
+  const groups = new Map<string, Claim[]>();
+  for (const claim of claims.filter((item) => singleValuePredicates.has(item.predicate))) {
+    const key = JSON.stringify([claim.subjectId, claim.predicate]);
+    groups.set(key, [...(groups.get(key) ?? []), claim]);
+  }
+  const problems: string[] = [];
+  for (const group of groups.values()) {
+    if (group.some((claim) => claim.status === 'conflict')) continue;
+    const { subjectId, predicate } = group[0]!;
+    const subject = entities.find((entity) => entity.id === subjectId)?.name ?? subjectId;
+    const values = [
+      ...new Set(group.flatMap((claim) => (claim.value === null ? [] : [claim.value]))),
+    ];
+    if (values.length > 1)
+      problems.push(
+        `${subject} ${predicate}: accepted values ${values.slice(0, 4).map(String).join(' and ')} disagree. Reject or correct one, or accept a conflict claim.`,
+      );
+    else if (
+      group.some((claim) => claim.status === 'fact') &&
+      group.some((claim) => claim.status === 'unknown')
+    )
+      problems.push(
+        `${subject} ${predicate}: accepted as both a fact and unknown. Reject one, or accept a conflict claim.`,
+      );
+  }
+  return problems;
+}
+
 export function validateEvidence(evidence: Evidence[], sources: IntakeSource[]): void {
   for (const reference of evidence) {
     const source = sources.find((item) => item.id === reference.sourceId);

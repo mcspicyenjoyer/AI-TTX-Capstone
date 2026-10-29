@@ -160,7 +160,13 @@ export const PackageDraftSchema = Type.Object(
   strict,
 );
 export const PackageDraftViewSchema = Type.Object(
-  { draft: PackageDraftSchema, hash, preview: Type.Union([PackageSchema, Type.Null()]) },
+  {
+    draft: PackageDraftSchema,
+    hash,
+    preview: Type.Union([PackageSchema, Type.Null()]),
+    // Objective coverage problems that block freezing; empty when frozen or without a plan.
+    coverage: Type.Array(Type.String({ minLength: 1, maxLength: 300 }), { maxItems: 20 }),
+  },
   strict,
 );
 export const GenerationContextSchema = Type.Object(

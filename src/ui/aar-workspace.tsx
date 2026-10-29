@@ -6,13 +6,15 @@ import {
   AarViewSchema,
   findingCategories,
   type AarFinding,
-  type AarOutput,
   type AarView,
+  type ImprovementAction,
+  type ReviewedAarOutput,
 } from '../contracts/aar.js';
 import type { RecordReportView } from '../contracts/record-report.js';
 import { findingDefault } from './aar-draft.js';
 import { ApiError, request } from './api.js';
 import { date } from './exercise-format.js';
+import { useUnsavedGuard } from './unsaved-guard.js';
 
 const categoryLabels: Record<AarFinding['category'], string> = {
   'team-decision': 'Team decisions',
@@ -176,19 +178,29 @@ function Finding({
     </div>
   );
 }
+type Person = { id: string; name: string };
+// Assigning an owner needs a due date; clearing the owner returns the action to a proposal.
+function withOwner(action: ImprovementAction, owner: string, dueDate: string): ImprovementAction {
+  const { id, findingIds, proposal } = action;
+  return owner
+    ? { id, findingIds, proposal, status: 'assigned', owner, dueDate }
+    : { id, findingIds, proposal, status: 'proposed', owner: '' };
+}
 function AarReview({
   view,
   snapshot,
+  people,
   disabled,
   submit,
 }: {
   view: AarView;
   snapshot: RecordReportView;
+  people: Person[];
   disabled: boolean;
   submit: (suffix: string, body: Record<string, unknown>) => void;
 }) {
   const record = view.record;
-  const initial: AarOutput = record.review?.output ??
+  const initial: ReviewedAarOutput = record.review?.output ??
     record.proposal ?? {
       scope: 'discussion-only',
       objectives: snapshot.report.objectives.map((o) => ({
@@ -202,8 +214,17 @@ function AarReview({
     [editing, setEditing] = useState(!record.proposal),
     [notes, setNotes] = useState('');
   const changed = JSON.stringify(initial) !== JSON.stringify(output);
+  useUnsavedGuard(changed || !!notes.trim());
   const matchesProposal = JSON.stringify(output) === JSON.stringify(record.proposal);
   const findings = output.objectives.flatMap((o) => o.areasForImprovement);
+  const missingDueDate = output.improvementActions.some(
+    (action) => action.status === 'assigned' && !/^\d{4}-\d{2}-\d{2}$/.test(action.dueDate),
+  );
+  const setAction = (index: number, action: ImprovementAction) =>
+    setOutput({
+      ...output,
+      improvementActions: output.improvementActions.map((a, i) => (i === index ? action : a)),
+    });
   function review(decision: 'accept' | 'edit' | 'reject' | 'override') {
     submit('/' + record.id + '/review', {
       expectedRevision: record.revision,
@@ -335,6 +356,7 @@ function AarReview({
                   <th>Proposal</th>
                   <th>Evidence</th>
                   <th>Owner</th>
+                  <th>Due</th>
                   <th>Status</th>
                   {editing && <th>Remove</th>}
                 </tr>
@@ -403,8 +425,58 @@ function AarReview({
                             </a>
                           ))}
                     </td>
-                    <td aria-label="Unassigned owner"></td>
-                    <td>Proposed</td>
+                    {editing ? (
+                      <>
+                        <td>
+                          <select
+                            aria-label={'Improvement owner ' + (index + 1)}
+                            value={action.owner}
+                            onChange={(e) =>
+                              setAction(
+                                index,
+                                withOwner(
+                                  action,
+                                  e.target.value,
+                                  action.status === 'assigned' ? action.dueDate : '',
+                                ),
+                              )
+                            }
+                          >
+                            <option value="">Unassigned</option>
+                            {people.map((person) => (
+                              <option key={person.id} value={person.id}>
+                                {person.name}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <input
+                            type="date"
+                            aria-label={'Improvement due date ' + (index + 1)}
+                            disabled={action.status !== 'assigned'}
+                            value={action.status === 'assigned' ? action.dueDate : ''}
+                            onChange={(e) =>
+                              setAction(index, withOwner(action, action.owner, e.target.value))
+                            }
+                          />
+                        </td>
+                      </>
+                    ) : action.status === 'assigned' ? (
+                      <>
+                        <td>
+                          {people.find((person) => person.id === action.owner)?.name ??
+                            action.owner}
+                        </td>
+                        <td>{action.dueDate}</td>
+                      </>
+                    ) : (
+                      <>
+                        <td aria-label="Unassigned owner"></td>
+                        <td></td>
+                      </>
+                    )}
+                    <td>{action.status === 'assigned' ? 'Assigned' : 'Proposed'}</td>
                     {editing && (
                       <td>
                         <button
@@ -478,7 +550,7 @@ function AarReview({
             Accept AAR
           </button>
           <button
-            disabled={!notes.trim() || (!changed && !!record.proposal)}
+            disabled={!notes.trim() || missingDueDate || (!changed && !!record.proposal)}
             onClick={() => review(record.proposal ? 'edit' : 'override')}
           >
             <Save size={16} />
@@ -570,7 +642,10 @@ export function AarWorkspace({
       <p className="report-hash">
         Snapshot {snapshot.report.id} / SHA-256 {snapshot.hash}
       </p>
-      <p>{list?.remainingCalls ?? 'Unknown'} of 3 AI attempts remaining. Owners unassigned.</p>
+      <p>
+        {list?.remainingCalls ?? 'Unknown'} of 3 AI attempts remaining. AI drafts leave owners
+        blank; assign owners and due dates when you review.
+      </p>
       <div className="run-actions">
         <button
           className="primary"
@@ -639,6 +714,7 @@ export function AarWorkspace({
               key={view.record.id + ':' + view.record.revision}
               view={view}
               snapshot={snapshot}
+              people={list?.people ?? []}
               disabled={busy || !!pending}
               submit={submit}
             />

@@ -1,23 +1,25 @@
 import { Type, type Static } from '@sinclair/typebox';
 import { IdSchema } from './profile.js';
 const strict = { additionalProperties: false };
-export const ClarificationInputSchema = Type.Object(
-  {
-    commandId: IdSchema,
-    releaseId: IdSchema,
-    text: Type.String({ minLength: 1, maxLength: 2000, pattern: '\\S' }),
-    claimIds: Type.Array(IdSchema, { maxItems: 6, uniqueItems: true }),
-    unknown: Type.Boolean(),
-  },
-  strict,
-);
+const answer = {
+  commandId: IdSchema,
+  releaseId: IdSchema,
+  text: Type.String({ minLength: 1, maxLength: 2000, pattern: '\\S' }),
+  claimIds: Type.Array(IdSchema, { maxItems: 6, uniqueItems: true }),
+  unknown: Type.Boolean(),
+};
+// The participant question the facilitator is answering, recorded as asked.
+const question = Type.String({ minLength: 1, maxLength: 2000, pattern: '\\S' });
+export const ClarificationInputSchema = Type.Object({ ...answer, question }, strict);
 export const ClarificationSchema = Type.Object(
   {
-    ...ClarificationInputSchema.properties,
+    ...answer,
+    // Absent only on records logged before questions were stored; never inferred later.
+    question: Type.Optional(question),
     id: IdSchema,
     runId: IdSchema,
     actorId: IdSchema,
-    position: Type.Integer({ minimum: 1, maximum: 5 }),
+    position: Type.Integer({ minimum: 1, maximum: 15 }),
     recordedAt: Type.String({ format: 'date-time' }),
     profileId: IdSchema,
     profileRevisionId: IdSchema,

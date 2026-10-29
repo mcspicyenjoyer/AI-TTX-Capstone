@@ -38,6 +38,7 @@ import './style.css';
 import { ExerciseWorkspace } from './exercise-workspace.js';
 import { IntakeWorkspace } from './intake-workspace.js';
 import { PackageWorkspace } from './package-workspace.js';
+import { GuardProvider, useGuardRegistry, type GuardState } from './unsaved-guard.js';
 
 type Status = ProfileView['profile']['statements'][number]['status'];
 const statusLabels: Record<Status, string> = {
@@ -69,7 +70,12 @@ function App() {
   const [tab, setTab] = useState<'profile' | 'activity' | 'exercises' | 'intake' | 'packages'>(
     'profile',
   );
-  const [intakeGuard, setIntakeGuard] = useState<'dirty' | 'pending' | null>(null);
+  // Unsaved input anywhere in the signed-in view, including preparation and exercise forms.
+  const guard = useGuardRegistry(setError);
+  const reportPreparation = useCallback(
+    (state: GuardState) => guard.report('preparation', state),
+    [guard],
+  );
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [status, setStatus] = useState('all');
@@ -82,21 +88,13 @@ function App() {
     setView(null);
     setActivity([]);
     setAcknowledged(false);
-    setIntakeGuard(null);
+    guard.clear();
     setError('Your session expired. Sign in again to check saved state.');
-  }, []);
+  }, [guard]);
 
-  function canLeaveIntake() {
-    if (tab !== 'intake' && tab !== 'packages') return true;
-    if (intakeGuard === 'pending') {
-      setError('Resolve the pending preparation request before leaving this view.');
-      return false;
-    }
-    return intakeGuard !== 'dirty' || window.confirm('Discard unsaved preparation changes?');
-  }
   function navigate(next: typeof tab) {
-    if (next === tab || !canLeaveIntake()) return;
-    setIntakeGuard(null);
+    if (next === tab || !guard.canLeave()) return;
+    guard.clear();
     setError('');
     setTab(next);
   }
@@ -128,8 +126,8 @@ function App() {
   }
 
   async function restoreSession() {
-    if (!canLeaveIntake()) return;
-    setIntakeGuard(null);
+    if (!guard.canLeave()) return;
+    guard.clear();
     setLoading(true);
     setError('');
     try {
@@ -197,7 +195,7 @@ function App() {
   }
 
   async function logout() {
-    if (!canLeaveIntake()) return;
+    if (!guard.canLeave()) return;
     setSaving(true);
     setError('');
     try {
@@ -206,7 +204,7 @@ function App() {
       setView(null);
       setActivity([]);
       setTab('profile');
-      setIntakeGuard(null);
+      guard.clear();
     } catch (error) {
       setError(message(error));
     } finally {
@@ -233,7 +231,7 @@ function App() {
     ) ?? [];
 
   return (
-    <>
+    <GuardProvider registry={guard}>
       <header className="app-header">
         <div className="brand">
           <Network size={23} strokeWidth={1.7} />
@@ -372,13 +370,13 @@ function App() {
               <PackageWorkspace
                 key={actor.id}
                 onSessionExpired={expireSession}
-                onGuardChange={setIntakeGuard}
+                onGuardChange={reportPreparation}
               />
             ) : tab === 'intake' ? (
               <IntakeWorkspace
                 key={actor.id}
                 onSessionExpired={expireSession}
-                onGuardChange={setIntakeGuard}
+                onGuardChange={reportPreparation}
               />
             ) : !view || !profile ? (
               <section className="empty-state">
@@ -725,7 +723,7 @@ function App() {
           </main>
         </div>
       )}
-    </>
+    </GuardProvider>
   );
 }
 

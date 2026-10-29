@@ -192,17 +192,20 @@ export class ExerciseStore {
       .run(runId, JSON.stringify(value));
   }
 
-  step0Checks(runId: string): Step0Check[] {
-    return this.db
-      .prepare('SELECT * FROM step0_checks WHERE run_id = ? ORDER BY sequence DESC LIMIT 100')
-      .all(runId)
-      .reverse()
-      .map((row) => {
-        const check = readStored(Step0CheckSchema, JSON.parse(String(row.payload)));
-        if (check.id !== row.id || check.runId !== row.run_id)
-          throw new Error('Step 0 identity mismatch.');
-        return check;
-      });
+  // Screens show the latest 100 checks. A complete report must include every check, so it
+  // reads up to the hard bound and refuses rather than silently dropping older evidence.
+  step0Checks(runId: string, complete = false): Step0Check[] {
+    const rows = this.db
+      .prepare('SELECT * FROM step0_checks WHERE run_id = ? ORDER BY sequence DESC LIMIT ?')
+      .all(runId, complete ? 10001 : 100);
+    if (complete && rows.length > 10000)
+      throw new Error('The Step 0 history exceeds the complete-record bound.');
+    return rows.reverse().map((row) => {
+      const check = readStored(Step0CheckSchema, JSON.parse(String(row.payload)));
+      if (check.id !== row.id || check.runId !== row.run_id)
+        throw new Error('Step 0 identity mismatch.');
+      return check;
+    });
   }
 
   saveStep0(value: Step0Check): void {

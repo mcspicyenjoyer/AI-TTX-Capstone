@@ -44,8 +44,16 @@ function replaceOnce(before: string, after: string) {
 }
 const content = 'src/server/aar-content.ts',
   service = 'src/server/aar-service.ts',
-  clarification = 'src/server/clarification-service.ts';
-const mutations = [
+  clarification = 'src/server/clarification-service.ts',
+  debrief = 'src/server/debrief-service.ts';
+const debriefTests = 'tests/debrief.test.ts';
+const mutations: {
+  rule: string;
+  file: string;
+  test: string;
+  tests?: string;
+  edit: (source: string) => string;
+}[] = [
   {
     rule: 'exact snapshot hash',
     file: service,
@@ -95,6 +103,18 @@ const mutations = [
     edit: replaceOnce("owner: Type.Literal('')", 'owner: Type.String()'),
   },
   {
+    rule: 'reviewed owner is a confirmed person with a real due date',
+    file: content,
+    test: 'only a facilitator review assigns owners',
+    edit: removeRule('An assigned owner must be a confirmed person'),
+  },
+  {
+    rule: 'owners limited to people in the confirmed profile',
+    file: service,
+    test: 'only a facilitator review assigns owners',
+    edit: replaceOnce(".filter((entity) => entity.kind === 'role')", ''),
+  },
+  {
     rule: 'three attempt request cap',
     file: service,
     test: 'AAR three-attempt budget',
@@ -112,17 +132,49 @@ const mutations = [
     test: 'future clarification logging requires',
     edit: removeRule('cited claim is absent'),
   },
+  {
+    rule: 'debrief only after completion',
+    file: debrief,
+    test: 'debrief is facilitator-only',
+    tests: debriefTests,
+    edit: removeRule('Record the debrief after the run is completed'),
+  },
+  {
+    rule: 'debrief respondents are run participants',
+    file: debrief,
+    test: 'debrief is facilitator-only',
+    tests: debriefTests,
+    edit: removeRule('Respondents must be participants'),
+  },
+  {
+    rule: 'summarised feedback names its participants',
+    file: debrief,
+    test: 'debrief is facilitator-only',
+    tests: debriefTests,
+    edit: removeRule('Name the participants whose feedback'),
+  },
+  {
+    rule: 'debrief exercise-gap origin only from design notes',
+    file: content,
+    test: 'debrief entries reach new snapshots',
+    tests: debriefTests,
+    edit: replaceOnce("evidence.field === 'exerciseDesignNotes'", 'true'),
+  },
 ];
 const results: { rule: string; test: string; detected: boolean }[] = [];
 try {
   for (const entry of ['src', 'tests', 'package.json', 'tsconfig.json'])
     cpSync(join(root, entry), join(temporary, entry), { recursive: true });
   symlinkSync(join(root, 'node_modules'), join(temporary, 'node_modules'), 'junction');
-  const baseline = spawnSync(process.execPath, ['--import', 'tsx', '--test', 'tests/aar.test.ts'], {
-    cwd: temporary,
-    encoding: 'utf8',
-    timeout: 90000,
-  });
+  const baseline = spawnSync(
+    process.execPath,
+    ['--import', 'tsx', '--test', 'tests/aar.test.ts', debriefTests],
+    {
+      cwd: temporary,
+      encoding: 'utf8',
+      timeout: 90000,
+    },
+  );
   if (baseline.status !== 0)
     throw new Error('Baseline failed: ' + baseline.stdout + baseline.stderr);
   for (const mutation of mutations) {
@@ -138,7 +190,7 @@ try {
           '--test',
           '--test-reporter=tap',
           '--test-name-pattern=' + mutation.test,
-          'tests/aar.test.ts',
+          mutation.tests ?? 'tests/aar.test.ts',
         ],
         { cwd: temporary, encoding: 'utf8', timeout: 30000 },
       );

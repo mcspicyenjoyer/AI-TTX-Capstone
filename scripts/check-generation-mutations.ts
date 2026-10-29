@@ -276,6 +276,30 @@ const mutations: Mutation[] = [
     test: 'next inject cannot be approved or released while',
     edit: removeRule('Close the released position before approving'),
   },
+  {
+    name: 'objective decision action at each decision position',
+    file: content,
+    test: 'generation objective coverage',
+    edit: removeRule('decision) must evaluate'),
+  },
+  {
+    name: 'objective supporting action within its positions',
+    file: content,
+    test: 'generation objective coverage',
+    edit: removeRule('must evaluate ${rule.supporting'),
+  },
+  {
+    name: 'every supporting action evaluated somewhere',
+    file: content,
+    test: 'generation objective coverage',
+    edit: removeRule('No position evaluates'),
+  },
+  {
+    name: 'objective coverage freeze gate',
+    file: service,
+    test: 'generation objective coverage',
+    edit: removeRule('Resolve objective coverage before freezing'),
+  },
 ];
 const results: { rule: string; test: string; detected: boolean }[] = [];
 try {

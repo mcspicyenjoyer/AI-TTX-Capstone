@@ -38,6 +38,7 @@ import { registerRecordReportRoutes } from './record-report-routes.js';
 import { AarService } from './aar-service.js';
 import { registerAarRoutes } from './aar-routes.js';
 import { ClarificationService, registerClarificationRoutes } from './clarification-service.js';
+import { DebriefService, registerDebriefRoutes } from './debrief-service.js';
 
 export async function buildApp(options: {
   dataDirectory: string;
@@ -231,6 +232,7 @@ export async function buildApp(options: {
   registerRecordReportRoutes(app, sessions, new RecordReportService(store));
   registerAarRoutes(app, sessions, new AarService(store, !!options.subscriptionEnabled));
   registerClarificationRoutes(app, sessions, new ClarificationService(store));
+  registerDebriefRoutes(app, sessions, new DebriefService(store));
   registerOutcomeRoutes(app, sessions, new OutcomeService(store, exercises), errors);
   registerIntakeRoutes(
     app,

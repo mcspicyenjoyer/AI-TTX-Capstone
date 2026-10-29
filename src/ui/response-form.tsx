@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useUnsavedGuard } from './unsaved-guard.js';
 import { Check, Pencil, RefreshCw } from 'lucide-react';
 import type { Run } from '../contracts/exercise.js';
 import { ResponseViewSchema, type TeamOutcomes } from '../contracts/outcomes.js';
@@ -47,6 +48,14 @@ export function ResponseForm({
   const stale =
     draft.expectedRunRevision !== run.revision ||
     draft.previousResponseId !== (position.response?.id ?? null);
+  const saved = position.response;
+  useUnsavedGuard(
+    !!(draft.actions || draft.rationale || draft.informationRequests) &&
+      (!saved ||
+        draft.actions !== saved.actions ||
+        draft.rationale !== saved.rationale ||
+        draft.informationRequests !== saved.informationRequests),
+  );
   function reviewLatest() {
     setDraft((value) => ({
       ...value,

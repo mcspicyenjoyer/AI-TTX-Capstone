@@ -9,7 +9,7 @@ import {
 import type { Store } from './storage.js';
 import { ExerciseService } from './exercise-service.js';
 import { RecordReportService } from './record-report-service.js';
-import { aarPromptVersion, validateAar } from './aar-content.js';
+import { aarPromptVersion, validateAar, validateReviewedAar } from './aar-content.js';
 import { fingerprint } from './integrity.js';
 import { readStored } from './validation.js';
 import { AppError } from './errors.js';
@@ -40,10 +40,20 @@ export class AarService {
     this.source(actor, view.record);
     return view;
   }
+  // People in the run's bound confirmed profile; the only valid improvement owners.
+  private people(actor: Actor, runId: string) {
+    const { definition } = this.exercises.context(actor, 'technical', runId, true);
+    const saved = this.store.profile(definition.profileId, definition.profileRevisionId);
+    if (!saved || saved.contentHash !== definition.profileHash) return [];
+    return (saved.profile.environment?.entities ?? [])
+      .filter((entity) => entity.kind === 'role')
+      .map(({ id, name }) => ({ id, name }));
+  }
   list(actor: Actor, runId: string) {
     this.exercises.context(actor, 'technical', runId, true);
     this.store.transaction(() => this.expire());
     return {
+      people: this.people(actor, runId),
       enabled: this.enabled,
       remainingCalls: Math.max(0, 3 - this.store.aars.list().filter((r) => r.startedAt).length),
       records: this.store.aars
@@ -200,7 +210,11 @@ export class AarService {
         conflict('Edited or overridden output is required.');
       if (output) {
         try {
-          output = validateAar(output, this.source(actor, record));
+          output = validateReviewedAar(
+            output,
+            this.source(actor, record),
+            new Set(this.people(actor, runId).map((person) => person.id)),
+          );
         } catch {
           throw new AppError(
             400,

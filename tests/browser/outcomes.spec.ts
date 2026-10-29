@@ -139,6 +139,52 @@ test('team response, exact retry, revision, private facilitator review and expli
   }
 });
 
+test('unsaved exercise input asks before leaving and keeps the draft when the user stays', async ({
+  page,
+  browser,
+  baseURL,
+}) => {
+  await prepare(page, baseURL!);
+  await page.getByRole('button', { name: 'Release to inbox', exact: true }).click();
+  const observations = page.getByLabel('Facilitator observations', { exact: true });
+  await observations.fill('Unsaved facilitator observation.');
+  let message = '';
+  page.once('dialog', (dialog) => {
+    message = dialog.message();
+    void dialog.dismiss();
+  });
+  await page.getByRole('button', { name: 'Organisation profile', exact: true }).click();
+  expect(message).toBe('Discard unsaved changes in this view?');
+  await expect(observations).toHaveValue('Unsaved facilitator observation.');
+  page.once('dialog', (dialog) => void dialog.dismiss());
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(observations).toHaveValue('Unsaved facilitator observation.');
+  page.once('dialog', (dialog) => void dialog.accept());
+  await page.getByRole('button', { name: 'Organisation profile', exact: true }).click();
+  await expect(observations).toHaveCount(0);
+  // Nothing was saved: returning shows an empty form and no warning is pending.
+  await page.getByRole('button', { name: 'Exercises', exact: true }).click();
+  await expect(page.getByLabel('Facilitator observations', { exact: true })).toHaveValue('');
+  const context = await browser.newContext({ baseURL });
+  try {
+    const participant = await context.newPage();
+    await login(participant, 'participant');
+    const actions = participant.getByLabel('Agreed actions', { exact: true });
+    await actions.fill('Unsaved team draft.');
+    participant.once('dialog', (dialog) => void dialog.dismiss());
+    await participant.getByRole('button', { name: 'Sign out', exact: true }).click();
+    await expect(actions).toHaveValue('Unsaved team draft.');
+    const unload = participant.waitForEvent('dialog');
+    await participant.close({ runBeforeUnload: true });
+    const dialog = await unload;
+    expect(dialog.type()).toBe('beforeunload');
+    await dialog.dismiss();
+    await expect(actions).toHaveValue('Unsaved team draft.');
+  } finally {
+    await context.close();
+  }
+});
+
 test('pause retains participant drafts and an obsolete mutation cannot sign out a newer login', async ({
   page,
   browser,

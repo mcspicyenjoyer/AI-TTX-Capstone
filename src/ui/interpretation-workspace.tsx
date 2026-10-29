@@ -10,6 +10,7 @@ import {
 } from '../contracts/interpretation.js';
 import { ApiError, request } from './api.js';
 import { date } from './exercise-format.js';
+import { useUnsavedGuard } from './unsaved-guard.js';
 
 type Pending = { path: string; body: Record<string, unknown> };
 export function useInterpretations(enabled: boolean, root: string, onSessionExpired: () => void) {
@@ -181,6 +182,7 @@ function AssessmentReview({
   const [output, setOutput] = useState<InterpretationOutput>(structuredClone(initial));
   const [notes, setNotes] = useState('');
   const changed = JSON.stringify(output) !== JSON.stringify(initial);
+  useUnsavedGuard(changed || !!notes.trim());
   const matchesProposal = JSON.stringify(output) === JSON.stringify(record.proposal);
   const finish = (decision: 'accept' | 'edit' | 'reject' | 'override') =>
     submit('/' + record.id + '/review', {

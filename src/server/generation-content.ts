@@ -4,6 +4,7 @@ import {
   GeneratedPlanSchema,
   playerRoles,
   decisions,
+  type actionKinds,
   type GeneratedPlan,
   type PackageTarget,
   type EvidenceSelection,
@@ -13,7 +14,9 @@ import { readStored } from './validation.js';
 import { readPackage } from './exercise-validation.js';
 import { fingerprint } from './integrity.js';
 
-export const generationPromptVersion = 'teralqen-five-1';
+type ActionKind = (typeof actionKinds)[number];
+
+export const generationPromptVersion = 'teralqen-five-2';
 export const roleNames = {
   'business-leadership': 'Business leadership',
   'engineering-projects': 'Engineering/project operations',
@@ -26,6 +29,60 @@ export const objectives = {
   'authorised-restoration':
     'Require trusted recovery evidence, engineering validation and business approval before restoring service.',
 };
+// The actions each objective's wording names: the decision itself plus its supporting elements.
+// Checked against frozen package-15 before adoption; it applies to new proposals and edits.
+export const objectiveActions = {
+  containment: {
+    decision: 'obtain-isolation-authority',
+    supporting: ['establish-scope', 'preserve-evidence'],
+  },
+  'minimum-continuity': {
+    decision: 'select-minimum-working-set',
+    supporting: ['check-dependencies', 'distinguish-target-and-estimate'],
+  },
+  'authorised-restoration': {
+    decision: 'obtain-restoration-authority',
+    supporting: ['verify-recovery-source', 'validate-engineering-integrity'],
+  },
+} as const satisfies Record<
+  (typeof decisions)[number],
+  { decision: ActionKind; supporting: readonly ActionKind[] }
+>;
+
+// Reported for review and enforced at freeze. Each decision position evaluates its decision
+// action; each objective's positions (after the previous decision, up to its own) evaluate a
+// supporting action; and every supporting action is evaluated somewhere in the package.
+export function objectiveCoverageProblems(plan: GeneratedPlan): string[] {
+  const problems: string[] = [];
+  let start = 0;
+  for (const [index, position] of plan.positions.entries()) {
+    if (!position.decision) continue;
+    const rule = objectiveActions[position.decision];
+    const segment = plan.positions.slice(start, index + 1);
+    start = index + 1;
+    const span =
+      segment.length === 1
+        ? `Position ${position.position}`
+        : `Positions ${segment[0]!.position}-${position.position}`;
+    if (!position.evaluationCriteria.includes(rule.decision))
+      problems.push(
+        `Position ${position.position} (${position.decision} decision) must evaluate ${rule.decision}.`,
+      );
+    if (
+      !segment.some((item) =>
+        item.evaluationCriteria.some((key) => (rule.supporting as readonly string[]).includes(key)),
+      )
+    )
+      problems.push(
+        `${span} must evaluate ${rule.supporting.join(' or ')} for the ${position.decision} objective.`,
+      );
+  }
+  for (const rule of Object.values(objectiveActions))
+    for (const key of rule.supporting)
+      if (!plan.positions.some((item) => item.evaluationCriteria.includes(key)))
+        problems.push(`No position evaluates ${key}.`);
+  return problems;
+}
 export const expectedActionText = {
   'establish-scope':
     'Establish affected services and evidence gaps; distinguish reported symptoms from hypotheses.',
@@ -373,6 +430,7 @@ Bind exactly to target profileId/profileRevisionId/profileHash. Objectives are c
 The fixed scenario is suspected ransomware/shared file unavailability on TE-FS01 and its engineering service; entry point unknown. Select the confirmed reference-time claim. The explicitly reviewable scenario assumption is disruption/discovery at that reference; activation does not reset time. First position elapsedMinutes=0, then strictly increasing through 240. Use exactly the three decision points once in that order; other two positions have null decision.
 Compose different evidence/questions for each role at all five positions. Select only existing claim IDs and copy their exact status. Keep briefings short (1-2 evidence claims), each role inject under 6000 rendered characters (prefer 1-3 claims). Do not reveal all private technical weaknesses in every role's baseline brief. Ground the dependency/missing-agent, backup coverage/unverified restore, recovery-target comparison, authority, contact, project deadline and reference-time discussion in the profile.
 No free prose or invented names: select the supported event/question/action/note keys. They are rendered by the application with profile names and status-labelled evidence. No TE-FS01 agent alert, corrupt-backup assertion, known entry point, observed isolation or completed restoration is supported. Criteria keys must be selected expectedActions. No branches, auto-approval, confidence scores or participant access permissions.
+Objective coverage, checked before freeze: each decision position's criteria include that objective's decision action; the positions after the previous decision up to that decision evaluate at least one of its supporting actions; every supporting action is evaluated somewhere. ${JSON.stringify(objectiveActions)}
 Question/criterion meanings: ${JSON.stringify(actions)}
 Facilitator note meanings: ${JSON.stringify(notes)}
 CONFIRMED PROFILE PACKET: ${JSON.stringify(packet)}`;
