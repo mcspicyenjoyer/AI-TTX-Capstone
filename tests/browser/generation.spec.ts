@@ -12,6 +12,10 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   await login(page, 'facilitator');
   await page.getByRole('button', { name: 'Package generation', exact: true }).click();
   await expect(page.getByText(generationTarget.profileHash, { exact: true })).toBeVisible();
+  // The controlled library states whether its family fits the confirmed profile (ADR-037).
+  const family = page.getByLabel('Threat library family', { exact: true });
+  await expect(family).toContainText('Applicable');
+  await expect(family).toContainText('Eligible pathways: TE-FS01 -> Engineering service');
   page.on('dialog', (dialog) => dialog.accept());
   await page.getByRole('button', { name: 'Generate draft', exact: true }).click();
   await expect(
@@ -35,6 +39,14 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   }
   await page.getByRole('button', { name: 'Refresh packages', exact: true }).click();
   await expect(page.getByRole('tab', { name: /1. Shared engineering files/ })).toBeVisible();
+  // The facilitator sees the mapped pathway, with access links marked as hypotheses.
+  const pathway = page.getByRole('region', { name: 'Threat pathway', exact: true });
+  await expect(pathway).toContainText('Target system: TE-FS01');
+  await expect(pathway).toContainText('Entry point not established.');
+  await pathway.getByText('TE-VPN01', { exact: false }).first().click();
+  await expect(pathway.getByText('Hypothesis', { exact: true })).toBeVisible();
+  await expect(pathway).toContainText('TE-VPN01 / access-to: TE-FS01');
+  await expect(pathway).toContainText('UNKNOWN TE-FS01 / restore-tested: no value recorded');
   const freeze = page.getByRole('button', { name: 'Approve and freeze package', exact: true });
   await expect(freeze).toBeDisabled();
   await page.getByRole('button', { name: 'Reject inject', exact: true }).click();

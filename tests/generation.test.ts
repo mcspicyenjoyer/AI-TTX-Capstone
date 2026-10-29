@@ -6,8 +6,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import type { FastifyInstance } from 'fastify';
-import type { Actor } from '../src/contracts/profile.js';
+import type { Actor, Claim, Entity, Profile } from '../src/contracts/profile.js';
 import type {
+  PackageDraft,
   PackageDraftView,
   GeneratedPlan,
   ReviewPreparation,
@@ -22,7 +23,18 @@ import {
   compileGeneratedPackage,
   objectiveCoverageProblems,
 } from '../src/server/generation-content.js';
-import { generationProfile, generationTarget, generationPlan } from './generation-fixture.js';
+import {
+  generationProfile,
+  generationTarget,
+  generationPlan,
+  secondProfile,
+  secondTarget,
+  secondPlan,
+} from './generation-fixture.js';
+import { prepareInterpretationRun } from './interpretation-fixture.js';
+import { assessFamily } from '../src/server/threat-library.js';
+import { RecordReportService } from '../src/server/record-report-service.js';
+import { checkReportReferences } from '../src/contracts/record-report.js';
 import { codexOutputSchema } from '../src/server/codex-extraction.js';
 import { GeneratedPlanSchema } from '../src/contracts/generation.js';
 import { readPackage } from '../src/server/exercise-validation.js';
@@ -410,19 +422,89 @@ test('generation provider schema omits unsupported uniqueness but the applicatio
   plan.objectives[1] = plan.objectives[0]!;
   assert.throws(() => validateGeneratedPlan(plan, generationProfile, generationTarget), /schema/);
 });
-test('generation enforces TE-FS01 dependency reference time role coverage and decision sequence', () => {
-  const badProfile = structuredClone(generationProfile);
-  badProfile.environment!.claims.find((c) => c.id === 'dependency')!.status = 'assumption';
-  assert.throws(
-    () => validateGeneratedPlan(generationPlan(), badProfile, generationTarget),
-    /dependency/,
+test('generation enforces pathway dependency reference time suppliers role coverage and decision sequence', () => {
+  const changed = (edit: (claims: Claim[], entities: Entity[]) => void) => {
+    const profile = structuredClone(generationProfile);
+    edit(profile.environment!.claims, profile.environment!.entities);
+    return profile;
+  };
+  const fails = (profile: Profile, pattern: RegExp, plan = generationPlan()) =>
+    assert.throws(() => validateGeneratedPlan(plan, profile, generationTarget), pattern);
+  // A pathway hop cannot rest on an assumption or proposal; an unknown cannot name a target.
+  for (const status of ['assumption', 'proposal'] as const)
+    fails(
+      changed((claims) => (claims.find((c) => c.id === 'dependency')!.status = status)),
+      /depend on the target system through a confirmed fact/,
+    );
+  // Names carry no authority: renamed entities with the same links remain valid.
+  const renamed = changed((_, entities) => {
+    for (const item of entities) item.name = 'Renamed ' + item.id;
+  });
+  assert.doesNotThrow(() => validateGeneratedPlan(generationPlan(), renamed, generationTarget));
+  const at = new Date().toISOString();
+  const draft: PackageDraft = {
+    id: 'package-renamed-test',
+    ownerId: actor.id,
+    revision: 2,
+    target: generationTarget,
+    status: 'review',
+    plan: generationPlan(),
+    reviews: Array(5).fill('pending'),
+    error: null,
+    createdAt: at,
+    updatedAt: at,
+    runId: null,
+    frozenPackageHash: null,
+    inputTokens: null,
+    outputTokens: null,
+  };
+  const notes = compileGeneratedPackage(draft, renamed)
+    .injects.map((inject) => inject.facilitatorNotes)
+    .join('\n');
+  assert(notes.includes('endpoint-agent alert for Renamed fs.'));
+  assert(!notes.includes('TE-FS01'));
+  // Each supplier needs its own confirmed link to the mapped pathway.
+  fails(
+    changed((claims) =>
+      claims.splice(
+        claims.findIndex((c) => c.id === 'fs-support'),
+        1,
+      ),
+    ),
+    /supplier needs a confirmed/,
   );
-  const wrongSupplier = structuredClone(generationProfile);
-  wrongSupplier.environment!.entities.find((entity) => entity.id === 'msp')!.name =
-    'Different test supplier';
-  assert.throws(
-    () => validateGeneratedPlan(generationPlan(), wrongSupplier, generationTarget),
-    /facilitator represents/,
+  fails(
+    changed((claims) => (claims.find((c) => c.id === 'vpn-monitor')!.status = 'proposal')),
+    /supplier needs a confirmed/,
+  );
+  fails(
+    changed((claims) => (claims.find((c) => c.id === 'vpn-access')!.status = 'assumption')),
+    /supplier needs a confirmed/,
+  );
+  // The reference must be a confirmed ISO-8601 time with an offset.
+  for (const value of [
+    'Monday 28 September 2026, 09:00',
+    '2026-09-28T09:00:00',
+    '2026-13-45T09:00:00+08:00',
+  ])
+    fails(
+      changed((claims) => (claims.find((c) => c.id === 'reference')!.value = value)),
+      /reference-time claim/,
+    );
+  fails(
+    changed((claims) => (claims.find((c) => c.id === 'reference')!.status = 'proposal')),
+    /reference-time claim/,
+  );
+  // The no-alert note is only true for an unmonitored target.
+  fails(
+    changed((claims) =>
+      claims.push({
+        ...claims.find((c) => c.id === 'vpn-monitor')!,
+        id: 'fs-monitor',
+        subjectId: 'fs',
+      }),
+    ),
+    /no-agent-alert note requires/,
   );
   const changes: ((p: GeneratedPlan) => void)[] = [
     (p) => {
@@ -452,6 +534,121 @@ test('generation enforces TE-FS01 dependency reference time role coverage and de
     change(plan);
     assert.throws(() => validateGeneratedPlan(plan, generationProfile, generationTarget));
   }
+});
+test('generation threat library assesses applicability and refuses an inapplicable profile', () => {
+  const family = assessFamily(generationProfile);
+  assert.equal(family.applicable, true);
+  assert.deepEqual(family.unmet, []);
+  assert.deepEqual(family.referenceClaimIds, ['reference']);
+  assert.deepEqual(
+    family.targets.map(({ systemId, serviceId, supplierIds }) => ({
+      systemId,
+      serviceId,
+      supplierIds,
+    })),
+    [{ systemId: 'fs', serviceId: 'service', supplierIds: ['msp', 'soc'] }],
+  );
+  assert.deepEqual(service.context(actor).families, [family]);
+  const unmet = (edit: (profile: Profile) => void) => {
+    const profile = structuredClone(generationProfile);
+    edit(profile);
+    return assessFamily(profile).unmet;
+  };
+  assert.match(
+    unmet(
+      (p) => (p.environment!.claims.find((c) => c.id === 'dependency')!.status = 'proposal'),
+    )[0]!,
+    /No business service depends/,
+  );
+  assert.match(
+    unmet(
+      (p) => (p.environment!.claims = p.environment!.claims.filter((c) => c.id !== 'fs-support')),
+    )[0]!,
+    /two third parties/,
+  );
+  assert.match(
+    unmet(
+      (p) => (p.environment!.claims.find((c) => c.id === 'reference')!.value = 'Monday morning'),
+    )[0]!,
+    /reference-time claim/,
+  );
+  // A pinned profile that no family fits is refused before any request is queued.
+  const inapplicable = structuredClone(generationProfile);
+  inapplicable.profileId = 'test-inapplicable';
+  inapplicable.environment!.claims.find((c) => c.id === 'dependency')!.status = 'proposal';
+  store.transaction(() => store.publishIntakeProfile(structuredClone(inapplicable), actor));
+  const target = {
+    ...generationTarget,
+    profileId: inapplicable.profileId,
+    profileHash: contentHash(JSON.stringify(inapplicable)),
+  };
+  const refusing = new GenerationService(store, target, true);
+  assert.equal(refusing.context(actor).families[0]!.applicable, false);
+  const before = store.generation.list().length;
+  assert.throws(
+    () => refusing.generate(actor, { ...target, commandId: randomUUID() }),
+    /No threat-library family applies to the confirmed profile. No business service depends/,
+  );
+  assert.equal(store.generation.list().length, before);
+});
+test('generation maps a second synthetic profile without Teralqen names through play and report', () => {
+  const prompt = generationPrompt(secondProfile, secondTarget);
+  for (const name of [
+    'TE-FS01',
+    'TE-VPN01',
+    'Goh & Mercer',
+    'Beacon Nine',
+    '2026-09-28',
+    'Teralqen',
+  ])
+    assert(!prompt.includes(name), name);
+  assert(prompt.includes('"systemId":"fs","serviceId":"service"'));
+  // The first fixture's plan keeps its no-alert note, which is false for this monitored target.
+  assert.throws(
+    () => validateGeneratedPlan(generationPlan(secondTarget), secondProfile, secondTarget),
+    /no-agent-alert note requires/,
+  );
+  const run = prepareInterpretationRun(
+    store,
+    true,
+    undefined,
+    [],
+    secondPlan(),
+    secondProfile,
+    secondTarget,
+  );
+  const frozen = run.exercises.review(run.actor, 'technical', run.runId).package;
+  const text = JSON.stringify(frozen);
+  assert(text.includes('QF-NAS2') && text.includes('Quillfern Studio'));
+  for (const name of ['TE-FS01', 'Goh & Mercer', 'Beacon Nine', 'Teralqen'])
+    assert(!text.includes(name), name);
+  const view = run.generator.get(run.actor, run.draftId);
+  const pathway = view.pathway!;
+  assert.equal(pathway.target.name, 'QF-NAS2');
+  assert.deepEqual(
+    pathway.entryHypotheses.map((node) => node.name),
+    ['Northgate IT Partners'],
+  );
+  assert(pathway.target.claims.some((c) => c.claimId === 'fs-monitor'));
+  assert.deepEqual(
+    pathway.suppliers.map((node) => [node.name, node.claims.map((c) => c.claimId).sort()]),
+    [
+      ['Northgate IT Partners', ['fs-support', 'msp-access']],
+      ['Lumen Watch', ['fs-monitor']],
+    ],
+  );
+  assert.deepEqual(
+    pathway.gaps.map((c) => c.claimId),
+    ['target', 'comparison', 'restore'],
+  );
+  // Hypotheses stay facilitator-only: nothing in the frozen package mentions them.
+  for (const node of pathway.entryHypotheses)
+    for (const item of node.claims)
+      assert(!text.includes(JSON.stringify(item.claimId)), item.claimId);
+  assert(!text.includes(pathway.entryStatement));
+  const snapshot = new RecordReportService(store).capture(run.actor, run.runId, randomUUID());
+  checkReportReferences(snapshot.report);
+  assert.equal(snapshot.report.objectives.flatMap((o) => o.positions).length, 5);
 });
 test('generation disabled queue and claim preserve manual review', () => {
   const view = proposed();

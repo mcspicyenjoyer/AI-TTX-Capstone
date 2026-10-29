@@ -1378,6 +1378,22 @@ input[type='checkbox'] {
 .package-binding dd {
   margin: 0;
 }
+/* Threat library applicability and the facilitator-only pathway map (ADR-037). */
+.threat-family,
+.threat-pathway {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.threat-family {
+  margin: 12px 0 16px;
+}
+.pathway-claims {
+  margin: 4px 0 12px;
+  padding-left: 18px;
+}
+.pathway-claims li {
+  margin-bottom: 4px;
+}
 .package-picker {
   display: grid;
   gap: 8px;

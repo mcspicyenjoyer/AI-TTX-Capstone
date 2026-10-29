@@ -12,12 +12,14 @@ export function prepareInterpretationRun(
   onResponse?: (runId: string, releaseId: string) => void,
   unanswered: number[] = [],
   plan = generationPlan(),
+  profile = generationProfile,
+  target = generationTarget,
 ) {
   const actor = store.loginIdentity('facilitator')!.actor;
-  if (!store.profile(generationProfile.profileId, generationProfile.revisionId))
-    store.transaction(() => store.publishIntakeProfile(structuredClone(generationProfile), actor));
-  const generator = new GenerationService(store, generationTarget, true);
-  let draft = generator.generate(actor, { ...generationTarget, commandId: randomUUID() });
+  if (!store.profile(profile.profileId, profile.revisionId))
+    store.transaction(() => store.publishIntakeProfile(structuredClone(profile), actor));
+  const generator = new GenerationService(store, target, true);
+  let draft = generator.generate(actor, { ...target, commandId: randomUUID() });
   generator.claim();
   generator.complete({
     id: draft.draft.id,
@@ -119,7 +121,18 @@ export function prepareInterpretationRun(
     });
   const release = store.exercises.releases(runId)[0]!;
   const response = store.outcomes.responses(release.id).at(-1)!;
-  return { actor, player, runId, release, response, state, exercises, outcomes };
+  return {
+    actor,
+    player,
+    runId,
+    release,
+    response,
+    state,
+    exercises,
+    outcomes,
+    generator,
+    draftId: draft.draft.id,
+  };
 }
 
 export function fakeInterpretation(input: InterpretationInput): InterpretationOutput {

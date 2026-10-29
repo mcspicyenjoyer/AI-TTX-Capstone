@@ -80,8 +80,15 @@ export const generationProfile: Profile = {
       entity('imran', 'role', 'Imran'),
       entity('msp', 'third-party', 'Goh & Mercer Technology'),
       entity('soc', 'third-party', 'Beacon Nine Security'),
+      entity('vpn', 'system', 'TE-VPN01'),
     ],
     claims: [
+      // Pathway links in the same shape as the confirmed profile: the MSP supports the server,
+      // the SOC monitors a VPN with access to it, and the server itself has no monitoring.
+      claim('fs-support', 'fs', 'fact', null, 'supported-by', 'msp'),
+      claim('vpn-access', 'vpn', 'fact', null, 'access-to', 'fs'),
+      claim('vpn-monitor', 'vpn', 'fact', null, 'monitored-by', 'soc'),
+      claim('vpn-mfa', 'vpn', 'unknown', null, 'mfa'),
       claim(
         'shared-route',
         'soc',
@@ -130,12 +137,12 @@ const coveredActions: GeneratedPlan['positions'][number]['expectedActions'][] = 
     'obtain-restoration-authority',
   ],
 ];
-export function generationPlan(): GeneratedPlan {
+export function generationPlan(target: PackageTarget = generationTarget): GeneratedPlan {
   const claimIds = ['leadership', 'engineering', 'it'];
   return {
-    profileId: generationTarget.profileId,
-    profileRevisionId: generationTarget.profileRevisionId,
-    profileHash: generationTarget.profileHash,
+    profileId: target.profileId,
+    profileRevisionId: target.profileRevisionId,
+    profileHash: target.profileHash,
     objectives: ['containment', 'minimum-continuity', 'authorised-restoration'],
     scenario: {
       family: 'suspected-ransomware-file-unavailability',
@@ -181,4 +188,51 @@ export function generationPlan(): GeneratedPlan {
       ],
     })),
   };
+}
+
+// A second hand-authored context (ADR-037): different names, reference time and supplier
+// layout. The SOC monitors the target directly and the MSP has its own access to it.
+const secondNames: Record<string, string> = {
+  fs: 'QF-NAS2',
+  service: 'Client design delivery',
+  ethan: 'Mara',
+  nadia: 'Theo',
+  imran: 'Ines',
+  msp: 'Northgate IT Partners',
+  soc: 'Lumen Watch',
+};
+export const secondProfile: Profile = (() => {
+  const profile = structuredClone(generationProfile);
+  profile.profileId = 'test-quillfern-r3';
+  profile.revisionId = 'confirmed-test-r3';
+  profile.revisionNumber = 3;
+  profile.organisationName = 'Quillfern Studio test context';
+  const environment = profile.environment!;
+  environment.entities = environment.entities
+    .filter((item) => item.id !== 'vpn')
+    .map((item) => ({ ...item, name: secondNames[item.id]! }));
+  environment.claims = [
+    ...environment.claims.filter((item) => item.subjectId !== 'vpn'),
+    claim('fs-monitor', 'fs', 'fact', null, 'monitored-by', 'soc'),
+    claim('msp-access', 'msp', 'fact', null, 'access-to', 'fs'),
+  ];
+  environment.claims.find((item) => item.id === 'reference')!.value =
+    'Fictional reference 2026-11-02T08:30:00+00:00';
+  environment.claims.find((item) => item.id === 'it')!.value =
+    'IT_ONLY: QF-NAS2 alerts reach the SOC; laptop isolation only.';
+  return profile;
+})();
+export const secondTarget: PackageTarget = {
+  profileId: secondProfile.profileId,
+  profileRevisionId: secondProfile.revisionId,
+  profileHash: contentHash(JSON.stringify(secondProfile)),
+  reviewRevision: 3,
+  reviewHash: '3'.repeat(64),
+};
+// The second target is monitored, so its plan cannot use the no-agent-alert note.
+export function secondPlan(): GeneratedPlan {
+  const plan = generationPlan(secondTarget);
+  for (const position of plan.positions)
+    position.facilitatorNotes = position.facilitatorNotes.filter((key) => key !== 'no-agent-alert');
+  return plan;
 }

@@ -13,6 +13,7 @@ import {
   type ReviewPreparation,
 } from '../contracts/generation.js';
 import { ApiError, request } from './api.js';
+import { FamilyAssessmentView, ThreatPathwayView } from './threat-pathway.js';
 
 const label = (value: string) => value.replaceAll('-', ' ');
 type Pending = { url: string; body: object };
@@ -158,7 +159,10 @@ export function PackageWorkspace({
       <div className="page-heading">
         <div>
           <h1>Generated package</h1>
-          <p className="muted">Teralqen / Five positions / Three player roles</p>
+          <p className="muted">
+            {context?.profile?.organisationName ?? 'Confirmed profile'} / Five positions / Three
+            player roles
+          </p>
         </div>
         <button
           className="icon-button"
@@ -207,6 +211,9 @@ export function PackageWorkspace({
                 <code>{context.target.profileHash}</code>
               </dd>
             </dl>
+            {context.families.map((family) => (
+              <FamilyAssessmentView key={family.familyId} family={family} />
+            ))}
           </>
         ) : (
           <p className="muted">{context?.reason ?? 'Loading confirmed profile...'}</p>
@@ -215,6 +222,7 @@ export function PackageWorkspace({
           className="primary"
           disabled={
             !context?.ready ||
+            !context.families.some((family) => family.applicable) ||
             disabled ||
             unsaved ||
             (!!view && ['queued', 'running'].includes(view.draft.status))
@@ -295,6 +303,7 @@ export function PackageWorkspace({
                 .join('; ')}
             </p>
           </section>
+          {view.pathway && <ThreatPathwayView pathway={view.pathway} />}
           {preparation && (
             <section className="run-section package-preparation">
               <h2>Preparation</h2>

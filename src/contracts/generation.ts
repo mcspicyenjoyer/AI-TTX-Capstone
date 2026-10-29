@@ -1,6 +1,7 @@
 import { Type, type Static } from '@sinclair/typebox';
 import { IdSchema, ProfileSchema } from './profile.js';
 import { PackageSchema } from './exercise.js';
+import { FamilyAssessmentSchema, ThreatPathwaySchema } from './threat.js';
 
 const strict = { additionalProperties: false };
 const hash = Type.String({ pattern: '^[a-f0-9]{64}$' });
@@ -48,7 +49,8 @@ export const ProfileBindingSchema = Type.Object(
 export const PackageTargetSchema = Type.Object(
   {
     ...ProfileBindingSchema.properties,
-    reviewRevision: Type.Literal(8),
+    // The intake review revision that produced the operator-pinned confirmed profile.
+    reviewRevision: Type.Integer({ minimum: 1 }),
     reviewHash: hash,
   },
   strict,
@@ -166,6 +168,8 @@ export const PackageDraftViewSchema = Type.Object(
     preview: Type.Union([PackageSchema, Type.Null()]),
     // Objective coverage problems that block freezing; empty when frozen or without a plan.
     coverage: Type.Array(Type.String({ minLength: 1, maxLength: 300 }), { maxItems: 20 }),
+    // Facilitator-only threat pathway derived from the plan and confirmed profile (ADR-037).
+    pathway: Type.Union([ThreatPathwaySchema, Type.Null()]),
   },
   strict,
 );
@@ -173,6 +177,7 @@ export const GenerationContextSchema = Type.Object(
   {
     target: Type.Union([PackageTargetSchema, Type.Null()]),
     profile: Type.Union([ProfileSchema, Type.Null()]),
+    families: Type.Array(FamilyAssessmentSchema, { maxItems: 10 }),
     ready: Type.Boolean(),
     reason: Type.String({ maxLength: 300 }),
     drafts: Type.Array(PackageDraftViewSchema, { maxItems: 10 }),

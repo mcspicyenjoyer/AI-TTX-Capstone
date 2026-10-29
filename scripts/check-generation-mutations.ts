@@ -47,7 +47,9 @@ const service = 'src/server/generation-service.ts',
   content = 'src/server/generation-content.ts',
   engine = 'src/server/exercise-service.ts';
 const authority = 'generation authority requires';
-const composition = 'generation enforces TE-FS01';
+const composition = 'generation enforces pathway';
+const library = 'generation threat library';
+const secondProfile = 'generation maps a second';
 const privateReview = 'generation proposals stay private';
 const mutations: Mutation[] = [
   {
@@ -111,7 +113,7 @@ const mutations: Mutation[] = [
     name: 'request exact profile binding',
     file: service,
     test: 'generation binding rejects',
-    edit: removeRule('Only the pinned confirmed'),
+    edit: removeRule('Only the operator-pinned confirmed'),
   },
   {
     name: 'current confirmed profile',
@@ -172,16 +174,16 @@ const mutations: Mutation[] = [
     ),
   },
   {
-    name: 'confirmed TE-FS01 dependency',
+    name: 'confirmed service-to-system pathway dependency',
     file: content,
     test: composition,
-    edit: removeRule('requires the sourced TE-FS01'),
+    edit: removeRule('must depend on the target system'),
   },
   {
-    name: 'fictional reference time',
+    name: 'confirmed ISO reference time',
     file: content,
     test: composition,
-    edit: removeRule('Use the confirmed fictional reference time'),
+    edit: removeRule('Use a confirmed reference-time claim'),
   },
   {
     name: 'three player functions',
@@ -196,10 +198,46 @@ const mutations: Mutation[] = [
     edit: removeRule('A named person cannot silently'),
   },
   {
-    name: 'MSP and SOC facilitator supplier assignment',
+    name: 'facilitator suppliers linked to the mapped pathway',
     file: content,
     test: composition,
-    edit: removeRule('The facilitator represents the confirmed MSP'),
+    edit: removeRule('Each facilitator-played supplier needs'),
+  },
+  {
+    name: 'no-agent-alert note only for an unmonitored target',
+    file: content,
+    test: composition,
+    edit: removeRule('The no-agent-alert note requires'),
+  },
+  {
+    name: 'threat family applicability before a request',
+    file: service,
+    test: library,
+    edit: removeRule('No threat-library family applies'),
+  },
+  {
+    name: 'pathway nodes require confirmed access links',
+    file: 'src/server/threat-library.ts',
+    test: composition,
+    edit: replaceOnce(
+      "  return (profile.environment?.claims ?? []).filter((claim) => claim.status === 'fact');",
+      '  return profile.environment?.claims ?? [];',
+    ),
+  },
+  {
+    name: 'prompt lists profile-computed eligible choices',
+    file: content,
+    test: secondProfile,
+    edit: replaceOnce('${JSON.stringify({ targets, referenceClaimIds })}', '[]'),
+  },
+  {
+    name: 'no-alert note names the profile target',
+    file: content,
+    test: composition,
+    edit: replaceOnce(
+      ".replaceAll('{system}', name(plan.scenario.systemId))",
+      ".replaceAll('{system}', 'TE-FS01')",
+    ),
   },
   {
     name: 'three ordered decision points',

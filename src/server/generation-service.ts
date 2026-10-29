@@ -21,6 +21,7 @@ import {
   sameBinding,
   validateGeneratedPlan,
 } from './generation-content.js';
+import { assessFamily, mapPathway } from './threat-library.js';
 
 function conflict(message: string): never {
   throw new AppError(409, 'PACKAGE_CONFLICT', message);
@@ -46,7 +47,7 @@ export class GenerationService {
   requireTarget(actor: Actor, binding: GeneratePackage | PackageTarget): Profile {
     this.facilitator(actor);
     if (!this.target || !sameBinding(binding, this.target))
-      conflict('Only the pinned confirmed Teralqen review-8 profile may be used.');
+      conflict('Only the operator-pinned confirmed profile may be used.');
     if (!this.store.mayReview(actor.id, this.target.profileId))
       throw new AppError(403, 'FORBIDDEN', 'This account cannot use that confirmed profile.');
     const snapshot = this.store.profile(this.target.profileId, this.target.profileRevisionId);
@@ -73,6 +74,7 @@ export class GenerationService {
       return {
         target: null,
         profile: null,
+        families: [],
         ready: false,
         reason: 'No confirmed generation target is configured.',
         drafts: [],
@@ -83,6 +85,7 @@ export class GenerationService {
     return {
       target: this.target,
       profile,
+      families: [assessFamily(profile)],
       ready: this.enabled,
       reason: this.enabled
         ? ''
@@ -106,7 +109,8 @@ export class GenerationService {
           : null;
     const coverage =
       draft.status !== 'frozen' && draft.plan ? objectiveCoverageProblems(draft.plan) : [];
-    return { ...saved, preview, coverage };
+    const pathway = draft.plan ? mapPathway(profile, draft.plan) : null;
+    return { ...saved, preview, coverage, pathway };
   }
 
   private replay(actor: Actor, commandId: string, hash: string): PackageDraftView | null {
@@ -119,11 +123,19 @@ export class GenerationService {
 
   generate(actor: Actor, input: GeneratePackage): PackageDraftView {
     return this.store.transaction(() => {
-      this.requireTarget(actor, input);
+      const profile = this.requireTarget(actor, input);
       const hash = fingerprint({ action: 'generate', input });
       const replay = this.replay(actor, input.commandId, hash);
       if (replay) return replay;
       if (!this.enabled) conflict('Subscription generation is disabled.');
+      const family = assessFamily(profile);
+      if (!family.applicable)
+        conflict(
+          ('No threat-library family applies to the confirmed profile. ' + family.unmet[0]).slice(
+            0,
+            300,
+          ),
+        );
       this.expire();
       const all = this.store.generation.list();
       if (all.some((draft) => ['queued', 'running'].includes(draft.status)))
