@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -57,17 +58,27 @@ export function GuardProvider({
   registry: GuardRegistry;
   children: ReactNode;
 }) {
-  return <GuardContext.Provider value={registry}>{children}</GuardContext.Provider>;
+  const parent = useContext(GuardContext);
+  // Local replacement checks see only this editor; page navigation still sees every form.
+  const report = useCallback(
+    (key: string, state: GuardState) => {
+      registry.report(key, state);
+      parent?.report(key, state);
+    },
+    [registry, parent],
+  );
+  const value = useMemo(() => ({ ...registry, report }), [registry, report]);
+  return <GuardContext.Provider value={value}>{children}</GuardContext.Provider>;
 }
 
-// A form reports its unsaved input; unmounting withdraws the report.
-export function useUnsavedGuard(dirty: boolean): void {
+// A form reports unsaved input or an unresolved request; unmounting withdraws the report.
+export function useUnsavedGuard(dirty: boolean, pending = false): void {
   const registry = useContext(GuardContext);
   const key = useId();
-  useEffect(() => {
-    registry?.report(key, dirty ? 'dirty' : null);
-  }, [registry, key, dirty]);
-  useEffect(() => () => registry?.report(key, null), [registry, key]);
+  useLayoutEffect(() => {
+    registry?.report(key, pending ? 'pending' : dirty ? 'dirty' : null);
+  }, [registry, key, dirty, pending]);
+  useLayoutEffect(() => () => registry?.report(key, null), [registry, key]);
 }
 
 // For in-view switches, such as changing exercise, that would discard a form's input.

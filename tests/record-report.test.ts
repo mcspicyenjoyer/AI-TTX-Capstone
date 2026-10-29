@@ -13,8 +13,12 @@ import { InterpretationService } from '../src/server/interpretation-service.js';
 import { contentHash } from '../src/server/integrity.js';
 import { checkReportReferences, type RecordReportView } from '../src/contracts/record-report.js';
 import type { InterpretationView, ReviewInterpretation } from '../src/contracts/interpretation.js';
-import { generationTarget } from './generation-fixture.js';
+import { decisions } from '../src/contracts/generation.js';
+import { objectiveActions, objectives } from '../src/server/generation-content.js';
+import { validateAar } from '../src/server/aar-content.js';
+import { generationPlan, generationTarget } from './generation-fixture.js';
 import { prepareInterpretationRun, fakeInterpretation } from './interpretation-fixture.js';
+import { fakeAar } from './aar-fixture.js';
 
 let directory: string, app: FastifyInstance, store: Store, service: RecordReportService;
 let context: ReturnType<typeof prepareInterpretationRun>;
@@ -105,6 +109,120 @@ function review(view: InterpretationView, decision: ReviewInterpretation['decisi
     output: ['edit', 'override'].includes(decision) ? output : null,
   });
 }
+
+for (const order of [
+  [0, 1, 2],
+  [0, 2, 1],
+  [1, 0, 2],
+  [1, 2, 0],
+  [2, 0, 1],
+  [2, 1, 0],
+]) {
+  test(`report retains objective identities for frozen plan order ${order.join(',')}`, () => {
+    const plan = generationPlan();
+    plan.objectives = order.map((index) => decisions[index]!);
+    context = prepareInterpretationRun(store, true, undefined, [], plan);
+    const frozen = context.exercises.review(context.actor, 'technical', context.runId).package;
+    assert.deepEqual(
+      frozen.objectives,
+      plan.objectives.map((key) => objectives[key]),
+    );
+    const before = sourceRows();
+    const snapshot = capture();
+    assert.deepEqual(sourceRows(), before);
+    assert.deepEqual(
+      snapshot.report.objectives.map(({ id, text }) => ({ id, text })),
+      decisions.map((id) => ({ id, text: objectives[id] })),
+    );
+    const packageRecord = snapshot.report.records.find((r) => r.id === frozen.id)!;
+    for (const objective of snapshot.report.objectives)
+      assert.equal(
+        packageRecord.fields.find((f) => f.label === 'objective.' + objective.id)!.value,
+        objective.text,
+      );
+    checkReportReferences(snapshot.report);
+    validateAar(fakeAar(snapshot), snapshot);
+  });
+}
+
+for (const points of [
+  [1, 2, 3],
+  [1, 2, 4],
+  [1, 2, 5],
+  [1, 3, 4],
+  [1, 3, 5],
+  [1, 4, 5],
+  [2, 3, 4],
+  [2, 3, 5],
+  [2, 4, 5],
+  [3, 4, 5],
+]) {
+  test(`report covers all five positions with decisions at ${points.join(',')}`, () => {
+    const plan = generationPlan();
+    for (const position of plan.positions) {
+      const decision = decisions[points.indexOf(position.position)] ?? null;
+      position.decision = decision;
+      position.expectedActions = decision
+        ? [
+            'record-owner-and-review-time',
+            objectiveActions[decision].decision,
+            ...objectiveActions[decision].supporting,
+          ]
+        : ['record-owner-and-review-time'];
+      position.evaluationCriteria = [...position.expectedActions];
+    }
+    context = prepareInterpretationRun(store, true, undefined, [], plan);
+    const before = sourceRows();
+    const snapshot = capture();
+    assert.deepEqual(sourceRows(), before);
+    assert.deepEqual(
+      snapshot.report.objectives.map((objective) => objective.positions),
+      points.map((end, index) => {
+        const start = points[index - 1] ?? 0;
+        return Array.from({ length: (index === 2 ? 5 : end) - start }, (_, i) => start + i + 1);
+      }),
+    );
+    checkReportReferences(snapshot.report);
+    const output = fakeAar(snapshot);
+    const lastResponse = snapshot.report.records.find(
+      (r) => r.kind === 'response' && r.position === 5,
+    )!;
+    output.objectives[2]!.strengths[0]!.evidence = [
+      {
+        recordId: lastResponse.id,
+        field: 'actions',
+        quote: lastResponse.fields.find((f) => f.label === 'actions')!.value,
+      },
+    ];
+    validateAar(output, snapshot);
+  });
+}
+
+test('report preserves frozen objective wording when current generation templates change', () => {
+  const frozenText = objectives.containment;
+  const before = sourceRows();
+  try {
+    objectives.containment = 'A later template must not rewrite historical objectives.';
+    const snapshot = capture();
+    assert.equal(snapshot.report.objectives.find((o) => o.id === 'containment')!.text, frozenText);
+    assert.deepEqual(sourceRows(), before);
+  } finally {
+    objectives.containment = frozenText;
+  }
+});
+
+test('report refuses a missing frozen objective identity source without writing a snapshot', () => {
+  const packageId = store.exercises.run(context.runId)!.packageId;
+  const { draft } = store.generation.get(packageId)!;
+  store.generation.save(
+    { ...draft, revision: draft.revision + 1, plan: null },
+    'test-missing-plan',
+  );
+  const before = sourceRows();
+  assert.throws(() => capture(), /The frozen objective mapping is unavailable/);
+  assert.deepEqual(sourceRows(), before);
+  assert.equal(service.list(context.actor, context.runId).length, 0);
+});
 
 test('all twenty exercise records inherit their release clock while reviews remain post-exercise analysis', () => {
   // The miniature fixture does not release its reference claim; add explicit

@@ -11,6 +11,7 @@ import { ApiError, request } from './api.js';
 import { date } from './exercise-format.js';
 import { AarWorkspace } from './aar-workspace.js';
 import { DebriefWorkspace } from './debrief-workspace.js';
+import { GuardProvider, useGuardRegistry, useUnsavedGuard } from './unsaved-guard.js';
 
 const titles: Record<ReportRecord['kind'], string> = {
   boundary: 'Snapshot boundaries',
@@ -241,6 +242,8 @@ export function RecordReportWorkspace({
   const [error, setError] = useState('');
   const [pending, setPending] = useState<string | null>(null);
   const generation = useRef(0);
+  const aarGuard = useGuardRegistry(setError);
+  useUnsavedGuard(false, busy || !!pending);
 
   async function load(id?: string, commandId?: string) {
     const current = ++generation.current;
@@ -294,7 +297,9 @@ export function RecordReportWorkspace({
         <button
           className="primary"
           disabled={busy || !!pending}
-          onClick={() => void load(undefined, crypto.randomUUID())}
+          onClick={() => {
+            if (aarGuard.canLeave()) void load(undefined, crypto.randomUUID());
+          }}
         >
           <Camera size={18} />
           Capture record snapshot
@@ -333,7 +338,10 @@ export function RecordReportWorkspace({
             aria-label="Snapshot"
             value={view?.report.id ?? ''}
             disabled={busy || !!pending}
-            onChange={(event) => void load(event.target.value)}
+            onChange={(event) => {
+              if (event.target.value !== view?.report.id && aarGuard.canLeave())
+                void load(event.target.value);
+            }}
           >
             {!view && <option value="">Select snapshot</option>}
             {list.map((item, i) => (
@@ -346,11 +354,14 @@ export function RecordReportWorkspace({
       )}
       {view && (
         <>
-          <AarWorkspace
-            key={'aar-' + view.report.id}
-            snapshot={view}
-            onSessionExpired={onSessionExpired}
-          />
+          <GuardProvider registry={aarGuard}>
+            <AarWorkspace
+              key={'aar-' + view.report.id}
+              snapshot={view}
+              disabled={busy || !!pending}
+              onSessionExpired={onSessionExpired}
+            />
+          </GuardProvider>
           <Report key={view.report.id} view={view} />
         </>
       )}

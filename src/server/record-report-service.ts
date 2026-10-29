@@ -53,6 +53,9 @@ export class RecordReportService {
       const releases = this.store.exercises.releases(runId);
       if (!completion || releases.length !== 5 || completion.closureIds.length !== 5)
         conflict('The completed run record is incomplete.');
+      // The frozen plan supplies identities; the frozen package supplies historical wording.
+      const objectiveOrder = this.store.generation.get(definition.id)?.draft.plan?.objectives;
+      if (!objectiveOrder) conflict('The frozen objective mapping is unavailable.');
       const id = 'report-' + randomUUID(),
         createdAt = new Date().toISOString();
       const report: RecordReport = {
@@ -64,9 +67,9 @@ export class RecordReportService {
         packageId: definition.id,
         packageRevisionId: definition.revisionId,
         packageHash: context.hash,
-        objectives: decisions.map((key, index) => ({
+        objectives: decisions.map((key) => ({
           id: key,
-          text: definition.objectives![index]!,
+          text: definition.objectives![objectiveOrder.indexOf(key)]!,
           positions: [],
         })),
         records: [],
@@ -108,7 +111,7 @@ export class RecordReportService {
         revision: definition.revisionId,
         contentHash: context.hash,
         grouping:
-          'Injects are grouped by the next named decision point in this frozen package; this is a presentation mapping, not an assessment.',
+          'Injects are grouped by the next named decision point in this frozen package; positions after the last decision remain under that final objective. This is a presentation mapping, not an assessment.',
       });
       for (const objective of report.objectives)
         packageRecord.fields.push({
@@ -143,9 +146,9 @@ export class RecordReportService {
         const release = releases.find((item) => item.injectId === inject.id);
         if (!release || release.injectRevisionId !== inject.revisionId)
           conflict('Released inject binding is inconsistent.');
-        const decision = definition.injects
-          .slice(index)
-          .find((item) => item.decisionPoint)?.decisionPoint;
+        const decision =
+          definition.injects.slice(index).find((item) => item.decisionPoint)?.decisionPoint ??
+          definition.injects.findLast((item) => item.decisionPoint)?.decisionPoint;
         const objective = report.objectives.find((item) => item.id === decision);
         if (!objective) conflict('The frozen objective mapping is unavailable.');
         objective.positions.push(position);

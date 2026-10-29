@@ -14,7 +14,7 @@ import type { RecordReportView } from '../contracts/record-report.js';
 import { findingDefault } from './aar-draft.js';
 import { ApiError, request } from './api.js';
 import { date } from './exercise-format.js';
-import { useUnsavedGuard } from './unsaved-guard.js';
+import { useCanLeave, useUnsavedGuard } from './unsaved-guard.js';
 
 const categoryLabels: Record<AarFinding['category'], string> = {
   'team-decision': 'Team decisions',
@@ -568,9 +568,11 @@ function AarReview({
 
 export function AarWorkspace({
   snapshot,
+  disabled = false,
   onSessionExpired,
 }: {
   snapshot: RecordReportView;
+  disabled?: boolean;
   onSessionExpired: () => void;
 }) {
   const root = '/api/tracks/technical/runs/' + snapshot.report.runId + '/aars';
@@ -582,6 +584,9 @@ export function AarWorkspace({
     null,
   );
   const generation = useRef(0);
+  const canLeave = useCanLeave();
+  const locked = disabled || busy || !!pending;
+  useUnsavedGuard(false, busy || !!pending);
   async function reload() {
     const current = ++generation.current;
     try {
@@ -619,8 +624,8 @@ export function AarWorkspace({
     }
   }
   function submit(suffix: string, body: Record<string, unknown>) {
-    if (!busy && !pending)
-      void perform({ path: root + suffix, body: { ...body, commandId: crypto.randomUUID() } });
+    if (locked || (suffix === '' && !canLeave())) return;
+    void perform({ path: root + suffix, body: { ...body, commandId: crypto.randomUUID() } });
   }
   useEffect(() => {
     void reload();
@@ -630,10 +635,10 @@ export function AarWorkspace({
   }, []);
   const waiting = list?.records.some((v) => ['queued', 'running'].includes(v.record.status));
   useEffect(() => {
-    if (!waiting || busy || pending) return;
+    if (!waiting || locked) return;
     const timer = window.setInterval(() => void reload(), 4000);
     return () => window.clearInterval(timer);
-  }, [waiting, busy, pending]);
+  }, [waiting, locked]);
   const records = list?.records.filter((v) => v.record.snapshotId === snapshot.report.id) ?? [];
   const view = records.find((v) => v.record.id === selected) ?? records.at(-1);
   return (
@@ -649,7 +654,7 @@ export function AarWorkspace({
       <div className="run-actions">
         <button
           className="primary"
-          disabled={!list?.enabled || !list.remainingCalls || !!waiting || busy || !!pending}
+          disabled={!list?.enabled || !list.remainingCalls || !!waiting || locked}
           onClick={() =>
             submit('', { snapshotId: snapshot.report.id, snapshotHash: snapshot.hash, mode: 'ai' })
           }
@@ -658,7 +663,7 @@ export function AarWorkspace({
           Draft AAR
         </button>
         <button
-          disabled={busy || !!pending}
+          disabled={locked}
           onClick={() =>
             submit('', {
               snapshotId: snapshot.report.id,
@@ -673,13 +678,15 @@ export function AarWorkspace({
         <button
           className="icon-button"
           title="Refresh AAR"
-          disabled={busy || !!pending}
-          onClick={() => void reload()}
+          disabled={locked}
+          onClick={() => {
+            if (canLeave()) void reload();
+          }}
         >
           <RefreshCw size={17} />
         </button>
         {pending && (
-          <button disabled={busy} onClick={() => void perform(pending)}>
+          <button disabled={disabled || busy} onClick={() => void perform(pending)}>
             <RefreshCw size={17} />
             Retry same AAR request
           </button>
@@ -693,7 +700,14 @@ export function AarWorkspace({
       {!!records.length && (
         <label>
           AAR draft
-          <select value={view?.record.id ?? ''} onChange={(e) => setSelected(e.target.value)}>
+          <select
+            aria-label="AAR draft"
+            value={view?.record.id ?? ''}
+            disabled={locked}
+            onChange={(e) => {
+              if (e.target.value !== view?.record.id && canLeave()) setSelected(e.target.value);
+            }}
+          >
             {records.map((v, i) => (
               <option key={v.record.id} value={v.record.id}>
                 {i + 1}. {v.record.status} / {date(v.record.createdAt)}
@@ -715,7 +729,7 @@ export function AarWorkspace({
               view={view}
               snapshot={snapshot}
               people={list?.people ?? []}
-              disabled={busy || !!pending}
+              disabled={locked}
               submit={submit}
             />
           )}

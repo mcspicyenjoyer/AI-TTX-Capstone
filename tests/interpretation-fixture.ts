@@ -11,6 +11,7 @@ export function prepareInterpretationRun(
   complete = false,
   onResponse?: (runId: string, releaseId: string) => void,
   unanswered: number[] = [],
+  plan = generationPlan(),
 ) {
   const actor = store.loginIdentity('facilitator')!.actor;
   if (!store.profile(generationProfile.profileId, generationProfile.revisionId))
@@ -21,7 +22,7 @@ export function prepareInterpretationRun(
   generator.complete({
     id: draft.draft.id,
     failed: false,
-    output: generationPlan(),
+    output: plan,
     inputTokens: 1,
     outputTokens: 1,
   });
