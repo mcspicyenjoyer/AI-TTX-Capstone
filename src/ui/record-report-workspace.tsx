@@ -243,7 +243,9 @@ export function RecordReportWorkspace({
   const [pending, setPending] = useState<string | null>(null);
   const generation = useRef(0);
   const aarGuard = useGuardRegistry(setError);
-  useUnsavedGuard(false, busy || !!pending);
+  // Only a capture request whose outcome is unresolved blocks leaving. This view stays mounted
+  // while hidden, so treating an ordinary snapshot read as pending blocked unrelated navigation.
+  useUnsavedGuard(false, !!pending);
 
   async function load(id?: string, commandId?: string) {
     const current = ++generation.current;

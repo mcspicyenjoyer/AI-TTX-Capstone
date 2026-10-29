@@ -5,6 +5,8 @@ import { test, expect, login, fits } from './exercise-fixture.js';
 import { Store } from '../../src/server/storage.js';
 import { InterpretationService } from '../../src/server/interpretation-service.js';
 import { prepareInterpretationRun, fakeInterpretation } from '../interpretation-fixture.js';
+import { generationProfile } from '../generation-fixture.js';
+import { evidenceText } from '../../src/server/generation-content.js';
 
 test.use({ subscriptionEnabled: false, generationEnabled: true });
 test('facilitator captures immutable cited reports after review; participant cannot read them', async ({
@@ -19,7 +21,7 @@ test('facilitator captures immutable cited reports after review; participant can
       interpreter = new InterpretationService(store);
     const release = store.exercises.releases(context.runId)[0]!;
     release.deliveries![0]!.body +=
-      '\nFACT / Test service / description: Company-wide fictional reference time: synthetic reference (2026-09-28T09:00:00+08:00).';
+      '\n' + evidenceText({ claimId: 'reference' }, generationProfile);
     const fixtureDb = new DatabaseSync(join(exerciseServer, 'ttx.sqlite'));
     try {
       fixtureDb
@@ -236,6 +238,40 @@ test('lost snapshot response retries the exact capture without creating a duplic
     expect(commands).toHaveLength(2);
     expect(commands[0]).toBe(commands[1]);
     expect(store.recordReports.list(context.runId, context.actor.id)).toHaveLength(1);
+  } finally {
+    store.close();
+  }
+});
+
+test('a hidden record report still loading does not block leaving the exercise view', async ({
+  page,
+  exerciseServer,
+}) => {
+  const store = new Store(join(exerciseServer, 'ttx.sqlite'));
+  try {
+    const context = prepareInterpretationRun(store, true);
+    // Hold the hidden Record report view's snapshot read open while the facilitator leaves.
+    let finish!: () => void;
+    const held = new Promise<void>((resolve) => (finish = resolve));
+    await page.route('**/record-reports', async (route) => {
+      if (route.request().method() === 'GET') await held;
+      await route.continue();
+    });
+    await login(page, 'facilitator');
+    const reading = page.waitForRequest(
+      (request) => request.method() === 'GET' && request.url().endsWith('/record-reports'),
+    );
+    await page.getByRole('button', { name: 'Exercises', exact: true }).click();
+    await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
+    await reading;
+    await page.getByRole('button', { name: 'Package generation', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Package generation', exact: true })).toHaveClass(
+      /selected/,
+    );
+    await expect(
+      page.getByText('Resolve the pending request before leaving this view.'),
+    ).toHaveCount(0);
+    finish();
   } finally {
     store.close();
   }

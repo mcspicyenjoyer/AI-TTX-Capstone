@@ -18,7 +18,7 @@ export const ransomwareFamily = {
   ],
   rules: [
     'A business service depends on the target system through a confirmed fact.',
-    'A confirmed reference-time claim contains an ISO-8601 time with a UTC offset.',
+    'A confirmed reference-time claim contains a valid calendar ISO-8601 time with a UTC offset.',
     'Each of the two facilitator-played third parties has a confirmed support, monitoring or access link to the mapped pathway.',
     'Three different people are available for the three player functions.',
     'The no-endpoint-alert note is used only when the target has no confirmed monitoring.',
@@ -26,7 +26,7 @@ export const ransomwareFamily = {
   ],
 } as const;
 
-const isoTime = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})/;
+const isoTime = /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(:\d{2})?(Z|[+-]\d{2}:\d{2})/;
 const supplierPredicates: readonly Claim['predicate'][] = ['supported-by', 'monitored-by'];
 const accessPredicates: readonly Claim['predicate'][] = ['access-to', 'connects-to'];
 
@@ -46,10 +46,28 @@ export function dependsOnFact(profile: Profile, serviceId: string, systemId: str
   );
 }
 
+export type ReferenceTime = { local: string; offset: string; milliseconds: number };
+
+// The first ISO-8601 time with an explicit offset. Date.parse rolls impossible dates such as
+// 30 February forward, so the parsed wall-clock time must round-trip to the written one.
+export function parseReferenceTime(text: string): ReferenceTime | null {
+  const match = isoTime.exec(text);
+  if (!match) return null;
+  const local = match[1]! + (match[2] ?? ':00'),
+    offset = match[3]!,
+    milliseconds = Date.parse(local + 'Z');
+  if (
+    !Number.isFinite(milliseconds) ||
+    !Number.isFinite(Date.parse(local + offset)) ||
+    new Date(milliseconds).toISOString().slice(0, 19) !== local
+  )
+    return null;
+  return { local, offset, milliseconds };
+}
+
 export function isReferenceTime(claim: Claim | undefined): boolean {
   if (claim?.status !== 'fact' || typeof claim.value !== 'string') return false;
-  const match = isoTime.exec(claim.value);
-  return !!match && !Number.isNaN(Date.parse(match[0]));
+  return !!parseReferenceTime(claim.value);
 }
 
 // Systems and services on the mapped pathway: the target, the selected service, what either
@@ -98,13 +116,14 @@ export function assessFamily(profile: Profile): FamilyAssessment {
   const kind = (id: string | null, expected: Entity['kind']) =>
     !!id && known.get(id)?.kind === expected;
   const suppliers = [...known.values()].filter((entity) => entity.kind === 'third-party');
-  const targets = facts(profile)
-    .filter(
-      (claim) =>
-        claim.predicate === 'depends-on' &&
-        kind(claim.subjectId, 'service') &&
-        kind(claim.objectId, 'system'),
-    )
+  const pathways = facts(profile).filter(
+    (claim) =>
+      claim.predicate === 'depends-on' &&
+      kind(claim.subjectId, 'service') &&
+      kind(claim.objectId, 'system'),
+  );
+  // Eligibility is decided over every pathway; only the reported list is capped.
+  const targets = pathways
     .map((claim) => {
       const systemId = claim.objectId!;
       const nodes = pathwayNodes(profile, systemId, claim.subjectId);
@@ -118,6 +137,7 @@ export function assessFamily(profile: Profile): FamilyAssessment {
           .slice(0, 10),
       };
     })
+    .filter((target) => target.supplierIds.length >= 2)
     .slice(0, 30);
   const referenceClaimIds = (profile.environment?.claims ?? [])
     .filter(isReferenceTime)
@@ -125,9 +145,9 @@ export function assessFamily(profile: Profile): FamilyAssessment {
     .slice(0, 20);
   const people = [...known.values()].filter((entity) => entity.kind === 'role').length;
   const unmet: string[] = [];
-  if (!targets.length)
+  if (!pathways.length)
     unmet.push('No business service depends on a system through a confirmed fact.');
-  else if (!targets.some((target) => target.supplierIds.length >= 2))
+  else if (!targets.length)
     unmet.push(
       'No service-to-system pathway has two third parties with confirmed support, monitoring or access links.',
     );

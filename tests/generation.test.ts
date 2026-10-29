@@ -463,6 +463,23 @@ test('generation enforces pathway dependency reference time suppliers role cover
     .join('\n');
   assert(notes.includes('endpoint-agent alert for Renamed fs.'));
   assert(!notes.includes('TE-FS01'));
+  // Unknown monitoring still permits the note, but it must not present monitoring as absent.
+  const unknownMonitoring = changed((claims) =>
+    claims.push({
+      ...claims.find((c) => c.id === 'restore')!,
+      id: 'fs-monitoring',
+      predicate: 'monitored-by',
+    }),
+  );
+  const unknownNotes = compileGeneratedPackage(draft, unknownMonitoring)
+    .injects.map((inject) => inject.facilitatorNotes)
+    .join('\n');
+  assert(
+    unknownNotes.includes(
+      'endpoint-agent alert for TE-FS01. The confirmed profile does not confirm any current monitoring for it.',
+    ),
+  );
+  assert(!/records no|missing current|no current monitoring/.test(unknownNotes));
   // Each supplier needs its own confirmed link to the mapped pathway.
   fails(
     changed((claims) =>
@@ -481,11 +498,13 @@ test('generation enforces pathway dependency reference time suppliers role cover
     changed((claims) => (claims.find((c) => c.id === 'vpn-access')!.status = 'assumption')),
     /supplier needs a confirmed/,
   );
-  // The reference must be a confirmed ISO-8601 time with an offset.
+  // The reference must be a confirmed, real calendar ISO-8601 time with an offset.
   for (const value of [
     'Monday 28 September 2026, 09:00',
     '2026-09-28T09:00:00',
     '2026-13-45T09:00:00+08:00',
+    '2026-02-30T09:00:00+08:00',
+    'Reference 2026-02-29T09:00+08:00',
   ])
     fails(
       changed((claims) => (claims.find((c) => c.id === 'reference')!.value = value)),
@@ -566,11 +585,37 @@ test('generation threat library assesses applicability and refuses an inapplicab
     )[0]!,
     /two third parties/,
   );
-  assert.match(
-    unmet(
-      (p) => (p.environment!.claims.find((c) => c.id === 'reference')!.value = 'Monday morning'),
-    )[0]!,
-    /reference-time claim/,
+  for (const value of ['Monday morning', '2026-04-31T09:00+08:00'])
+    assert.match(
+      unmet((p) => (p.environment!.claims.find((c) => c.id === 'reference')!.value = value))[0]!,
+      /reference-time claim/,
+    );
+  // Eligibility covers every pathway, so a qualifying one after 30 others still applies.
+  const crowded = structuredClone(generationProfile);
+  const environment = crowded.environment!;
+  const qualifying = environment.claims.find((c) => c.id === 'dependency')!;
+  environment.claims = environment.claims.filter((c) => c !== qualifying);
+  for (let i = 0; i < 30; i++) {
+    for (const kind of ['service', 'system'] as const)
+      environment.entities.push({
+        ...environment.entities[0]!,
+        id: `${kind}-${i}`,
+        kind,
+        name: `Unlinked ${kind} ${i}`,
+      });
+    environment.claims.push({
+      ...qualifying,
+      id: `dependency-${i}`,
+      subjectId: `service-${i}`,
+      objectId: `system-${i}`,
+    });
+  }
+  environment.claims.push(qualifying);
+  const crowdedFamily = assessFamily(crowded);
+  assert.equal(crowdedFamily.applicable, true);
+  assert.deepEqual(
+    crowdedFamily.targets.map((target) => target.systemId),
+    ['fs'],
   );
   // A pinned profile that no family fits is refused before any request is queued.
   const inapplicable = structuredClone(generationProfile);
@@ -622,6 +667,13 @@ test('generation maps a second synthetic profile without Teralqen names through 
   assert(text.includes('QF-NAS2') && text.includes('Quillfern Studio'));
   for (const name of ['TE-FS01', 'Goh & Mercer', 'Beacon Nine', 'Teralqen'])
     assert(!text.includes(name), name);
+  // IT holds standing server authority here, so no expectation may assume Teralqen's model.
+  const expectations = frozen.injects
+    .flatMap((inject) => [...(inject.expectedActions ?? []), ...(inject.evaluationCriteria ?? [])])
+    .join('\n');
+  assert(expectations.includes('documented standing authority'));
+  for (const policy of ['laptop', 'server approval', 'server-containment', 'drawing-release'])
+    assert(!expectations.includes(policy), policy);
   const view = run.generator.get(run.actor, run.draftId);
   const pathway = view.pathway!;
   assert.equal(pathway.target.name, 'QF-NAS2');
@@ -649,6 +701,17 @@ test('generation maps a second synthetic profile without Teralqen names through 
   const snapshot = new RecordReportService(store).capture(run.actor, run.runId, randomUUID());
   checkReportReferences(snapshot.report);
   assert.equal(snapshot.report.objectives.flatMap((o) => o.positions).length, 5);
+  // The released reference uses different wording and format, yet every record has a clock.
+  const times = ['08:30:00', '09:00:00', '09:30:00', '10:00:00', '10:30:00'];
+  const clocked = snapshot.report.records.filter((record) =>
+    record.fields.some((field) => field.label === 'fictionalExerciseClock'),
+  );
+  assert.equal(clocked.length, 20);
+  for (const record of clocked)
+    assert.equal(
+      record.fields.find((field) => field.label === 'fictionalExerciseClock')!.value,
+      `+${(record.position! - 1) * 30} elapsed minutes / 2026-11-02 ${times[record.position! - 1]} (UTC+00:00)`,
+    );
 });
 test('generation disabled queue and claim preserve manual review', () => {
   const view = proposed();

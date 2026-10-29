@@ -231,6 +231,48 @@ const mutations: Mutation[] = [
     edit: replaceOnce('${JSON.stringify({ targets, referenceClaimIds })}', '[]'),
   },
   {
+    name: 'reference time rejects impossible calendar dates',
+    file: 'src/server/threat-library.ts',
+    test: composition,
+    edit: replaceOnce('new Date(milliseconds).toISOString().slice(0, 19) !== local', 'false'),
+  },
+  {
+    name: 'family eligibility decided before the 30-pathway cap',
+    file: 'src/server/threat-library.ts',
+    test: library,
+    edit: replaceOnce(
+      '    .filter((target) => target.supplierIds.length >= 2)\n    .slice(0, 30);',
+      '    .slice(0, 30)\n    .filter((target) => target.supplierIds.length >= 2);',
+    ),
+  },
+  {
+    name: 'report clock uses the plan reference claim',
+    file: 'src/server/record-report-service.ts',
+    test: secondProfile,
+    edit: replaceOnce(
+      'releasedExerciseClocks(releases, clockReference)',
+      'releasedExerciseClocks(releases, null)',
+    ),
+  },
+  {
+    name: 'no-alert note does not present unknown monitoring as absent',
+    file: content,
+    test: composition,
+    edit: replaceOnce(
+      'does not confirm any current monitoring for it.',
+      'records no current monitoring for it.',
+    ),
+  },
+  {
+    name: 'containment authority expectation is profile-neutral',
+    file: content,
+    test: secondProfile,
+    edit: replaceOnce(
+      'Obtain the documented approval for each proposed containment action; act only within documented standing authority and escalate unreachable authorisers.',
+      'Obtain the documented server-containment approval; retain laptop-only standing authority and escalate unreachable authorisers.',
+    ),
+  },
+  {
     name: 'no-alert note names the profile target',
     file: content,
     test: composition,

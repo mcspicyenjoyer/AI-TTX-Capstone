@@ -26,7 +26,7 @@ import {
 
 type ActionKind = (typeof actionKinds)[number];
 
-export const generationPromptVersion = 'five-position-3';
+export const generationPromptVersion = 'five-position-4';
 export const roleNames = {
   'business-leadership': 'Business leadership',
   'engineering-projects': 'Engineering/project operations',
@@ -99,7 +99,7 @@ export const expectedActionText = {
   'preserve-evidence':
     'Identify evidence to preserve and assign its collection before disruptive action.',
   'obtain-isolation-authority':
-    'Obtain the documented server-containment approval; retain laptop-only standing authority and escalate unreachable authorisers.',
+    'Obtain the documented approval for each proposed containment action; act only within documented standing authority and escalate unreachable authorisers.',
   'verify-contact-route':
     'Select the documented contact route, identity check and fallback; record contact as proposed until verified.',
   'select-minimum-working-set':
@@ -113,7 +113,7 @@ export const expectedActionText = {
   'verify-recovery-source':
     'Request recovery-point, isolation and restore-test evidence before trusting a recovery source.',
   'validate-engineering-integrity':
-    'Assign engineering working-set validation and retain separate drawing-release authority.',
+    'Assign engineering working-set validation and retain any separately documented release authority.',
   'obtain-restoration-authority':
     'Present technical checks and business-owner validation to the documented restoration authoriser.',
   'record-owner-and-review-time':
@@ -130,7 +130,7 @@ export const actions = {
   ],
   'obtain-isolation-authority': [
     'Who must authorise the proposed containment, and what may each responder do before approval?',
-    'Distinguishes laptop standing authority from server approval and records escalation if an authoriser is unreachable.',
+    'Distinguishes actions within documented standing authority from actions needing approval, and records escalation if an authoriser is unreachable.',
   ],
   'verify-contact-route': [
     'Which contact route will you use, how will identity be checked, and what is the fallback?',
@@ -180,9 +180,10 @@ export const notes = {
     'The entry point is unknown. Do not imply an MSP compromise or a proven exploit.',
   'suppliers-by-facilitator':
     'The facilitator plays the MSP and SOC; neither is a fourth player role.',
-  // {system} is replaced with the target system's profile name when rendered.
+  // {system} is replaced with the target system's profile name when rendered. The rule only
+  // establishes that no monitoring is confirmed; it may be unknown, so do not call it absent.
   'no-agent-alert':
-    'Do not provide an endpoint-agent alert for {system}. The confirmed profile records no current monitoring for it.',
+    'Do not provide an endpoint-agent alert for {system}. The confirmed profile does not confirm any current monitoring for it.',
   'restore-evidence-unknown':
     'Unverified restore evidence is not evidence of backup corruption or a failed test.',
   'targets-not-capabilities':
@@ -292,7 +293,10 @@ export function validateGeneratedPlan(
   return plan;
 }
 
-function evidenceText(selection: EvidenceSelection, profile: Profile): string {
+export function evidenceText(
+  selection: Pick<EvidenceSelection, 'claimId'>,
+  profile: Profile,
+): string {
   const claim = profile.environment!.claims.find((item) => item.id === selection.claimId)!;
   const name = (id: string) =>
     profile.environment!.entities.find((entity) => entity.id === id)!.name;

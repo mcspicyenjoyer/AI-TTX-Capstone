@@ -190,8 +190,10 @@ export function generationPlan(target: PackageTarget = generationTarget): Genera
   };
 }
 
-// A second hand-authored context (ADR-037): different names, reference time and supplier
-// layout. The SOC monitors the target directly and the MSP has its own access to it.
+// A second hand-authored context (ADR-037): different names, supplier layout, authority policy
+// and reference wording. The SOC monitors the target directly and the MSP has its own access
+// to it; IT holds standing authority to isolate servers, and leadership approves restoration.
+// The reference has no seconds, a Z offset and no Teralqen phrasing.
 const secondNames: Record<string, string> = {
   fs: 'QF-NAS2',
   service: 'Client design delivery',
@@ -217,9 +219,16 @@ export const secondProfile: Profile = (() => {
     claim('msp-access', 'msp', 'fact', null, 'access-to', 'fs'),
   ];
   environment.claims.find((item) => item.id === 'reference')!.value =
-    'Fictional reference 2026-11-02T08:30:00+00:00';
-  environment.claims.find((item) => item.id === 'it')!.value =
-    'IT_ONLY: QF-NAS2 alerts reach the SOC; laptop isolation only.';
+    'Studio exercise start, 2 November 2026 08:30 GMT (2026-11-02T08:30Z)';
+  environment.claims.find((item) => item.id === 'leadership')!.value =
+    'LEADERSHIP_ONLY: approve restoration; server isolation is delegated to IT.';
+  Object.assign(
+    environment.claims.find((item) => item.id === 'it')!,
+    {
+      predicate: 'authority',
+      value: 'IT_ONLY: Ines may isolate any affected server or laptop under standing authority.',
+    },
+  );
   return profile;
 })();
 export const secondTarget: PackageTarget = {
@@ -229,10 +238,12 @@ export const secondTarget: PackageTarget = {
   reviewRevision: 3,
   reviewHash: '3'.repeat(64),
 };
-// The second target is monitored, so its plan cannot use the no-agent-alert note.
+// The second target is monitored, so its plan cannot use the no-agent-alert note. Business
+// leadership receives the reference claim at position 1, so the report can derive its clock.
 export function secondPlan(): GeneratedPlan {
   const plan = generationPlan(secondTarget);
   for (const position of plan.positions)
     position.facilitatorNotes = position.facilitatorNotes.filter((key) => key !== 'no-agent-alert');
+  plan.positions[0]!.messages[0]!.evidence.push({ claimId: 'reference', status: 'fact' });
   return plan;
 }

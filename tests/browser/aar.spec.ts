@@ -226,9 +226,15 @@ test('uncertain AAR review keeps edits and exact retry while draft and snapshot 
     await expect(workspace.getByLabel('AAR draft', { exact: true })).toBeDisabled();
     await page.getByLabel('Snapshot', { exact: true }).selectOption(first.report.id);
     await expect(page.getByLabel('Snapshot', { exact: true })).toHaveValue(snapshot.report.id);
+    // The local AAR guard explains the block; the page-wide banner must not repeat it.
+    await expect(
+      page
+        .getByRole('region', { name: 'Record report workspace', exact: true })
+        .getByText('Resolve the pending request before leaving this view.'),
+    ).toBeVisible();
     await expect(
       page.getByText('Resolve the pending request before leaving this view.'),
-    ).toBeVisible();
+    ).toHaveCount(1);
     await page.getByRole('button', { name: 'Capture record snapshot', exact: true }).click();
     expect(reports.list(context.actor, context.runId)).toHaveLength(2);
     await expect(rationale).toHaveValue('Retain this exact review until the outcome is confirmed.');

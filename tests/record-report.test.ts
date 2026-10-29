@@ -14,9 +14,9 @@ import { contentHash } from '../src/server/integrity.js';
 import { checkReportReferences, type RecordReportView } from '../src/contracts/record-report.js';
 import type { InterpretationView, ReviewInterpretation } from '../src/contracts/interpretation.js';
 import { decisions } from '../src/contracts/generation.js';
-import { objectiveActions, objectives } from '../src/server/generation-content.js';
+import { evidenceText, objectiveActions, objectives } from '../src/server/generation-content.js';
 import { validateAar } from '../src/server/aar-content.js';
-import { generationPlan, generationTarget } from './generation-fixture.js';
+import { generationPlan, generationProfile, generationTarget } from './generation-fixture.js';
 import { prepareInterpretationRun, fakeInterpretation } from './interpretation-fixture.js';
 import { fakeAar } from './aar-fixture.js';
 
@@ -225,11 +225,15 @@ test('report refuses a missing frozen objective identity source without writing 
 });
 
 test('all twenty exercise records inherit their release clock while reviews remain post-exercise analysis', () => {
-  // The miniature fixture does not release its reference claim; add explicit
-  // release evidence here to distinguish it from the unreleased package clock.
+  // The miniature fixture does not release its reference claim. Before release evidence exists
+  // no record has an exercise time; then release the plan's exact rendered reference line.
+  const unreleased = capture()
+    .report.records.flatMap((record) => record.fields)
+    .filter((field) => field.label === 'fictionalExerciseClock');
+  assert.equal(unreleased.length, 20);
+  assert(unreleased.every((field) => field.value.endsWith(' / exercise time unavailable')));
   const release = store.exercises.releases(context.runId)[0]!;
-  release.deliveries![0]!.body +=
-    '\nFACT / Test service / description: Company-wide fictional reference time: synthetic reference (2026-09-28T11:00:00+08:00).';
+  release.deliveries![0]!.body += '\n' + evidenceText({ claimId: 'reference' }, generationProfile);
   database((db) =>
     db
       .prepare('UPDATE inject_releases SET payload=? WHERE id=?')
@@ -245,7 +249,7 @@ test('all twenty exercise records inherit their release clock while reviews rema
     );
     assert.equal(records.length, 4);
     const released = records.find((record) => record.kind === 'release')!;
-    const expectedTime = ['11:00:00', '11:30:00', '12:00:00', '12:30:00', '13:00:00'][position - 1];
+    const expectedTime = ['09:00:00', '09:30:00', '10:00:00', '10:30:00', '11:00:00'][position - 1];
     for (const record of records) {
       const clock = record.fields.find((field) => field.label === 'fictionalExerciseClock')!;
       assert.equal(

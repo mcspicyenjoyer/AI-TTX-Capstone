@@ -1,48 +1,31 @@
 import type { Release } from '../contracts/exercise.js';
+import type { Profile } from '../contracts/profile.js';
+import { evidenceText } from './generation-content.js';
+import { isReferenceTime, parseReferenceTime, type ReferenceTime } from './threat-library.js';
 
 type ReleasedText = Pick<Release, 'id' | 'body' | 'deliveries'>;
+export type ClockReference = { text: string; time: ReferenceTime };
 const bodies = (release: ReleasedText) =>
   release.deliveries?.length ? release.deliveries.map((delivery) => delivery.body) : [release.body];
 
-function referenceTime(line: string) {
-  const match =
-    /Company-wide fictional reference time: [^(\r\n]*\((\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(Z|[+-]\d{2}:\d{2})\)/.exec(
-      line,
-    );
-  if (!match) return null;
-  const local = match[1]!,
-    offset = match[2]!,
-    milliseconds = Date.parse(local + 'Z');
-  if (
-    !Number.isFinite(milliseconds) ||
-    !Number.isFinite(Date.parse(local + offset)) ||
-    new Date(milliseconds).toISOString().slice(0, 19) !== local
-  )
-    return null;
-  return { local, offset, milliseconds };
+// The frozen plan names its reference claim. The clock needs that confirmed claim's exact
+// rendered evidence line in a release; its time comes from the claim value, never other text.
+export function planClockReference(profile: Profile, claimId: string): ClockReference | null {
+  const claim = profile.environment?.claims.find((item) => item.id === claimId);
+  if (!claim || !isReferenceTime(claim)) return null;
+  const time = parseReferenceTime(String(claim.value));
+  return time && { text: evidenceText({ claimId }, profile), time };
 }
 
-// The frozen releases predate structured clock fields. Read only their known
-// simulation header and explicit FACT reference, never response text or wall time.
-export function releasedExerciseClocks(releases: ReleasedText[]) {
-  const references = releases.flatMap((release) =>
-    bodies(release).flatMap((body) =>
-      body
-        .split(/\r?\n/)
-        .filter((line) =>
-          /^FACT \/ .+ \/ description: Company-wide fictional reference time: /.test(line),
-        )
-        .map((line) => ({ releaseId: release.id, time: referenceTime(line) })),
-    ),
-  );
-  const first = references[0];
-  const reference =
-    first?.time &&
-    references.every(
-      (item) => item.time?.local === first.time!.local && item.time?.offset === first.time!.offset,
-    )
-      ? first
-      : null;
+// The frozen releases predate structured clock fields. Read only their simulation header and
+// the plan's released reference line, never response text or wall time.
+export function releasedExerciseClocks(releases: ReleasedText[], reference: ClockReference | null) {
+  const line = reference && '\n' + reference.text + '\n';
+  const source =
+    line &&
+    releases.find((release) =>
+      bodies(release).some((body) => ('\n' + body.replace(/\r\n/g, '\n') + '\n').includes(line)),
+    );
 
   return new Map(
     releases.map((release) => {
@@ -54,7 +37,7 @@ export function releasedExerciseClocks(releases: ReleasedText[]) {
       const minutes =
         offsets[0] !== null && offsets.every((value) => value === offsets[0]) ? offsets[0]! : null;
       const time =
-        minutes !== null && reference?.time
+        minutes !== null && source && reference
           ? new Date(reference.time.milliseconds + minutes * 60_000)
               .toISOString()
               .slice(0, 19)
@@ -72,12 +55,7 @@ export function releasedExerciseClocks(releases: ReleasedText[]) {
               : '+' + minutes + ' elapsed minutes') +
             ' / ' +
             time,
-          citations: [
-            ...new Set([
-              release.id,
-              ...(minutes !== null && reference ? [reference.releaseId] : []),
-            ]),
-          ],
+          citations: [...new Set([release.id, ...(minutes !== null && source ? [source.id] : [])])],
         },
       ];
     }),

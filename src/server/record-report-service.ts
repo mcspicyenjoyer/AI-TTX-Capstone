@@ -12,7 +12,7 @@ import { ExerciseService } from './exercise-service.js';
 import { InterpretationService } from './interpretation-service.js';
 import { validateInterpretation } from './interpretation-content.js';
 import { AppError } from './errors.js';
-import { releasedExerciseClocks } from './record-report-clock.js';
+import { planClockReference, releasedExerciseClocks } from './record-report-clock.js';
 
 function conflict(message: string): never {
   throw new AppError(409, 'REPORT_CONFLICT', message);
@@ -54,8 +54,16 @@ export class RecordReportService {
       if (!completion || releases.length !== 5 || completion.closureIds.length !== 5)
         conflict('The completed run record is incomplete.');
       // The frozen plan supplies identities; the frozen package supplies historical wording.
-      const objectiveOrder = this.store.generation.get(definition.id)?.draft.plan?.objectives;
-      if (!objectiveOrder) conflict('The frozen objective mapping is unavailable.');
+      const frozen = this.store.generation.get(definition.id)?.draft;
+      const plan = frozen?.plan;
+      if (!frozen || !plan) conflict('The frozen objective mapping is unavailable.');
+      const objectiveOrder = plan.objectives;
+      // The exact pinned profile renders the plan's reference line; otherwise no exercise time.
+      const pinned = this.store.profile(frozen.target.profileId, frozen.target.profileRevisionId);
+      const clockReference =
+        pinned?.contentHash === frozen.target.profileHash
+          ? planClockReference(pinned.profile, plan.scenario.referenceClaimId)
+          : null;
       const id = 'report-' + randomUUID(),
         createdAt = new Date().toISOString();
       const report: RecordReport = {
@@ -139,7 +147,7 @@ export class RecordReportService {
           check.actorId,
         );
       const releasePositions = new Map<string, number>();
-      const clocks = releasedExerciseClocks(releases);
+      const clocks = releasedExerciseClocks(releases, clockReference);
       const responseIds = new Set<string>();
       for (const [index, inject] of definition.injects.entries()) {
         const position = index + 1;

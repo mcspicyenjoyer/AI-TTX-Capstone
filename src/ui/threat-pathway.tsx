@@ -18,7 +18,6 @@ function ClaimLines({ claims }: { claims: PathwayClaim[] }) {
 
 // Applicability of a library family to the pinned confirmed profile, shown before generation.
 export function FamilyAssessmentView({ family }: { family: FamilyAssessment }) {
-  const eligible = family.targets.filter((target) => target.supplierIds.length >= 2);
   return (
     <div className="threat-family" aria-label="Threat library family">
       <p>
@@ -31,7 +30,7 @@ export function FamilyAssessmentView({ family }: { family: FamilyAssessment }) {
       <p>{family.summary}</p>
       {family.applicable ? (
         <p className="muted">
-          Eligible pathways: {eligible.map((target) => target.name).join('; ')}
+          Eligible pathways: {family.targets.map((target) => target.name).join('; ')}
         </p>
       ) : (
         <ul>
