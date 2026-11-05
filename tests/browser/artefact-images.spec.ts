@@ -9,7 +9,7 @@ import { generationTarget, generationPlan } from '../generation-fixture.js';
 import { fakeImage } from '../artefact-image-fixture.js';
 
 test.use({ subscriptionEnabled: true, generationEnabled: true });
-test('generate review attach freeze and release a role-filtered image with reload and responsive rendering', async ({
+test('generate review attach freeze and release a PowerShell image with reload and responsive rendering', async ({
   page,
   exerciseServer,
   browser,
@@ -29,6 +29,7 @@ test('generate review attach freeze and release a role-filtered image with reloa
     outputTokens: 1,
   });
   const errors: string[] = [];
+  const transcript = "PS C:\\> Write-Output 'fictional reference'\nfictional reference\n\nPS C:\\>";
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('dialog', (dialog) => dialog.accept());
   try {
@@ -43,9 +44,24 @@ test('generate review attach freeze and release a role-filtered image with reloa
     await page.getByLabel('Story message 1 text', { exact: true }).fill('UNSAVED STORY');
     await expect(panel.getByRole('button', { name: 'Generate image', exact: true })).toBeDisabled();
     await page.getByRole('button', { name: 'Discard inject edits', exact: true }).click();
+    const kind = page.getByLabel('Story message 1 kind', { exact: true });
+    await expect(kind.locator('option[value="powershell-transcript"]')).toHaveText(
+      'PowerShell transcript',
+    );
+    await kind.selectOption('powershell-transcript');
+    await page.getByLabel('Story message 1 text', { exact: true }).fill(transcript);
+    await expect(panel.getByRole('button', { name: 'Generate image', exact: true })).toBeDisabled();
+    await page.getByRole('button', { name: 'Save edit', exact: true }).click();
+    await expect(kind).toHaveValue('powershell-transcript');
+    await expect(page.getByLabel('Story message 1 text', { exact: true })).toHaveValue(transcript);
+    await expect(
+      page.locator('.preserve-lines').filter({ hasText: 'PowerShell transcript from' }),
+    ).toContainText(transcript);
     await panel.getByRole('button', { name: 'Generate image', exact: true }).click();
     await expect(panel).toContainText('Queued for image worker.');
     const job = images.claim()!;
+    expect(job.prompt).toContain('generic PowerShell console screenshot');
+    expect(job.prompt).toContain(JSON.stringify(transcript));
     expect(
       images.complete({
         id: job.id,
@@ -165,6 +181,12 @@ test('generate review attach freeze and release a role-filtered image with reloa
           .selectOption(`technical/${runId}`);
         const inbox = participant.getByRole('region', { name: 'Released inbox', exact: true });
         await expect(inbox.getByRole('img')).toHaveCount(username === 'player-engineering' ? 1 : 0);
+        if (username === 'player-engineering') {
+          await expect(inbox.locator('.inject-body')).toContainText('PowerShell transcript from');
+          await expect(inbox.locator('.inject-body')).toContainText(transcript);
+        } else {
+          await expect(inbox.locator('.inject-body')).not.toContainText(transcript);
+        }
         await expect(inbox.locator('.inject-body')).not.toContainText('SIMULATION');
         const stored = store.exercises.releases(runId)[0]!;
         expect(

@@ -119,7 +119,7 @@ For a fresh local installation, place the operator-approved `package-target.json
 
 ### Story image generation
 
-The current separate image preview is [port 3031](http://127.0.0.1:3031/), Compose project `ttx-images`. Use the same facilitator code as the transferred storyline copy, select the latest reviewed draft and inject 2, then inspect **Story message 1**. Its generated extortion-email image is ready but not attached. Only the image worker is running for this copy; the four-mode live AI demonstration stays on port 3030. The preview's database is separate, so image review here does not alter port 3030.
+The full branch rehearsal uses [port 3031](http://127.0.0.1:3031/), Compose project `ttx-full-demo`, with its own fresh dataset and all five worker modes. Its access codes differ from the preserved storyline copy; read them with the local `show-access` operator command for `ttx-full-demo-app-1`. The earlier image-only preview, Compose project `ttx-images`, is stopped with its volume and backup preserved. Do not start both projects on port 3031. The four-mode demonstration on port 3030 remains unchanged. [WORK](docs/WORK.md) records the exact checks and rehearsal state, not an automatic readiness guarantee.
 
 On the image branch, rebuild a separate application copy with `TTX_AI_ENABLED=codex-subscription`; do not upgrade the port-3030 live demo merely to try it. This adds schema 12, so keep the original data backup and use the matching branch on another laptop. PNGs travel with the private database archive, not Git. The existing four text workers do not generate images; start a fifth, image-only worker against that copy, with its own directory:
 
@@ -133,6 +133,12 @@ Replace `YOUR_IMAGE_CONTAINER` with the separate copy's container name. Append `
 In **Package generation**, select an unfrozen draft and an inject with a saved story message. Save text edits before **Generate image**, then confirm subscription use. Review the returned pixels against the message before **Attach image**. Attachment resets that inject's acceptance; accept it again before freezing. **Remove image** leaves the text intact. Changed text/recipients/clock detach the old image, and preparation changes clear all attachments. The image has no "TTX ARTEFACT PREVIEW" banner; the review controls and existing exercise simulation boundary remain.
 
 One image request runs at a time, with ten requests per package including failures. There is no automatic retry or attachment. Images freeze with the package and are delivered only to their assigned roles when that inject is released. The text stays visible and remains the interpretation/report/AAR source; image fidelity is a human review, not an OCR guarantee. Ready images can still be reviewed/attached and exercises can run with AI disabled.
+
+**PowerShell transcript** is also a story-message kind. Its image is an inert console screenshot of the saved text, not a script runner or evidence that commands ran. Review the wording and line breaks before generating, then compare the pixels with the saved transcript. No diagnostic finding, successful restore or real telemetry is inferred from the image.
+
+For the complete branch demo, start each of `extraction`, `packages`, `interpretations`, `aars` and `images` against `ttx-full-demo-app-1`, in separate external worker directories. Restart all five after restarting the app. Fresh intake confirmation does not automatically change the generation target: the operator must install the exact confirmed binding in `/data/package-target.json` and restart this copy before generating. Existing request caps still apply even when the subscription has capacity; preserve a private data export before preparing a new demo.
+
+The [verified rehearsal and demo route](docs/evaluation/full-demo-rehearsal-2026-11-05.md) identifies the completed reference run and separate unfrozen Review draft. The latter has a saved PowerShell message at inject 2/story message 2 with image generation enabled. Inspect the confirmed uploaded organisation through **Source intake > Review**; the older Organisation profile landing view still opens the first authorised fixture without a selector. The report records this limitation rather than implying the fixture is the new generation target.
 
 ### Response interpretation
 

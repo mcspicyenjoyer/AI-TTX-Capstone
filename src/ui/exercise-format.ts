@@ -15,6 +15,7 @@ export function sourceTitle(value: string): string {
 export function optionLabel(value: string): string {
   const label = value
     .replaceAll('-', ' ')
+    .replace(/\bpowershell\b/g, 'PowerShell')
     .replace(/\b(mfa|rto|rpo|bcp|drp|bia|it|msp|mssp|soc)\b/g, (acronym) => acronym.toUpperCase());
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
@@ -57,11 +58,17 @@ const stockCopy: [string, string][] = [
 // Display stock exercise copy without repeated labels. Never use this for source quotes,
 // stored records, hashes, prompts or report evidence; those retain their exact wording.
 export function exerciseText(value: string): string {
-  let display = value.replace(/^SIMULATED SCENARIO: /, '').replace(/^SIMULATION(?:\. | \/ )/, '');
+  // Flat released bodies have no separate story metadata. Preserve everything from the first
+  // rendered story heading, including its quoted evidence, rather than guess where prose ends.
+  const storyStart = value.search(
+    /^(?:Email|Chat message|Phone call|Voicemail|Helpdesk ticket|Ransom note|Leak-site post|News item|PowerShell transcript) from /m,
+  );
+  const wrapper = storyStart === -1 ? value : value.slice(0, storyStart);
+  let display = wrapper.replace(/^SIMULATED SCENARIO: /, '').replace(/^SIMULATION(?:\. | \/ )/, '');
   if (value.startsWith('SIMULATED SCENARIO: '))
     display = display.charAt(0).toUpperCase() + display.slice(1);
   for (const [before, after] of stockCopy) display = display.replaceAll(before, after);
-  return display;
+  return display + (storyStart === -1 ? '' : value.slice(storyStart));
 }
 
 export const date = (value: string) =>

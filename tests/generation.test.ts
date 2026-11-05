@@ -1174,6 +1174,31 @@ test('generation renders packages made before the storyline exactly as before', 
     validateGeneratedPlan(legacyPlan(), generationProfile, generationTarget),
   );
 });
+test('PowerShell transcripts stay bounded text with exact lines and role-filtered delivery bodies', () => {
+  const plan = generationPlan();
+  const transcript = {
+    kind: 'powershell-transcript' as const,
+    sender: 'Internal IT',
+    headline: 'Reported incident state',
+    body: "PS C:\\> Write-Output 'Shared files reported unavailable'\nShared files reported unavailable\nPS C:\\> Write-Output 'Entry point: unknown'\nEntry point: unknown",
+    recipientRoleIds: ['internal-it'] as const,
+  };
+  plan.positions[0]!.artefacts = [
+    { ...transcript, recipientRoleIds: [...transcript.recipientRoleIds] },
+  ];
+  const result = proposed(plan);
+  assert.equal(result.draft.status, 'review');
+  assert.equal(result.draft.plan!.positions[0]!.artefacts![0]!.body, transcript.body);
+  for (const role of result.preview!.injects[0]!.roleBodies!) {
+    assert.equal(role.body.includes(transcript.body), role.roleId === 'internal-it');
+    if (role.roleId === 'internal-it')
+      assert.ok(
+        role.body.includes('PowerShell transcript from Internal IT: Reported incident state'),
+      );
+  }
+  plan.positions[0]!.artefacts![0]!.body = 'x'.repeat(901);
+  assert.throws(() => validateGeneratedPlan(plan, generationProfile, generationTarget));
+});
 test('generation requires a storyline and story messages in every new proposal', () => {
   assert.equal(proposed(legacyPlan()).draft.status, 'failed');
   const missing = generationPlan();
@@ -1271,6 +1296,9 @@ test('generation prompt asks for the storyline while company facts stay claim-re
   assert.match(prompt, /no mention of exercises, simulations, assumptions or reference times/);
   assert.match(prompt, /Outside the storyline, no free prose or invented names/);
   assert.match(prompt, /invent no new staff or systems/);
+  assert.match(prompt, /powershell-transcript kind is inert display text/);
+  assert.match(prompt, /Never invent diagnostic findings/);
+  assert.match(prompt, /Do not use it to resolve an unknown/);
 });
 
 test('storyline background follows the selected reference without a fixed weekday', () => {

@@ -2,6 +2,14 @@
 
 Accepted means a direction for the user's authorised baseline, not organisation deployment or data approval.
 
+## ADR-043 - Full branch rehearsal and inert PowerShell artefacts
+
+5 November 2026: the user chooses the image branch for a complete live-demo rehearsal on port 3031, with all five subscription worker modes, while retaining port 3030 unchanged. The request supersedes the earlier two-image-attempt allowance for this rehearsal. It is not evidence of unlimited account capacity and does not remove application request caps or authorise a paid fallback. Preserve the prior preview volume and its access files; a fresh, separately named rehearsal dataset avoids rewriting historic trials and their usage counters.
+
+Add `powershell-transcript` to the existing story-message kind, not a separate execution or evidence pipeline. Its saved text is an inert console transcript; the optional image represents exactly that text and must not infer diagnostic results or run commands. Keep the existing sender, headline, body, recipient and revision bindings, explicit attachment, acceptance, freeze and release. Existing message kinds retain byte-identical image prompts and rendering; existing stored image requests retain `story-image-1`, while the generator's changed guidance is audited as `five-position-8`. No migration, new provider or dependency is needed. Maintenance is the new enum/label/layout and focused compatibility/access tests.
+
+Alternatives: label a console as an ordinary email (misleading presentation), execute PowerShell to obtain evidence (outside a discussion exercise), or create a parallel artefact service (unnecessary complexity). Reject all three. A live demonstration still needs facilitator review of generated text and image pixels. The selected confirmed profile is configured in `package-target.json` at startup; record that operator step honestly rather than claim a new automatic intake-to-generation switch. WORK records actual rehearsal outcomes, failures, corrections and remaining limits.
+
 ## ADR-042 - Remove repeated labels from exercise presentation
 
 5 November 2026: the user confirmed removal of repeated visible "Synthetic", "SIMULATION" and "fictional" labels from the interface and inject presentation, while preserving original source quotations, historical records, data restrictions and approval checks. This supersedes ADR-041's repeated-warning presentation instruction only. Intake still requires acknowledgement of the prototype's data requirements; starting an exercise still requires the facilitator's briefing and permitted-action acknowledgement. The prototype remains a synthetic-data discussion exercise, not a system-execution tool.

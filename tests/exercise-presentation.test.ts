@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { exerciseText, optionLabel, sourceTitle } from '../src/ui/exercise-format.js';
+import { artefactKinds } from '../src/contracts/generation.js';
+import { artefactText } from '../src/server/generation-content.js';
 
 test('source-title aliases remove only the four fixture labels without changing source identity', () => {
   const sources = [
@@ -30,6 +32,7 @@ test('controlled option labels use sentence case and preserve domain acronyms an
   const values = [
     'obtain-isolation-authority',
     'ransom-note',
+    'powershell-transcript',
     'clarification-required',
     'mfa',
     'rto-hours',
@@ -44,6 +47,7 @@ test('controlled option labels use sentence case and preserve domain acronyms an
   assert.deepEqual(values.map(optionLabel), [
     'Obtain isolation authority',
     'Ransom note',
+    'PowerShell transcript',
     'Clarification required',
     'MFA',
     'RTO hours',
@@ -79,4 +83,39 @@ test('presentation is not a general word scrubber and leaves arbitrary story and
     'The synthetic workload failed during a simulation. This is a fictional example in the supplied source.\r\nPayment and recovery remain unverified.';
   assert.equal(exerciseText(message), message);
   assert.equal(exerciseText('FACT / Backup tested: unknown'), 'FACT / Backup tested: unknown');
+});
+
+test('every story kind preserves literal stock phrases, blank lines and CRLF after wrapper cleanup', () => {
+  for (const kind of artefactKinds) {
+    for (const newline of ['\n', '\r\n']) {
+      const story = artefactText({
+        kind,
+        sender: 'Internal IT',
+        headline: 'fictional reference',
+        body: [
+          "PS C:\\> Write-Output 'fictional reference'",
+          'fictional reference',
+          '',
+          'All actions are simulated; do not contact real people or change systems.',
+          'PowerShell transcript from quoted text: not a boundary to rewrite',
+          'A simulated user report says files are unavailable.',
+        ].join('\n'),
+        recipientRoleIds: ['internal-it'],
+      }).replaceAll('\n', newline);
+      const suffix = `${story}${newline}${newline}FACT / Company-wide fictional reference time: quoted source text`;
+      const prefix = `SIMULATION / +0 elapsed minutes${newline}A simulated user report says files are unavailable.${newline}${newline}`;
+      const original = prefix + suffix;
+      assert.equal(
+        exerciseText(original),
+        `+0 elapsed minutes${newline}A user report says files are unavailable.${newline}${newline}${suffix}`,
+        `${kind} with ${JSON.stringify(newline)}`,
+      );
+      assert.equal(exerciseText(story), story);
+    }
+  }
+  assert.equal(
+    exerciseText('A PowerShell transcript from another source mentions fictional reference'),
+    'A PowerShell transcript from another source mentions reference',
+    'Only an anchored application story heading stops wrapper cleanup.',
+  );
 });

@@ -23,6 +23,8 @@ Later 5 November presentation clarification (ADR-042): the user explicitly reque
 
 The subsequent source-register request extends this presentation cleanup to the existing fixture source-title labels and clearer role/metadata emphasis and capitalisation. Source identity, quoted passages, user-authored titles and submitted enum values remain unchanged; ADR-042 records the bounded display approach.
 
+5 November full-demo rehearsal authority (ADR-043): the user now authorises live subscription calls through all five worker modes on the image branch at port 3031 to rehearse the implemented input-to-AAR workflow, including inert PowerShell-style artefacts. This supersedes the earlier two-image-attempt allowance for this rehearsal, not the application's request caps, synthetic-data restrictions or no-paid-fallback rule. Preserve port 3030 and the previous image-preview dataset. Use a separate rehearsal dataset, review each AI proposal explicitly, and distinguish automated/AI-player testing from independent human evaluation. The existing operator-selected confirmed-profile binding remains an explicit setup step; a seamless in-app profile switch, ten-position expansion and approved branching are not newly authorised.
+
 ### Form B traceability
 
 FB IDs below map all twelve Project Objectives; numbered Project Scope items and named deliverables supply their detail. These are verified requirements, not claims of implementation. WORK owns completion and exact test results.

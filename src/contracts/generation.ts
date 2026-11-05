@@ -52,6 +52,7 @@ export const artefactKinds = [
   'ransom-note',
   'leak-site-post',
   'news-item',
+  'powershell-transcript',
 ] as const;
 // The storyline is the only model-written prose (ADR-038). Company facts stay claim-rendered.
 const prose = (maxLength: number) => Type.String({ minLength: 1, maxLength, pattern: '\\S' });

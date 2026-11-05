@@ -28,7 +28,7 @@ import {
 
 type ActionKind = (typeof actionKinds)[number];
 
-export const generationPromptVersion = 'five-position-7';
+export const generationPromptVersion = 'five-position-8';
 export const roleNames = {
   'business-leadership': 'Business leadership',
   'engineering-projects': 'Engineering/project operations',
@@ -211,6 +211,7 @@ const artefactLabels: Record<StorylineArtefact['kind'], string> = {
   'ransom-note': 'Ransom note',
   'leak-site-post': 'Leak-site post',
   'news-item': 'News item',
+  'powershell-transcript': 'PowerShell transcript',
 };
 export function artefactText(artefact: StorylineArtefact): string {
   return `${artefactLabels[artefact.kind]} from ${artefact.sender}: ${artefact.headline}\n${artefact.body}`;
@@ -547,6 +548,7 @@ Storyline: the only text you write yourself. Make it realistic, specific and dif
 - storyline.threatActor: create a criminal ransomware group with a name that is not any real group's, and a short threat-intelligence style profile of its motive, usual approach and how it pressures victims. Only the facilitator sees this.
 - storyline.background: 2-4 short items describing events and conditions in the days or weeks before the selected disruption/discovery reference, shared with every player: for example sector news, an industry advisory, an odd but unexplained event, workload or deadline pressure. Derive any weekday or date from that selected reference; never assume a fixed weekday. Do not restate the start time or company facts the players already have.
 - positions[].artefacts: 1-2 in-story messages per position that move the story on and put pressure on that position's decision: for example a staff chat, a helpdesk ticket, the ransom note, a client chasing a deadline, a supplier call, a leak-site post, a news item or a journalist's voicemail. Escalate across the five positions. Send each only to the roles that would realistically receive it, and vary who receives what.
+- The optional powershell-transcript kind is inert display text, not executable code or a request to run commands. Use a short console transcript with preserved line breaks, limited to read-only commands or printing already reported scenario state. Never invent diagnostic findings, logs, paths, IP addresses, credentials, successful command results or remediation actions. Do not use it to resolve an unknown or turn a reported condition into a verified technical finding. If the profile and storyline do not supply enough content, choose an ordinary message instead.
 - Use the profile's names for the organisation's own people, systems, services and suppliers, and invent no new staff or systems. You may invent outside parties such as clients, journalists and other firms.
 - Outsiders, including the attackers, may make claims, threats and demands. Never state as fact anything the profile does not support: the entry point, an endpoint-agent alert on the target, the state of backups or restores, completed isolation or restoration, or any action the players have not decided. Messages from the facilitator-played suppliers acknowledge, ask questions or say plainly what they do not know yet; they report no findings or results, without saying so as a disclaimer.
 - No web or email addresses, phone numbers or payment addresses; refer to them generically, such as "a link in the note".
