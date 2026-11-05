@@ -11,14 +11,16 @@ async function draft(page: Page) {
   await login(page, 'facilitator');
   await page.getByRole('button', { name: 'Source intake', exact: true }).click();
   await page.getByLabel('Organisation name', { exact: true }).fill('Subscription fixture');
-  await page.getByLabel('Synthetic organisation only', { exact: true }).check();
+  await page
+    .getByLabel("This organisation meets the prototype's data requirements.", { exact: true })
+    .check();
   await page.getByRole('button', { name: 'Create draft', exact: true }).click();
   await page.getByLabel('Source title', { exact: true }).fill('Synthetic diagram');
   await page
     .getByLabel('Source file', { exact: true })
     .setInputFiles({ name: 'network.drawio', buffer: Buffer.from(diagram), mimeType: 'text/xml' });
   await page
-    .getByLabel('This source contains synthetic information only.', { exact: true })
+    .getByLabel("This source meets the prototype's data requirements.", { exact: true })
     .check();
   await page.getByRole('button', { name: 'Import source', exact: true }).click();
   await expect(page.getByText('Revision 2', { exact: true })).toBeVisible();

@@ -364,7 +364,6 @@ export function IntakeWorkspace({
           <p className="eyebrow">PREPARATION</p>
           <h1>Source intake</h1>
         </div>
-        <span className="badge synthetic">Synthetic</span>
       </div>
       {error && (
         <div className="error" role="alert">
@@ -441,7 +440,7 @@ export function IntakeWorkspace({
           </label>
           <label className="acknowledgement">
             <input type="checkbox" required />
-            Synthetic organisation only
+            This organisation meets the prototype's data requirements.
           </label>
           <button className="secondary" disabled={busy || reading || dirty || !!pending}>
             <Plus size={16} />
@@ -555,7 +554,7 @@ export function IntakeWorkspace({
                       )}
                       <label className="acknowledgement">
                         <input type="checkbox" required />
-                        This source contains synthetic information only.
+                        This source meets the prototype's data requirements.
                       </label>
                       <button className="primary" type="submit">
                         {busy ? (
@@ -594,7 +593,7 @@ export function IntakeWorkspace({
                       onClick={() => {
                         if (
                           window.confirm(
-                            `Send all ${edit.sources.length} synthetic sources to Codex using your ChatGPT subscription allowance? AI candidates require human review.`,
+                            `Send all ${edit.sources.length} sources to Codex using your ChatGPT subscription allowance? AI candidates require human review.`,
                           )
                         )
                           void send(command('extract'));

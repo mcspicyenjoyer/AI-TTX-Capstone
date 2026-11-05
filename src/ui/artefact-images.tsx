@@ -85,7 +85,7 @@ export function ArtefactImageEditor({
           onClick={() => {
             if (
               !window.confirm(
-                'Generate one image from this saved synthetic story message using your Codex subscription? Review every word before attaching it.',
+                'Generate one image from this saved story message using your Codex subscription? Review every word before attaching it.',
               )
             )
               return;

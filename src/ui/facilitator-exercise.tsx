@@ -1,7 +1,7 @@
 import { Activity, Check, CheckCircle2, Pause, Play, Send, ShieldCheck } from 'lucide-react';
 import { RunSchema, ApprovalSchema, ReleaseSchema } from '../contracts/exercise.js';
 import type { ExerciseWorkspaceModel } from './use-exercise-workspace.js';
-import { date, labels } from './exercise-format.js';
+import { date, labels, exerciseText } from './exercise-format.js';
 import { Step0Form } from './step0-form.js';
 import { EvidenceImages } from './artefact-images.js';
 
@@ -52,10 +52,10 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
                 : 'Starting arrangements'}
             </h2>
             <Step0Form vm={vm} />
-            <p className="preserve-lines">{review.package.briefing.common}</p>
+            <p className="preserve-lines">{exerciseText(review.package.briefing.common)}</p>
             <ul className="run-references">
               {review.package.briefing.references.map((reference) => (
-                <li key={reference}>{reference}</li>
+                <li key={reference}>{exerciseText(reference)}</li>
               ))}
             </ul>
             <h3>Assigned roles</h3>
@@ -101,7 +101,7 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
                   />
                   <span>
                     I have briefed the assigned roles, reviewed the gap dispositions and confirmed
-                    that all actions are simulated.
+                    the permitted actions and communication routes.
                   </span>
                 </label>
                 <button
@@ -147,11 +147,11 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
               {inject ? (
                 <>
                   <h3>{inject.title}</h3>
-                  <p className="inject-body">{inject.body}</p>
+                  <p className="inject-body">{exerciseText(inject.body)}</p>
                   <EvidenceImages images={inject.images} />
                   <details className="facilitator-note">
                     <summary>Facilitator notes</summary>
-                    <p>{inject.facilitatorNotes}</p>
+                    <p>{exerciseText(inject.facilitatorNotes)}</p>
                   </details>
                   <fieldset className="recipient-list" disabled={disabled}>
                     <legend>Recipients</legend>

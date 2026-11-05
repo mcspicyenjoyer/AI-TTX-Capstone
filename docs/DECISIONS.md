@@ -2,9 +2,17 @@
 
 Accepted means a direction for the user's authorised baseline, not organisation deployment or data approval.
 
+## ADR-042 - Remove repeated labels from exercise presentation
+
+5 November 2026: the user confirmed removal of repeated visible "Synthetic", "SIMULATION" and "fictional" labels from the interface and inject presentation, while preserving original source quotations, historical records, data restrictions and approval checks. This supersedes ADR-041's repeated-warning presentation instruction only. Intake still requires acknowledgement of the prototype's data requirements; starting an exercise still requires the facilitator's briefing and permitted-action acknowledgement. The prototype remains a synthetic-data discussion exercise, not a system-execution tool.
+
+Keep this change in the existing UI layer. `exerciseText` in `src/ui/exercise-format.ts` replaces a finite list of known stock phrases for scenario, briefing and inject display. It is not a general word scrubber: arbitrary story text, source review, response quotations and report evidence retain their wording. Stored profiles, package/release hashes, prompts, clock extraction, knowledge states and server approval/access contracts are untouched. No migration or new dependency is needed. Update this small presentation list and its tests when application-owned stock copy changes.
+
+Alternatives: rewriting stored records would invalidate exact approvals and historical evidence; changing the server's package renderer would alter old hash validation; deleting every occurrence of those words could change substantive source content. All are rejected for this presentation-only request. WORK distinguishes the ordinary browser tests, the existing real-PNG delivery replay and live image-generation attempts.
+
 ## ADR-041 - Reviewed story images through an image-only worker
 
-5 November 2026: the user chose generation inside TTX on a separate branch, rather than importing a ChatGPT Web image. The optional image represents an existing saved story message; it does not generate new incident evidence. Keep the text as the accessible and reportable source, preserve the existing review/freeze/release boundary, and omit the unwanted "TTX ARTEFACT PREVIEW" banner from the image itself. Do not remove the review screen or the exercise's simulation warning.
+5 November 2026: the user chose generation inside TTX on a separate branch, rather than importing a ChatGPT Web image. The optional image represents an existing saved story message; it does not generate new incident evidence. Keep the text as the accessible and reportable source, preserve the existing review/freeze/release boundary, and omit the unwanted "TTX ARTEFACT PREVIEW" banner from the image itself. Do not remove the review screen. The original instruction to retain visible simulation warnings is superseded only for presentation by ADR-042.
 
 Reuse the subscription worker with a separate `images` mode and external working directory. Only this mode enables Codex's native image-generation feature; the four text modes remain tool-free. The same ChatGPT-only authentication, disabled shell/browser/MCP features, startup/per-job audit and fail-closed policy apply. No ChatGPT Web scraping, credential copying, image API billing or fallback. The loopback audit checks the other tools but does not expose the native subscription image capability; live feasibility is therefore recorded separately in WORK. Neither test is an OS sandbox claim.
 

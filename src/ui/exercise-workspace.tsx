@@ -42,7 +42,7 @@ export function ExerciseWorkspace({
       <div className="page-heading">
         <div>
           <h1>{actor.role === 'participant' ? 'Participant workspace' : 'Exercises'}</h1>
-          <p className="muted">Synthetic / Local workspace</p>
+          <p className="muted">Local workspace</p>
         </div>
         <button
           className="icon-button"

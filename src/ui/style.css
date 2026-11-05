@@ -653,10 +653,6 @@ time {
   padding: 4px 8px;
   white-space: nowrap;
 }
-.synthetic {
-  background: #e5edf5;
-  color: #456581;
-}
 .pending {
   background: #f5ecd4;
   color: #856321;

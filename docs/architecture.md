@@ -99,6 +99,8 @@ ADR-041 adds optional PNG representations of saved story messages during package
 
 Older drafts, packages and releases without images retain their existing behavior. Back up before a schema-12 upgrade; older code cannot open the upgraded database. The branch preview uses an isolated data copy, not the live demonstration volume. Startup instructions are in [README](../README.md#story-image-generation).
 
+ADR-042 removes repeated labels only in UI presentation. The shared `exerciseText` presenter replaces known stock warning/clock phrases for facilitator and participant views; it never writes back into a package, release, source, response or report. Original source review and report evidence remain exact. Server-side renderers, hashes, clock extraction, prompts, data restrictions and approval acknowledgements are unchanged. Do not use this display helper for evidence processing or strip arbitrary words from user-authored content.
+
 ### Bounded source intake
 
 Implemented subset under ADR-029: [intake contracts](../src/contracts/intake.ts), [typed profile contracts](../src/contracts/profile.ts), [application service](../src/server/intake-service.ts), [parsers](../src/server/intake-parsers.ts) and [review workspace](../src/ui/intake-workspace.tsx). This is incident-independent preparation, not an incident selection or replacement for exercise fixtures.

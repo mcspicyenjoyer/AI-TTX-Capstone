@@ -33,7 +33,11 @@ test('generate review attach freeze and release a role-filtered image with reloa
   page.on('dialog', (dialog) => dialog.accept());
   try {
     await login(page, 'facilitator');
+    await expect(page.locator('.sidebar-bottom')).not.toContainText('Synthetic');
     await page.getByRole('button', { name: 'Package generation', exact: true }).click();
+    await expect(
+      page.locator('.preserve-lines').filter({ hasText: /^SIMULATED SCENARIO:/ }),
+    ).toHaveCount(0);
     const panel = page.getByRole('region', { name: 'Story message 1 image', exact: true });
     await expect(panel.getByRole('button', { name: 'Generate image', exact: true })).toBeEnabled();
     await page.getByLabel('Story message 1 text', { exact: true }).fill('UNSAVED STORY');
@@ -161,6 +165,11 @@ test('generate review attach freeze and release a role-filtered image with reloa
           .selectOption(`technical/${runId}`);
         const inbox = participant.getByRole('region', { name: 'Released inbox', exact: true });
         await expect(inbox.getByRole('img')).toHaveCount(username === 'player-engineering' ? 1 : 0);
+        await expect(inbox.locator('.inject-body')).not.toContainText('SIMULATION');
+        const stored = store.exercises.releases(runId)[0]!;
+        expect(
+          stored.deliveries!.some((delivery) => delivery.body.startsWith('SIMULATION /')),
+        ).toBe(true);
         const response = await participant.request.get(`/api/artefact-images/${job.id}`);
         expect(response.status()).toBe(username === 'player-engineering' ? 200 : 403);
         for (const width of [1440, 390]) {

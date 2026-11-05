@@ -51,7 +51,7 @@ function RecordDetail({ record }: { record: ReportRecord }) {
       </h4>
       {clock && (
         <p className="report-clock">
-          <strong>Fictional exercise clock:</strong> {clock.value}{' '}
+          <strong>Exercise clock:</strong> {clock.value}{' '}
           {clock.citations.map((id) => (
             <Citation key={id} id={id} />
           ))}

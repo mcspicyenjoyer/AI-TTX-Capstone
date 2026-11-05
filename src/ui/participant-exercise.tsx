@@ -1,6 +1,6 @@
 import { Inbox } from 'lucide-react';
 import type { ExerciseWorkspaceModel } from './use-exercise-workspace.js';
-import { date } from './exercise-format.js';
+import { date, exerciseText } from './exercise-format.js';
 import { EvidenceImages } from './artefact-images.js';
 
 export function ParticipantExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
@@ -20,12 +20,12 @@ export function ParticipantExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
         {!['ready', 'not-required'].includes(briefing.step0Status) && (
           <p className="run-notice">Step 0: {briefing.step0Status.replaceAll('-', ' ')}</p>
         )}
-        <p className="preserve-lines">{briefing.common}</p>
+        <p className="preserve-lines">{exerciseText(briefing.common)}</p>
         <h3>{briefing.role.name}</h3>
-        <p className="preserve-lines">{briefing.role.briefing}</p>
+        <p className="preserve-lines">{exerciseText(briefing.role.briefing)}</p>
         <ul className="run-references">
           {briefing.references.map((reference) => (
-            <li key={reference}>{reference}</li>
+            <li key={reference}>{exerciseText(reference)}</li>
           ))}
         </ul>
       </section>
@@ -42,7 +42,7 @@ export function ParticipantExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
               <h3>{item.title}</h3>
               <time dateTime={item.releasedAt}>{date(item.releasedAt)}</time>
               <EvidenceImages images={item.images} />
-              <p className="inject-body">{item.body}</p>
+              <p className="inject-body">{exerciseText(item.body)}</p>
             </article>
           ))
         )}

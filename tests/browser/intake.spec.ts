@@ -9,7 +9,9 @@ async function createDraft(page: Page) {
   await page
     .getByLabel('Organisation name', { exact: true })
     .fill('Synthetic intake demonstration');
-  await page.getByLabel('Synthetic organisation only', { exact: true }).check();
+  await page
+    .getByLabel("This organisation meets the prototype's data requirements.", { exact: true })
+    .check();
   await page.getByRole('button', { name: 'Create draft', exact: true }).click();
   await expect(page.getByText('Revision 1', { exact: true })).toBeVisible();
 }
@@ -20,7 +22,7 @@ async function upload(page: Page, kind: string, name: string, buffer: Buffer) {
     .getByLabel('Source file', { exact: true })
     .setInputFiles({ name, buffer, mimeType: 'application/octet-stream' });
   await page
-    .getByLabel('This source contains synthetic information only.', { exact: true })
+    .getByLabel("This source meets the prototype's data requirements.", { exact: true })
     .check();
   const imported = page.waitForResponse(
     (response) => response.url().endsWith('/sources') && response.request().method() === 'POST',
@@ -137,7 +139,9 @@ test('a committed-but-lost create response is retried exactly once without dupli
     } else await route.continue();
   });
   await page.getByLabel('Organisation name', { exact: true }).fill('Lost response test');
-  await page.getByLabel('Synthetic organisation only', { exact: true }).check();
+  await page
+    .getByLabel("This organisation meets the prototype's data requirements.", { exact: true })
+    .check();
   await page.getByRole('button', { name: 'Create draft', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Retry same request' })).toBeVisible();
   await page.getByRole('button', { name: 'Exercises', exact: true }).click();

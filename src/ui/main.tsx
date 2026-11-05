@@ -266,7 +266,7 @@ function App() {
             </div>
             <p className="eyebrow">EXERCISE WORKSPACE</p>
             <h1>Workspace sign-in</h1>
-            <p className="muted">Synthetic organisation / Local access</p>
+            <p className="muted">Local access</p>
             {error && (
               <div className="error" role="alert">
                 <TriangleAlert size={18} />
@@ -346,7 +346,7 @@ function App() {
             </button>
             <div className="sidebar-bottom">
               <span className="status-dot" />
-              Human approval required<span>Synthetic data only</span>
+              Human approval required
             </div>
           </nav>
           <main className="main-content">
@@ -398,7 +398,6 @@ function App() {
                   <div>
                     <div className="title-line">
                       <h1>{profile.organisationName}</h1>
-                      <span className="badge synthetic">Synthetic</span>
                     </div>
                     <p className="muted">
                       Revision {profile.revisionNumber}
@@ -639,10 +638,6 @@ function App() {
                             <dd>{profile.revisionId}</dd>
                           </div>
                           <div>
-                            <dt>Data classification</dt>
-                            <dd>Synthetic</dd>
-                          </div>
-                          <div>
                             <dt>Open uncertainties</dt>
                             <dd>
                               {(counts.assumption ?? 0) +
@@ -707,7 +702,7 @@ function App() {
                                 <FileText size={18} />
                                 <span>
                                   {item.title}
-                                  <small>Version {item.version} / Synthetic</small>
+                                  <small>Version {item.version}</small>
                                 </span>
                                 <ChevronRight size={15} />
                               </button>

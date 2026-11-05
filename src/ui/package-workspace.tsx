@@ -19,6 +19,7 @@ import {
 import { ApiError, request } from './api.js';
 import { FamilyAssessmentView, ThreatPathwayView } from './threat-pathway.js';
 import { ArtefactImageEditor, EvidenceImages } from './artefact-images.js';
+import { exerciseText } from './exercise-format.js';
 
 const label = (value: string) => value.replaceAll('-', ' ');
 type Pending = { url: string; body: object };
@@ -258,7 +259,7 @@ export function PackageWorkspace({
             if (
               !context?.target ||
               !window.confirm(
-                'Generate one synthetic package using the pinned confirmed profile and your local ChatGPT subscription? No full source documents will be sent.',
+                'Generate one package using the pinned confirmed profile and your local ChatGPT subscription? No full source documents will be sent.',
               )
             )
               return;
@@ -308,7 +309,7 @@ export function PackageWorkspace({
         <>
           <section className="run-section">
             <h2>Scenario and objectives</h2>
-            <p className="preserve-lines">{view.preview.scenario}</p>
+            <p className="preserve-lines">{exerciseText(view.preview.scenario!)}</p>
             <ol>
               {view.preview.objectives!.map((objective) => (
                 <li key={objective}>{objective}</li>
@@ -328,7 +329,7 @@ export function PackageWorkspace({
             {view.preview.roles.map((role) => (
               <details key={role.id}>
                 <summary>{role.name}</summary>
-                <p className="preserve-lines">{role.briefing}</p>
+                <p className="preserve-lines">{exerciseText(role.briefing)}</p>
               </details>
             ))}
             <p>
@@ -560,7 +561,7 @@ export function PackageWorkspace({
               <h3>Saved shared references</h3>
               <ul>
                 {view.preview.briefing.references.map((reference) => (
-                  <li key={reference}>{reference}</li>
+                  <li key={reference}>{exerciseText(reference)}</li>
                 ))}
               </ul>
               <h3>Preparation gaps</h3>
@@ -834,7 +835,7 @@ export function PackageWorkspace({
                         >
                           {(field === 'facilitatorNotes' ? noteKinds : actionKinds).map((key) => (
                             <option key={key} value={key}>
-                              {label(key)}
+                              {key === 'simulation-only' ? 'exercise boundaries' : label(key)}
                             </option>
                           ))}
                         </select>
@@ -850,23 +851,23 @@ export function PackageWorkspace({
                       <summary>
                         {view.preview!.roles.find((role) => role.id === message.roleId)!.name}
                       </summary>
-                      <p className="preserve-lines">{message.body}</p>
+                      <p className="preserve-lines">{exerciseText(message.body)}</p>
                     </details>
                   ))}
                   <h3>Expected actions</h3>
                   <ul>
                     {inject.expectedActions!.map((item) => (
-                      <li key={item}>{item}</li>
+                      <li key={item}>{exerciseText(item)}</li>
                     ))}
                   </ul>
                   <h3>Evaluation criteria</h3>
                   <ul>
                     {inject.evaluationCriteria!.map((item) => (
-                      <li key={item}>{item}</li>
+                      <li key={item}>{exerciseText(item)}</li>
                     ))}
                   </ul>
                   <h3>Facilitator notes</h3>
-                  <p className="preserve-lines">{inject.facilitatorNotes}</p>
+                  <p className="preserve-lines">{exerciseText(inject.facilitatorNotes)}</p>
                 </div>
               </div>
               {editable && (
