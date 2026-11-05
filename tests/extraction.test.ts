@@ -18,6 +18,9 @@ import {
   codexEnvironment,
   boundedProcess,
   isDisabledCodeModeNotice,
+  GENERATION_REASONING_EFFORT,
+  GENERATION_DEADLINE_MS,
+  type ReasoningEffort,
 } from '../src/server/codex-extraction.js';
 import { syntheticProfile } from '../src/server/fixture.js';
 import type { Actor } from '../src/contracts/profile.js';
@@ -276,6 +279,16 @@ test('typed output resolves exact citations; prompt and environment do not grant
   assert(args.includes('shell_tool'));
   assert(!args.includes('--dangerously-bypass-approvals-and-sandbox'));
   assert.throws(() => codexArgs('worker', 'https://outside.example/v1'));
+  // Low stays the default; only package generation asks for medium (ADR-038).
+  assert(args.includes('model_reasoning_effort="low"'));
+  assert(
+    codexArgs('C:/external/worker', undefined, GENERATION_REASONING_EFFORT).includes(
+      'model_reasoning_effort="medium"',
+    ),
+  );
+  assert.equal(GENERATION_REASONING_EFFORT, 'medium');
+  assert.ok(GENERATION_DEADLINE_MS < 300_000, 'within the server five-minute expiry');
+  assert.throws(() => codexArgs('worker', undefined, 'ultra' as ReasoningEffort));
 });
 
 test('UTF-8 SME text retains line citations and rejects binary, oversized lines and excess units', async () => {

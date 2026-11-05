@@ -30,13 +30,18 @@ import {
   secondProfile,
   secondTarget,
   secondPlan,
+  legacyPlan,
 } from './generation-fixture.js';
 import { prepareInterpretationRun } from './interpretation-fixture.js';
 import { assessFamily } from '../src/server/threat-library.js';
 import { RecordReportService } from '../src/server/record-report-service.js';
 import { checkReportReferences } from '../src/contracts/record-report.js';
 import { codexOutputSchema } from '../src/server/codex-extraction.js';
-import { GeneratedPlanSchema } from '../src/contracts/generation.js';
+import {
+  GeneratedPlanOutputSchema,
+  GeneratedPlanSchema,
+  playerRoles,
+} from '../src/contracts/generation.js';
 import { readPackage } from '../src/server/exercise-validation.js';
 import { contentHash } from '../src/server/integrity.js';
 
@@ -1028,6 +1033,9 @@ test('generation five positions deliver only each role body and retain the exist
     assert.ok(briefing.body.includes(markers[index]!));
     for (const other of markers.filter((_, i) => i !== index))
       assert.ok(!briefing.body.includes(other));
+    // ADR-038: every player gets the background; the attacker profile stays with the facilitator.
+    assert.ok(briefing.body.includes('BACKGROUND_SHARED'));
+    assert.ok(!briefing.body.includes('ACTOR_ONLY'));
     assert.equal((await query(`${root}/review`, undefined, player.actorId)).statusCode, 403);
   }
   await post('start', {
@@ -1061,6 +1069,12 @@ test('generation five positions deliver only each role body and retain the exist
       assert.ok(!response.body.includes('evaluationCriteria'));
       assert.ok(!response.body.includes('facilitatorNotes'));
       assert.ok(!response.body.includes('groundingClaimIds'));
+      assert.ok(!response.body.includes('ACTOR_ONLY'));
+      // Position 1's story message reaches engineering only; later ones reach every role.
+      assert.equal(
+        item.body.includes(`STORY_${position + 1}`),
+        position > 0 || player.roleId === 'engineering-projects',
+      );
     }
     const answer = await query(
       `${root}/team-responses`,
@@ -1093,4 +1107,165 @@ test('generation five positions deliver only each role body and retain the exist
     rationale: 'All five positions delivered and closed in the deterministic test.',
   });
   assert.equal((await review()).run.state, 'completed');
+});
+
+// ADR-038: the model-written storyline.
+function compiled(plan: GeneratedPlan) {
+  const at = '2026-11-05T00:00:00.000Z';
+  const draft: PackageDraft = {
+    id: 'package-storyline-test',
+    ownerId: actor.id,
+    revision: 2,
+    target: generationTarget,
+    status: 'review',
+    plan,
+    reviews: Array(5).fill('pending'),
+    error: null,
+    createdAt: at,
+    updatedAt: at,
+    runId: null,
+    frozenPackageHash: null,
+    inputTokens: null,
+    outputTokens: null,
+  };
+  return compileGeneratedPackage(draft, generationProfile);
+}
+test('generation storyline gives the attacker to the facilitator, background to every player and each story message to its recipients only', () => {
+  const view = proposed();
+  assert.equal(view.draft.status, 'review');
+  const preview = view.preview!;
+  assert.match(preview.scenario!, /Threat actor: Quiet Ledger\. ACTOR_ONLY/);
+  assert.match(preview.briefing.common, /\n\nBackground:\n- BACKGROUND_SHARED/);
+  assert.ok(!preview.briefing.common.includes('ACTOR_ONLY'));
+  assert.ok(preview.injects[0]!.facilitatorNotes.includes('ACTOR_ONLY'));
+  for (const inject of preview.injects.slice(1))
+    assert.ok(!inject.facilitatorNotes.includes('ACTOR_ONLY'));
+  for (const inject of preview.injects)
+    for (const body of inject.roleBodies!) {
+      assert.ok(!body.body.includes('ACTOR_ONLY'));
+      assert.equal(
+        body.body.includes(`STORY_${inject.position}`),
+        inject.position! > 1 || body.roleId === 'engineering-projects',
+      );
+    }
+  const engineering = preview.injects[0]!.roleBodies!.find(
+    (body) => body.roleId === 'engineering-projects',
+  )!.body;
+  assert.match(
+    engineering,
+    /no endpoint-agent alert is supplied\.\n\nChat message from Project team chat: Story update 1\nSTORY_1: test in-story message\.\n\n/,
+  );
+});
+test('generation renders packages made before the storyline exactly as before', () => {
+  const legacy = compiled(legacyPlan());
+  assert.equal(legacy.scenario, legacy.briefing.common);
+  assert.ok(!legacy.briefing.common.includes('Background:'));
+  assert.ok(!legacy.injects[0]!.facilitatorNotes.includes('Threat actor'));
+  const current = compiled(generationPlan());
+  assert.equal(current.scenario!.split('\n\nThreat actor:')[0], legacy.scenario);
+  for (const [index, inject] of current.injects.entries())
+    for (const [roleIndex, body] of inject.roleBodies!.entries())
+      assert.equal(
+        body.body.replace(/\n\nChat message from [^\n]*\n[^\n]*/g, ''),
+        legacy.injects[index]!.roleBodies![roleIndex]!.body,
+      );
+  // A stored older draft still validates and reads.
+  assert.doesNotThrow(() =>
+    validateGeneratedPlan(legacyPlan(), generationProfile, generationTarget),
+  );
+});
+test('generation requires a storyline and story messages in every new proposal', () => {
+  assert.equal(proposed(legacyPlan()).draft.status, 'failed');
+  const missing = generationPlan();
+  delete missing.positions[2]!.artefacts;
+  assert.equal(proposed(missing).draft.status, 'failed');
+  const empty = generationPlan();
+  empty.positions[4]!.artefacts = [];
+  assert.equal(proposed(empty).draft.status, 'failed');
+  const required = (schema: object) => JSON.parse(JSON.stringify(schema)).required as string[];
+  assert.ok(required(codexOutputSchema(GeneratedPlanOutputSchema)).includes('storyline'));
+  assert.ok(!required(GeneratedPlanSchema).includes('storyline'));
+});
+test('generation storyline rejects real group names and contact or payment details but not ordinary dates and amounts', () => {
+  const bad: [string, (plan: GeneratedPlan) => void][] = [
+    ['real group', (p) => (p.storyline!.threatActor.name = 'LockBit Affiliates')],
+    [
+      'real group in news',
+      (p) =>
+        Object.assign(p.positions[3]!.artefacts![0]!, {
+          kind: 'news-item',
+          body: 'Like Black Basta, they leak.',
+        }),
+    ],
+    ['web address', (p) => (p.positions[1]!.artefacts![0]!.body = 'See https://leak.example/te')],
+    ['onion address', (p) => (p.storyline!.background[1] = 'Posts appear on quietledger.onion.')],
+    ['email', (p) => (p.positions[0]!.artefacts![0]!.sender = 'ops@quietledger.example')],
+    ['local phone', (p) => (p.positions[2]!.artefacts![0]!.body = 'Call me on 9123 4567.')],
+    ['international phone', (p) => (p.positions[2]!.artefacts![0]!.headline = 'Call +44 20 7946')],
+    [
+      'payment address',
+      (p) =>
+        (p.positions[4]!.artefacts![0]!.body = 'Pay to bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'),
+    ],
+  ];
+  for (const [label, mutate] of bad) {
+    const plan = generationPlan();
+    mutate(plan);
+    assert.throws(
+      () => validateGeneratedPlan(plan, generationProfile, generationTarget),
+      /storyline/,
+      label,
+    );
+  }
+  const ordinary = generationPlan();
+  ordinary.positions[0]!.artefacts![0]!.body =
+    'Drawings are due 2026-09-30 at 17:00. They want 45 BTC within 72 hours; +90 minutes since the call. Revenue fell from 2024-2026.';
+  // A client who happens to share a group's name is not attribution.
+  ordinary.positions[1]!.artefacts![0]!.sender = 'Akira Tanaka, client project lead';
+  assert.doesNotThrow(() => validateGeneratedPlan(ordinary, generationProfile, generationTarget));
+});
+test('generation keeps every role message within the package limit at the largest storyline', () => {
+  const plan = generationPlan();
+  for (const position of plan.positions)
+    position.artefacts = [0, 1].map((n) => ({
+      kind: 'email' as const,
+      sender: 'S'.repeat(120),
+      headline: 'H'.repeat(160),
+      body: `${n}`.repeat(900),
+      recipientRoleIds: [...playerRoles],
+    }));
+  for (const inject of compiled(plan).injects)
+    for (const body of inject.roleBodies!) assert.ok(body.body.length <= 6000);
+});
+test('preparation review corrects the storyline, resets acceptance and rejects contact details', () => {
+  const view = acceptAll(proposed());
+  const storyline = structuredClone(view.draft.plan!.storyline!);
+  storyline.background[0] = 'EDITED_BACKGROUND for every player.';
+  storyline.threatActor.name = 'Grey Tally';
+  const edited = service.reviewPreparation(actor, view.draft.id, {
+    ...preparationCommand(view),
+    storyline,
+  });
+  assert.deepEqual(edited.draft.reviews, Array(5).fill('pending'));
+  assert.match(edited.preview!.briefing.common, /EDITED_BACKGROUND/);
+  assert.match(edited.preview!.scenario!, /Threat actor: Grey Tally\./);
+  const unsafe = structuredClone(storyline);
+  unsafe.background[1] = 'Their site is greytally.com.';
+  assert.throws(
+    () =>
+      service.reviewPreparation(actor, edited.draft.id, {
+        ...preparationCommand(edited),
+        storyline: unsafe,
+      }),
+    /storyline/,
+  );
+  // Leaving the storyline out keeps it.
+  const kept = service.reviewPreparation(actor, edited.draft.id, preparationCommand(edited));
+  assert.equal(kept.draft.plan!.storyline!.threatActor.name, 'Grey Tally');
+});
+test('generation prompt asks for the storyline while company facts stay claim-rendered', () => {
+  const prompt = generationPrompt(generationProfile, generationTarget);
+  assert.match(prompt, /storyline\.threatActor: invent a fictional criminal ransomware group/);
+  assert.match(prompt, /Outside the storyline, no free prose or invented names/);
+  assert.match(prompt, /invent no new staff or systems/);
 });

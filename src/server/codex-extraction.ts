@@ -10,6 +10,11 @@ import type { TSchema } from '@sinclair/typebox';
 export const CODEX_VERSION = 'codex-cli 0.165.0-alpha.1.2';
 export const CODEX_SHA256 = '5c1b55966bf9f757dcbf00065c9a6cb862ead55d34b015f1be1939ff18e43943';
 export const EXTRACTION_MODEL = 'gpt-6.1-sol';
+export type ReasoningEffort = 'low' | 'medium';
+// Package generation writes the storyline and runs at medium effort with a longer deadline
+// (ADR-038). Extraction, interpretation and AAR keep the low effort their evidence used.
+export const GENERATION_REASONING_EFFORT: ReasoningEffort = 'medium';
+export const GENERATION_DEADLINE_MS = 240_000;
 // The provider's JSON Schema subset omits uniqueItems; application validation retains it.
 export function codexOutputSchema(schema: TSchema): TSchema {
   return JSON.parse(
@@ -62,14 +67,19 @@ export function codexEnvironment(env = process.env): NodeJS.ProcessEnv {
       .map((key) => [key, env[key]]),
   );
 }
-export function codexArgs(directory: string, fixtureProvider?: string): string[] {
+export function codexArgs(
+  directory: string,
+  fixtureProvider?: string,
+  effort: ReasoningEffort = 'low',
+): string[] {
+  if (!['low', 'medium'].includes(effort)) throw new Error('Unsupported reasoning effort.');
   const configs = [
     'forced_login_method="chatgpt"',
     'approval_policy="never"',
     'web_search="disabled"',
     'project_doc_max_bytes=0',
     'history.persistence="none"',
-    'model_reasoning_effort="low"',
+    `model_reasoning_effort="${effort}"`,
     'agents.enabled=false',
     'skills.bundled.enabled=false',
     'skills.include_instructions=false',
@@ -282,16 +292,18 @@ export async function runCodexStructured(
   directory: string,
   prompt: string,
   signal?: AbortSignal,
+  options: { effort?: ReasoningEffort; deadlineMs?: number } = {},
 ) {
   let output: unknown,
     completed = false,
     inputTokens = 0,
     outputTokens = 0;
   await checkChatGptLogin(executable, directory);
-  await boundedProcess(resolve(executable), codexArgs(directory), {
+  await boundedProcess(resolve(executable), codexArgs(directory, undefined, options.effort), {
     directory,
     input: prompt,
     signal,
+    deadlineMs: options.deadlineMs,
     onLine: (line) => {
       const event = JSON.parse(line);
       if (

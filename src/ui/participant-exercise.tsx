@@ -19,7 +19,7 @@ export function ParticipantExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
         {!['ready', 'not-required'].includes(briefing.step0Status) && (
           <p className="run-notice">Step 0: {briefing.step0Status.replaceAll('-', ' ')}</p>
         )}
-        <p>{briefing.common}</p>
+        <p className="preserve-lines">{briefing.common}</p>
         <h3>{briefing.role.name}</h3>
         <p className="preserve-lines">{briefing.role.briefing}</p>
         <ul className="run-references">

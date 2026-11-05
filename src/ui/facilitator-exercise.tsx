@@ -51,7 +51,7 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
                 : 'Starting arrangements'}
             </h2>
             <Step0Form vm={vm} />
-            <p>{review.package.briefing.common}</p>
+            <p className="preserve-lines">{review.package.briefing.common}</p>
             <ul className="run-references">
               {review.package.briefing.references.map((reference) => (
                 <li key={reference}>{reference}</li>

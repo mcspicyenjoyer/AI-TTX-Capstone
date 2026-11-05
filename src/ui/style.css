@@ -1441,9 +1441,18 @@ input[type='checkbox'] {
 }
 .package-editor-grid select,
 .package-editor-grid input,
-.package-preparation select {
+.package-editor-grid textarea,
+.package-preparation select,
+.package-preparation input,
+.package-preparation textarea {
   width: 100%;
   min-width: 0;
+  max-width: 100%;
+}
+.package-editor-grid textarea,
+.package-preparation textarea {
+  resize: vertical;
+  font: inherit;
 }
 .package-editor-grid option,
 .package-preparation option {
@@ -1464,7 +1473,8 @@ input[type='checkbox'] {
   font-weight: 600;
   cursor: pointer;
 }
-.package-role-edit {
+.package-role-edit,
+.package-artefact-edit {
   border-top: 1px solid #d5dcdf;
   padding-top: 12px;
   margin-top: 16px;

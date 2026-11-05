@@ -8,6 +8,8 @@ import {
   runCodexExtraction,
   CODEX_VERSION,
   EXTRACTION_MODEL,
+  GENERATION_DEADLINE_MS,
+  GENERATION_REASONING_EFFORT,
   prepareCodex,
   runCodexStructured,
 } from './codex-extraction.js';
@@ -17,7 +19,7 @@ import { IntakeSourceSchema, type IntakeSource } from '../contracts/intake.js';
 import { readStored } from './validation.js';
 import { Type } from '@sinclair/typebox';
 import { IdSchema } from '../contracts/profile.js';
-import { GeneratedPlanSchema, GenerationJobSchema } from '../contracts/generation.js';
+import { GeneratedPlanOutputSchema, GenerationJobSchema } from '../contracts/generation.js';
 import { generationPrompt, generationPromptVersion } from './generation-content.js';
 import {
   InterpretationJobSchema,
@@ -130,8 +132,8 @@ try {
         await prepareCodex(
           resolve(executable),
           directory,
-          GeneratedPlanSchema,
-          'Compose structured synthetic tabletop packages from confirmed profile evidence. Do not use tools. Return only the requested JSON.',
+          GeneratedPlanOutputSchema,
+          'Compose structured synthetic tabletop packages from confirmed profile evidence, with a realistic storyline. Do not use tools. Return only the requested JSON.',
         );
       result = {
         ...('snapshot' in job
@@ -154,6 +156,7 @@ try {
                   directory,
                   generationPrompt(job.profile, job.target),
                   controller.signal,
+                  { effort: GENERATION_REASONING_EFFORT, deadlineMs: GENERATION_DEADLINE_MS },
                 )
               : await runCodexExtraction(
                   resolve(executable),
@@ -174,6 +177,7 @@ try {
         {
           id: job.id,
           model: EXTRACTION_MODEL,
+          reasoningEffort: 'profile' in job ? GENERATION_REASONING_EFFORT : 'low',
           codexVersion: CODEX_VERSION,
           promptVersion:
             'snapshot' in job

@@ -42,6 +42,39 @@ export const noteKinds = [
   'restoration-hold-valid',
   'grounded-clarifications-only',
 ] as const;
+export const artefactKinds = [
+  'email',
+  'chat-message',
+  'phone-call',
+  'voicemail',
+  'helpdesk-ticket',
+  'ransom-note',
+  'leak-site-post',
+  'news-item',
+] as const;
+// The storyline is the only model-written prose (ADR-038). Company facts stay claim-rendered.
+const prose = (maxLength: number) => Type.String({ minLength: 1, maxLength, pattern: '\\S' });
+export const StorylineArtefactSchema = Type.Object(
+  {
+    kind: choice(artefactKinds),
+    sender: prose(120),
+    headline: prose(160),
+    body: prose(900),
+    recipientRoleIds: Type.Array(choice(playerRoles), {
+      minItems: 1,
+      maxItems: 3,
+      uniqueItems: true,
+    }),
+  },
+  strict,
+);
+export const StorylineSchema = Type.Object(
+  {
+    threatActor: Type.Object({ name: prose(80), profile: prose(500) }, strict),
+    background: Type.Array(prose(400), { minItems: 2, maxItems: 4 }),
+  },
+  strict,
+);
 export const ProfileBindingSchema = Type.Object(
   { profileId: IdSchema, profileRevisionId: IdSchema, profileHash: hash },
   strict,
@@ -105,14 +138,18 @@ export const GeneratedPositionSchema = Type.Object(
       maxItems: 8,
       uniqueItems: true,
     }),
+    // Absent on packages generated before ADR-038.
+    artefacts: Type.Optional(Type.Array(StorylineArtefactSchema, { maxItems: 2 })),
   },
   strict,
 );
 
-// Organisation prose is rendered from confirmed claims, never invented free text.
+// Organisation prose is rendered from confirmed claims, never invented free text. Only the
+// storyline (attacker, background and in-story messages) is model-written (ADR-038).
 export const GeneratedPlanSchema = Type.Object(
   {
     ...ProfileBindingSchema.properties,
+    storyline: Type.Optional(StorylineSchema),
     objectives: Type.Array(choice(decisions), { minItems: 3, maxItems: 3, uniqueItems: true }),
     scenario: Type.Object(
       {
@@ -138,6 +175,25 @@ export const GeneratedPlanSchema = Type.Object(
     ),
     facilitatorSupplierIds: Type.Array(IdSchema, { minItems: 2, maxItems: 2, uniqueItems: true }),
     positions: Type.Array(GeneratedPositionSchema, { minItems: 5, maxItems: 5 }),
+  },
+  strict,
+);
+// What a new provider proposal must contain: the stored plan with its storyline and at least
+// one in-story message per position required.
+export const GeneratedPlanOutputSchema = Type.Object(
+  {
+    ...GeneratedPlanSchema.properties,
+    storyline: StorylineSchema,
+    positions: Type.Array(
+      Type.Object(
+        {
+          ...GeneratedPositionSchema.properties,
+          artefacts: Type.Array(StorylineArtefactSchema, { minItems: 1, maxItems: 2 }),
+        },
+        strict,
+      ),
+      { minItems: 5, maxItems: 5 },
+    ),
   },
   strict,
 );
@@ -214,6 +270,7 @@ export const ReviewPreparationSchema = Type.Object(
       ]),
       { minItems: 3, maxItems: 3 },
     ),
+    storyline: Type.Optional(StorylineSchema),
   },
   strict,
 );
@@ -234,6 +291,8 @@ export const GenerationResultSchema = Type.Object(
 export type PackageTarget = Static<typeof PackageTargetSchema>;
 export type GeneratedPlan = Static<typeof GeneratedPlanSchema>;
 export type GeneratedPosition = Static<typeof GeneratedPositionSchema>;
+export type Storyline = Static<typeof StorylineSchema>;
+export type StorylineArtefact = Static<typeof StorylineArtefactSchema>;
 export type PackageDraft = Static<typeof PackageDraftSchema>;
 export type PackageDraftView = Static<typeof PackageDraftViewSchema>;
 export type GenerationContext = Static<typeof GenerationContextSchema>;

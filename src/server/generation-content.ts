@@ -9,6 +9,7 @@ import {
   type PackageTarget,
   type EvidenceSelection,
   type PackageDraft,
+  type StorylineArtefact,
 } from '../contracts/generation.js';
 import { readStored } from './validation.js';
 import { readPackage } from './exercise-validation.js';
@@ -26,7 +27,7 @@ import {
 
 type ActionKind = (typeof actionKinds)[number];
 
-export const generationPromptVersion = 'five-position-4';
+export const generationPromptVersion = 'five-position-5';
 export const roleNames = {
   'business-leadership': 'Business leadership',
   'engineering-projects': 'Engineering/project operations',
@@ -200,6 +201,55 @@ const eventTitles = {
   'recovery-evidence-request': 'Recovery evidence required',
   'restoration-decision-request': 'Authorised restoration decision',
 };
+const artefactLabels: Record<StorylineArtefact['kind'], string> = {
+  email: 'Email',
+  'chat-message': 'Chat message',
+  'phone-call': 'Phone call',
+  voicemail: 'Voicemail',
+  'helpdesk-ticket': 'Helpdesk ticket',
+  'ransom-note': 'Ransom note',
+  'leak-site-post': 'Leak-site post',
+  'news-item': 'News item',
+};
+export function artefactText(artefact: StorylineArtefact): string {
+  return `${artefactLabels[artefact.kind]} from ${artefact.sender}: ${artefact.headline}\n${artefact.body}`;
+}
+
+// Mechanical checks on the model-written storyline (ADR-038). Whether it stays consistent with
+// the confirmed profile is a prompt rule and the facilitator's review, not something a pattern
+// can establish. These reject only what must never appear: usable contact or payment details
+// and attribution to real criminal groups.
+const realGroups =
+  /\b(lock\s?bit|conti|black\s?cat|alphv|cl[o0]p|akira|black\s?basta|rhysida|ransom\s?hub|qilin|revil|sodinokibi|dark\s?side|ryuk|8base|bian\s?lian|scattered spider|lazarus|babuk|ragnar\s?locker|vice society|hunters international|medusa|dragon\s?force|safe\s?pay|inc ransom|wanna\s?cry|not\s?petya)\b/i;
+const contactDetails = [
+  /https?:\/\/|\bwww\./i,
+  /\b[\w-]+\.(onion|com|net|org|io|sg|co)\b/i,
+  /[\w.+-]+@[\w-]+\.[\w.-]+/,
+  // Singapore-style eight-digit numbers and any + international number; not years or amounts.
+  /\b[689]\d{3}[\s-]?\d{4}\b/,
+  /\+\d{1,3}[\s-]\d{2,}|\+\d{8,}/,
+  // Bitcoin (bech32 and legacy) and Monero payment addresses.
+  /\b(bc1[ac-hj-np-z02-9]{11,71}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|4[0-9AB][1-9A-HJ-NP-Za-km-z]{93})\b/,
+];
+// Attribution happens in the actor and in attacker or press messages; ordinary messages may
+// mention people whose names happen to match a group (for example a client called Akira).
+const attributing: StorylineArtefact['kind'][] = ['ransom-note', 'leak-site-post', 'news-item'];
+export function storylineProblem(plan: Pick<GeneratedPlan, 'storyline' | 'positions'>): string {
+  const artefacts = plan.positions.flatMap((position) => position.artefacts ?? []);
+  const fields = ({ sender, headline, body }: StorylineArtefact) => [sender, headline, body];
+  const actor = [
+    ...(plan.storyline
+      ? [plan.storyline.threatActor.name, plan.storyline.threatActor.profile]
+      : []),
+    ...artefacts.filter((artefact) => attributing.includes(artefact.kind)).flatMap(fields),
+  ];
+  const texts = [...actor, ...(plan.storyline?.background ?? []), ...artefacts.flatMap(fields)];
+  if (actor.some((text) => realGroups.test(text)))
+    return 'The storyline must use a fictional threat group, not a real one.';
+  if (texts.some((text) => contactDetails.some((pattern) => pattern.test(text))))
+    return 'The storyline must not contain web or email addresses, phone numbers or payment addresses.';
+  return '';
+}
 
 export function sameBinding(
   a: Pick<PackageTarget, 'profileId' | 'profileRevisionId' | 'profileHash'>,
@@ -290,6 +340,8 @@ export function validateGeneratedPlan(
     if (position.evaluationCriteria.some((key) => !position.expectedActions.includes(key)))
       throw new Error('Criteria must evaluate the position expected actions.');
   }
+  const storyline = storylineProblem(plan);
+  if (storyline) throw new Error(storyline);
   return plan;
 }
 
@@ -327,7 +379,17 @@ export function compileGeneratedPackage(draft: PackageDraft, profile: Profile): 
   const reference = profile.environment!.claims.find(
     (claim) => claim.id === plan.scenario.referenceClaimId,
   )!;
-  const scenario = `SIMULATED SCENARIO: suspected ransomware makes shared engineering files on ${name(plan.scenario.systemId)} unavailable, affecting ${name(plan.scenario.serviceId)}. Entry point, extent and cause remain unconfirmed. Exercise assumption: disruption/discovery starts at the fictional reference, not at plan activation. ${String(reference.value)} Record activation separately; it does not restart the elapsed recovery clock. Minimum service recovery requires validated engineering work and authorised restoration, not merely a running server.`;
+  const baseScenario = `SIMULATED SCENARIO: suspected ransomware makes shared engineering files on ${name(plan.scenario.systemId)} unavailable, affecting ${name(plan.scenario.serviceId)}. Entry point, extent and cause remain unconfirmed. Exercise assumption: disruption/discovery starts at the fictional reference, not at plan activation. ${String(reference.value)} Record activation separately; it does not restart the elapsed recovery clock. Minimum service recovery requires validated engineering work and authorised restoration, not merely a running server.`;
+  // ADR-038: the attacker is facilitator context; the background is shared with players.
+  // Packages generated before the storyline existed render exactly as they did.
+  const { storyline } = plan;
+  const threatActor = storyline
+    ? `Threat actor: ${storyline.threatActor.name}. ${storyline.threatActor.profile}`
+    : '';
+  const scenario = storyline ? `${baseScenario}\n\n${threatActor}` : baseScenario;
+  const common = storyline
+    ? `${baseScenario}\n\nBackground:\n${storyline.background.map((item) => `- ${item}`).join('\n')}`
+    : baseScenario;
   const eventText = (kind: GeneratedPlan['positions'][number]['event']) => {
     const system = name(plan.scenario.systemId),
       service = name(plan.scenario.serviceId);
@@ -360,7 +422,7 @@ export function compileGeneratedPackage(draft: PackageDraft, profile: Profile): 
     facilitatorSupplierIds: plan.facilitatorSupplierIds,
     briefing: {
       revisionId: `briefing-${draft.revision}`,
-      common: scenario,
+      common,
       references: [
         'Confirmed organisation profile: source-linked role evidence supplied below.',
         'MSP and SOC contacts are simulated through the facilitator; no real calls or system changes.',
@@ -404,7 +466,12 @@ export function compileGeneratedPackage(draft: PackageDraft, profile: Profile): 
       recipientRoleIds: [...playerRoles],
       roleBodies: position.messages.map((message) => ({
         roleId: message.roleId,
-        body: `SIMULATION / +${position.elapsedMinutes} elapsed minutes\n${eventText(position.event)}\n\n${message.evidence
+        body: `SIMULATION / +${position.elapsedMinutes} elapsed minutes\n${eventText(position.event)}${(
+          position.artefacts ?? []
+        )
+          .filter((artefact) => artefact.recipientRoleIds.includes(message.roleId))
+          .map((artefact) => `\n\n${artefactText(artefact)}`)
+          .join('')}\n\n${message.evidence
           .filter(
             (item) =>
               !preparation ||
@@ -425,9 +492,12 @@ export function compileGeneratedPackage(draft: PackageDraft, profile: Profile): 
           position.messages.flatMap((message) => message.evidence.map((item) => item.claimId)),
         ),
       ],
-      facilitatorNotes: position.facilitatorNotes
-        .map((key) => notes[key].replaceAll('{system}', name(plan.scenario.systemId)))
-        .join('\n'),
+      facilitatorNotes: [
+        ...position.facilitatorNotes.map((key) =>
+          notes[key].replaceAll('{system}', name(plan.scenario.systemId)),
+        ),
+        ...(position.position === 1 && threatActor ? [threatActor] : []),
+      ].join('\n'),
     })),
   });
 }
@@ -446,8 +516,15 @@ export function generationPrompt(profile: Profile, target: PackageTarget): strin
 Bind exactly to target profileId/profileRevisionId/profileHash. Objectives are containment, minimum-continuity, authorised-restoration. Use the three role functions exactly once: business-leadership (business decision makers), engineering-projects (engineering and project operations), internal-it (internal IT). Choose their existing person IDs; the facilitator plays the two selected suppliers, never extra player roles.
 Threat family (${threatLibraryVersion}, ${ransomwareFamily.id}): ${ransomwareFamily.summary} Choose scenario.systemId, scenario.serviceId and both facilitatorSupplierIds from one eligible target below, and referenceClaimId from the eligible reference claims; the application rejects other choices. The entry point stays unknown. The explicitly reviewable scenario assumption is disruption/discovery at that reference; activation does not reset time. First position elapsedMinutes=0, then strictly increasing through 240. Use exactly the three decision points once in that order; other two positions have null decision.
 Eligible choices computed by the application: ${JSON.stringify({ targets, referenceClaimIds })}
-Compose different evidence/questions for each role at all five positions. Select only existing claim IDs and copy their exact status. Keep briefings short (1-2 evidence claims), each role inject under 6000 rendered characters (prefer 1-3 claims). Do not reveal all private technical weaknesses in every role's baseline brief. Ground the dependency/monitoring, backup coverage/unverified restore, recovery-target comparison, authority, contact, project deadline and reference-time discussion in the profile.
-No free prose or invented names: select the supported event/question/action/note keys. They are rendered by the application with profile names and status-labelled evidence. No endpoint-agent alert for the target, corrupt-backup assertion, known entry point, observed isolation or completed restoration is supported; use the no-agent-alert note only when the target has no confirmed monitored-by claim. Criteria keys must be selected expectedActions. No branches, auto-approval, confidence scores or participant access permissions.
+Compose different evidence/questions for each role at all five positions. Select only existing claim IDs and copy their exact status. Keep briefings short (1-2 evidence claims), each role inject under 5000 rendered characters including its storyline messages (prefer 1-3 claims). Do not reveal all private technical weaknesses in every role's baseline brief. Ground the dependency/monitoring, backup coverage/unverified restore, recovery-target comparison, authority, contact, project deadline and reference-time discussion in the profile.
+Storyline: the only text you write yourself. Make it realistic, specific and different from a generic template; write each message as the real thing, in plain wording, without commentary about the exercise.
+- storyline.threatActor: invent a fictional criminal ransomware group: a name that is not any real group's, and a short profile of its motive, usual approach and how it pressures victims. Only the facilitator sees this.
+- storyline.background: 2-4 short items about the days or weeks before the reference time that set the scene, shared with every player: for example sector news, an industry advisory, an odd but unexplained event, workload or deadline pressure.
+- positions[].artefacts: 1-2 in-story messages per position that move the story on and put pressure on that position's decision: for example a staff chat, a helpdesk ticket, the ransom note, a client chasing a deadline, a supplier call, a leak-site post, a news item or a journalist's voicemail. Escalate across the five positions. Send each only to the roles that would realistically receive it, and vary who receives what.
+- Use the profile's names for the organisation's own people, systems, services and suppliers, and invent no new staff or systems. You may invent outside parties such as clients, journalists and other firms.
+- Outsiders, including the attackers, may make claims, threats and demands. Never state as fact anything the profile does not support: the entry point, an endpoint-agent alert on the target, the state of backups or restores, completed isolation or restoration, or any action the players have not decided. Messages from the facilitator-played suppliers may acknowledge, ask questions or say what is not yet known, but report no results.
+- No web or email addresses, phone numbers or payment addresses; refer to them generically, such as "a link in the note".
+Outside the storyline, no free prose or invented names: select the supported event/question/action/note keys. They are rendered by the application with profile names and status-labelled evidence. No endpoint-agent alert for the target, corrupt-backup assertion, known entry point, observed isolation or completed restoration is supported; use the no-agent-alert note only when the target has no confirmed monitored-by claim. Criteria keys must be selected expectedActions. No branches, auto-approval, confidence scores or participant access permissions.
 Objective coverage, checked before freeze: each decision position's criteria include that objective's decision action; the positions after the previous decision up to that decision evaluate at least one of its supporting actions; every supporting action is evaluated somewhere. ${JSON.stringify(objectiveActions)}
 Question/criterion meanings: ${JSON.stringify(actions)}
 Facilitator note meanings: ${JSON.stringify(notes)}

@@ -143,6 +143,17 @@ export function generationPlan(target: PackageTarget = generationTarget): Genera
     profileId: target.profileId,
     profileRevisionId: target.profileRevisionId,
     profileHash: target.profileHash,
+    storyline: {
+      threatActor: {
+        name: 'Quiet Ledger',
+        profile:
+          'ACTOR_ONLY: a test extortion group that encrypts shared files and threatens leaks.',
+      },
+      background: [
+        'BACKGROUND_SHARED: a sector advisory last week warned design firms about file-server ransomware.',
+        'Both project teams worked late on Friday to meet the next deadline.',
+      ],
+    },
     objectives: ['containment', 'minimum-continuity', 'authorised-restoration'],
     scenario: {
       family: 'suspected-ransomware-file-unavailability',
@@ -186,8 +197,25 @@ export function generationPlan(target: PackageTarget = generationTarget): Genera
         'restore-evidence-unknown',
         'suppliers-by-facilitator',
       ],
+      // Position 1's message reaches engineering only; later ones reach every role.
+      artefacts: [
+        {
+          kind: 'chat-message',
+          sender: 'Project team chat',
+          headline: `Story update ${index + 1}`,
+          body: `STORY_${index + 1}: test in-story message.`,
+          recipientRoleIds: index === 0 ? ['engineering-projects'] : [...playerRoles],
+        },
+      ],
     })),
   };
+}
+// A plan as stored before ADR-038: no storyline or in-story messages.
+export function legacyPlan(target: PackageTarget = generationTarget): GeneratedPlan {
+  const plan = generationPlan(target);
+  delete plan.storyline;
+  for (const position of plan.positions) delete position.artefacts;
+  return plan;
 }
 
 // A second hand-authored context (ADR-037): different names, supplier layout, authority policy

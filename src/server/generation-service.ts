@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Actor, Profile } from '../contracts/profile.js';
 import {
+  GeneratedPlanOutputSchema,
   GenerationResultSchema,
   type PackageTarget,
   type PackageDraft,
@@ -204,7 +205,12 @@ export class GenerationService {
       try {
         if (input.failed) throw new Error('Provider failure');
         const profile = this.requireTarget(this.store.actor(draft.ownerId)!, draft.target);
-        const plan = validateGeneratedPlan(input.output, profile, draft.target);
+        // A new proposal must carry its storyline; stored older plans may omit it (ADR-038).
+        const plan = validateGeneratedPlan(
+          readStored(GeneratedPlanOutputSchema, input.output),
+          profile,
+          draft.target,
+        );
         const next: PackageDraft = {
           ...draft,
           revision: draft.revision + 1,
@@ -310,6 +316,8 @@ export class GenerationService {
         role.personIds = [...edit.personIds];
         role.briefingEvidence = structuredClone(edit.briefingEvidence);
       }
+      // The reviewer may correct the model-written attacker and background (ADR-038).
+      if (input.storyline) next.plan!.storyline = structuredClone(input.storyline);
       next.reviews = next.reviews.map(() => 'pending');
       next.revision++;
       next.updatedAt = new Date().toISOString();
@@ -319,7 +327,7 @@ export class GenerationService {
         throw new AppError(
           400,
           'INVALID_PACKAGE',
-          'Preparation violates the confirmed people, claims, plan source or content bounds.',
+          'Preparation violates the confirmed people, claims, plan source, storyline or content bounds.',
         );
       }
       this.store.generation.save(next, 'preparation-reviewed');

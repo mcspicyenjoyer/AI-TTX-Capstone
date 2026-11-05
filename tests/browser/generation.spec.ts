@@ -47,6 +47,16 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   await expect(pathway.getByText('Hypothesis', { exact: true })).toBeVisible();
   await expect(pathway).toContainText('TE-VPN01 / access-to: TE-FS01');
   await expect(pathway).toContainText('UNKNOWN TE-FS01 / restore-tested: no value recorded');
+  // ADR-038: the model-written attacker and background are shown for review.
+  // It appears in the scenario and again in position 1's facilitator notes.
+  await expect(page.getByText(/Threat actor: Quiet Ledger\./)).toHaveCount(2);
+  await expect(page.getByText(/Threat actor: Quiet Ledger\./).first()).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Background shared with players', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('listitem').filter({ hasText: /^BACKGROUND_SHARED: a sector advisory/ }),
+  ).toBeVisible();
   const freeze = page.getByRole('button', { name: 'Approve and freeze package', exact: true });
   await expect(freeze).toBeDisabled();
   await page.getByRole('button', { name: 'Reject inject', exact: true }).click();
@@ -56,10 +66,16 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   await page
     .getByLabel('business-leadership questions', { exact: true })
     .selectOption(['preserve-evidence']);
+  await page
+    .getByLabel('Story message 1 text', { exact: true })
+    .fill('EDITED_STORY: the drawings folder will not open for anyone.');
   await page.getByRole('button', { name: 'Save edit', exact: true }).click();
   await expect(page.getByRole('tab', { name: /1. Shared engineering files/ })).toContainText(
     'pending',
   );
+  await expect(
+    page.getByText(/Chat message from Project team chat: Story update 1\nEDITED_STORY/),
+  ).toBeVisible();
   await expect(
     page
       .getByText('What evidence should be preserved before disruptive action?', { exact: false })
@@ -95,6 +111,9 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   await page.getByLabel('Internal IT briefing', { exact: true }).selectOption(['it', 'restore']);
   await page.getByLabel('Business leadership people', { exact: true }).selectOption(['imran']);
   await page.getByLabel('Internal IT people', { exact: true }).selectOption(['ethan']);
+  await page
+    .getByLabel('Background 1', { exact: true })
+    .fill('EDITED_BACKGROUND: a client moved the review meeting forward.');
   await expect(freeze).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Accept inject', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Save preparation', exact: true }).click();
@@ -112,6 +131,12 @@ test('generated package review edit reject freeze at desktop and mobile widths',
     'imran',
   ]);
   await expect(page.getByLabel('Internal IT people', { exact: true })).toHaveValues(['ethan']);
+  await expect(page.getByLabel('Background 1', { exact: true })).toHaveValue(
+    'EDITED_BACKGROUND: a client moved the review meeting forward.',
+  );
+  await expect(
+    page.getByRole('listitem').filter({ hasText: /^EDITED_BACKGROUND: a client moved/ }),
+  ).toBeVisible();
   await expect(page.getByText(/^Represent: Imran\./)).toBeAttached();
   for (let position = 0; position < 5; position++) {
     await page.getByRole('tab', { name: new RegExp(`^${position + 1}\\.`) }).click();

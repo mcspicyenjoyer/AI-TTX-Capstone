@@ -4,21 +4,26 @@ import {
   GenerationContextSchema,
   PackageDraftViewSchema,
   actionKinds,
+  artefactKinds,
   eventKinds,
   decisions,
   noteKinds,
+  playerRoles,
   type GenerationContext,
   type PackageDraftView,
   type GeneratedPosition,
   type ReviewPreparation,
+  type Storyline,
+  type StorylineArtefact,
 } from '../contracts/generation.js';
 import { ApiError, request } from './api.js';
 import { FamilyAssessmentView, ThreatPathwayView } from './threat-pathway.js';
 
 const label = (value: string) => value.replaceAll('-', ' ');
 type Pending = { url: string; body: object };
-type PreparationEdit = Pick<ReviewPreparation, 'preparation' | 'roles'>;
+type PreparationEdit = Pick<ReviewPreparation, 'preparation' | 'roles' | 'storyline'>;
 function preparationEdit(view: PackageDraftView): PreparationEdit {
+  const { storyline } = view.draft.plan!;
   return {
     preparation: structuredClone(
       view.draft.preparation ?? { sharedEvidence: [], exercisedPlanSourceId: '' },
@@ -28,6 +33,7 @@ function preparationEdit(view: PackageDraftView): PreparationEdit {
       personIds: [...personIds],
       briefingEvidence: structuredClone(briefingEvidence),
     })),
+    ...(storyline ? { storyline: structuredClone(storyline) } : {}),
   };
 }
 
@@ -139,6 +145,23 @@ export function PackageWorkspace({
     if (edit) {
       setEdit({ ...edit, ...patch });
       setDirty(true);
+    }
+  }
+  function changeArtefact(index: number, patch: Partial<StorylineArtefact> | null) {
+    if (!edit?.artefacts) return;
+    change({
+      artefacts:
+        patch === null
+          ? edit.artefacts.filter((_, i) => i !== index)
+          : edit.artefacts.map((artefact, i) =>
+              i === index ? { ...artefact, ...patch } : artefact,
+            ),
+    });
+  }
+  function changeStoryline(patch: Partial<Storyline>) {
+    if (preparation?.storyline) {
+      setPreparation({ ...preparation, storyline: { ...preparation.storyline, ...patch } });
+      setPreparationDirty(true);
     }
   }
   const disabled = busy || !!pending;
@@ -281,12 +304,22 @@ export function PackageWorkspace({
         <>
           <section className="run-section">
             <h2>Scenario and objectives</h2>
-            <p>{view.preview.scenario}</p>
+            <p className="preserve-lines">{view.preview.scenario}</p>
             <ol>
               {view.preview.objectives!.map((objective) => (
                 <li key={objective}>{objective}</li>
               ))}
             </ol>
+            {view.draft.plan?.storyline && (
+              <>
+                <h3>Background shared with players</h3>
+                <ul>
+                  {view.draft.plan.storyline.background.map((item, index) => (
+                    <li key={`${index}-${item}`}>{item}</li>
+                  ))}
+                </ul>
+              </>
+            )}
             <h3>Player roles</h3>
             {view.preview.roles.map((role) => (
               <details key={role.id}>
@@ -422,6 +455,61 @@ export function PackageWorkspace({
                     </select>
                   </label>
                 ))}
+                {preparation.storyline && (
+                  <>
+                    <label>
+                      Threat actor
+                      <input
+                        aria-label="Threat actor"
+                        maxLength={80}
+                        value={preparation.storyline.threatActor.name}
+                        onChange={(event) =>
+                          changeStoryline({
+                            threatActor: {
+                              ...preparation.storyline!.threatActor,
+                              name: event.target.value,
+                            },
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Threat actor profile (facilitator only)
+                      <textarea
+                        aria-label="Threat actor profile"
+                        rows={3}
+                        maxLength={500}
+                        value={preparation.storyline.threatActor.profile}
+                        onChange={(event) =>
+                          changeStoryline({
+                            threatActor: {
+                              ...preparation.storyline!.threatActor,
+                              profile: event.target.value,
+                            },
+                          })
+                        }
+                      />
+                    </label>
+                    {preparation.storyline.background.map((item, index) => (
+                      <label key={'background-' + index}>
+                        Background {index + 1} (shared with players)
+                        <textarea
+                          aria-label={`Background ${index + 1}`}
+                          rows={2}
+                          maxLength={400}
+                          value={item}
+                          onChange={(event) =>
+                            changeStoryline({
+                              background: preparation.storyline!.background.map((value, i) =>
+                                i === index ? event.target.value : value,
+                              ),
+                            })
+                          }
+                        />
+                      </label>
+                    ))}
+                  </>
+                )}
               </fieldset>
               {editable && (
                 <div className="package-review-actions">
@@ -620,6 +708,92 @@ export function PackageWorkspace({
                           ))}
                         </select>
                       </label>
+                    </div>
+                  ))}
+                  {edit.artefacts?.map((artefact, index) => (
+                    <div className="package-artefact-edit" key={'artefact-' + index}>
+                      <h3>Story message {index + 1}</h3>
+                      <label>
+                        Kind
+                        <select
+                          aria-label={`Story message ${index + 1} kind`}
+                          value={artefact.kind}
+                          onChange={(event) =>
+                            changeArtefact(index, {
+                              kind: event.target.value as StorylineArtefact['kind'],
+                            })
+                          }
+                        >
+                          {artefactKinds.map((key) => (
+                            <option key={key} value={key}>
+                              {label(key)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        From
+                        <input
+                          aria-label={`Story message ${index + 1} sender`}
+                          maxLength={120}
+                          value={artefact.sender}
+                          onChange={(event) =>
+                            changeArtefact(index, { sender: event.target.value })
+                          }
+                        />
+                      </label>
+                      <label>
+                        Headline
+                        <input
+                          aria-label={`Story message ${index + 1} headline`}
+                          maxLength={160}
+                          value={artefact.headline}
+                          onChange={(event) =>
+                            changeArtefact(index, { headline: event.target.value })
+                          }
+                        />
+                      </label>
+                      <label>
+                        Message
+                        <textarea
+                          aria-label={`Story message ${index + 1} text`}
+                          rows={5}
+                          maxLength={900}
+                          value={artefact.body}
+                          onChange={(event) => changeArtefact(index, { body: event.target.value })}
+                        />
+                      </label>
+                      <label>
+                        Received by
+                        <select
+                          multiple
+                          size={3}
+                          aria-label={`Story message ${index + 1} recipients`}
+                          value={artefact.recipientRoleIds}
+                          onChange={(event) =>
+                            changeArtefact(index, {
+                              recipientRoleIds: Array.from(
+                                event.target.selectedOptions,
+                                (option) => option.value as (typeof playerRoles)[number],
+                              ),
+                            })
+                          }
+                        >
+                          {playerRoles.map((roleId) => (
+                            <option key={roleId} value={roleId}>
+                              {view.preview!.roles.find((role) => role.id === roleId)!.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <button
+                        type="button"
+                        className="secondary"
+                        onClick={() => changeArtefact(index, null)}
+                      >
+                        <X size={16} />
+                        Remove story message
+                      </button>
                     </div>
                   ))}
                   {(['expectedActions', 'evaluationCriteria', 'facilitatorNotes'] as const).map(
