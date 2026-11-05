@@ -73,7 +73,7 @@ docker compose logs --tail=30 app
 
 ### ChatGPT subscription extraction
 
-Optional Windows-only local prototype. Requires Node 24.19, Docker Desktop, the pinned Codex CLI `0.165.0-alpha.1.2`, and your own managed ChatGPT login. An updated/different binary fails closed; review and rerun the isolation audit before changing its pin. No credential file is copied or mounted into Docker, and no API key is used. Do not use this path for real organisational documents or a hosted multi-user service.
+Optional Windows-only local prototype. Requires Node 24.19, Docker Desktop, the Codex app and your own managed ChatGPT login. The Codex CLI may auto-update (ADR-039): `auto` selects the newest CLI the Codex app installed, and the worker re-runs the offline isolation audit on that exact binary at startup and before every job. A binary that fails the audit is never called; each worker report records the version and SHA-256 used. No credential file is copied or mounted into Docker, and no API key is used. Do not use this path for real organisational documents or a hosted multi-user service.
 
 In PowerShell from the repository, with a free loopback port (the current preview uses 3011):
 
@@ -83,7 +83,7 @@ codex login status
 $env:TTX_PORT = '3011'
 $env:TTX_AI_ENABLED = 'codex-subscription'
 docker compose -p ai-ttx-intake-preview up --build -d --wait
-$codex = (Get-Command codex).Source
+$codex = 'auto'  # or the full path to a codex.exe
 $root = Join-Path $env:LOCALAPPDATA 'AI-TTX\subscription-worker'
 node --import tsx scripts/check-codex-isolation.ts $codex "$root\audit"
 node --import tsx src/server/subscription-worker.ts $codex "$root\runtime" ai-ttx-intake-preview-app-1
@@ -99,12 +99,12 @@ The local preview at `http://127.0.0.1:3011/` has the exact confirmed Teralqen t
 
 Before generating, the binding section shows whether the threat library's family applies to the confirmed profile, which service-to-system pathways are eligible, and the library's rules and references. After a proposal arrives, **Threat pathway** maps it for the facilitator only: entry-point hypotheses from confirmed access links, the target system, dependent services and their targets, recovery evidence, authority, supplier links and the non-fact gaps on the pathway, each with its claim ID and knowledge state. Hypotheses are planning aids; they are never written into the package or shown to players.
 
-The generator selects confirmed evidence and supported event/action fields. It does not author unrestricted organisational prose. Review the scenario, functional role assignments, evidence distribution, timing, expected actions and criteria. Save any inject edit, inspect its rendered messages, then accept or reject it. All five must be accepted before **Approve and freeze package** creates a draft run. **Exercises** then uses the existing Step 0, per-position approval/release, team response, facilitator review, closure and explicit completion. Interpretation and AAR review are separate from progression; branches are not implemented yet.
+The generator selects confirmed evidence and supported event/action fields. Organisation facts are never model-written. Since ADR-038 the model also writes a storyline: a threat actor for the facilitator, a backstory every player reads and one or two story messages per inject. Review and correct it under **Preparation** and in each inject's story messages before accepting. Review the scenario, functional role assignments, evidence distribution, timing, expected actions and criteria. Save any inject edit, inspect its rendered messages, then accept or reject it. All five must be accepted before **Approve and freeze package** creates a draft run. **Exercises** then uses the existing Step 0, per-position approval/release, team response, facilitator review, closure and explicit completion. Interpretation and AAR review are separate from progression; branches are not implemented yet.
 
 Run the existing worker in package mode with the same pinned CLI and ChatGPT login:
 
 ```powershell
-$codex = (Get-Command codex).Source
+$codex = 'auto'  # or the full path to a codex.exe
 $root = Join-Path $env:LOCALAPPDATA 'AI-TTX\package-worker'
 node --import tsx src/server/subscription-worker.ts $codex $root ai-ttx-intake-preview-app-1 packages
 ```
@@ -120,7 +120,7 @@ For a fresh local installation, place the operator-approved `package-target.json
 For a frozen generated package, open its run in **Exercises** as facilitator. Each position with a recorded response has an interpretation panel. Request AI interpretation or start a manual assessment. Compare action labels and quoted evidence, then explicitly accept, edit, reject or override with a reason. The saved AI proposal and review remain distinct. A changed response makes the old interpretation stale; review the new revision instead. Completed runs can be analysed without reopening or altering their recorded outcomes.
 
 ```powershell
-$codex = (Get-Command codex).Source
+$codex = 'auto'  # or the full path to a codex.exe
 $root = Join-Path $env:LOCALAPPDATA 'AI-TTX\interpretation-worker'
 node --import tsx src/server/subscription-worker.ts $codex $root ai-ttx-intake-preview-app-1 interpretations
 ```
@@ -142,12 +142,12 @@ New captures show a **Fictional exercise clock** next to each release, response,
 In **Exercises > Record report**, select the verified snapshot, then choose **Draft AAR**. The AI request is bound to that exact ID/hash; later interpretation reviews or captures cannot alter it. The same subscription worker supports an AAR-only mode:
 
 ```powershell
-$codex = (Get-Command codex).Source
+$codex = 'auto'  # or the full path to a codex.exe
 $root = Join-Path $env:LOCALAPPDATA 'AI-TTX\aar-worker'
 node --import tsx src/server/subscription-worker.ts $codex $root ai-ttx-intake-preview-app-1 aars once
 ```
 
-Run only the needed worker mode, with its own external directory. Resolve `$codex` to the verified executable, not an automatically updated shim: a version/hash mismatch stops before a model call and needs the existing isolation audit before any approved pin update. The milestone cap is three started AAR attempts, including failures, invalid output and timeouts. Unknown usage is shown as unknown, not zero. No paid fallback or automatic retry. **New manual AAR** remains available without a provider. Every finding quotes a captured record field with clickable IDs; the application rejects unresolvable citations, invented excerpts, invalid attribution and unsupported gap origins. AI drafts leave improvement owners blank. When you edit the draft you may assign an owner from the run's confirmed people and set a due date; assignment is not completion. AAR text is escaped, not executed as HTML. Quote validity does not prove a correct interpretation or capability: inspect evidence and explicitly accept, edit, reject or save a manual override with a review rationale.
+Run only the needed worker mode, with its own external directory. `$codex = 'auto'` follows Codex updates; every job first passes the offline isolation audit on the binary it will call. The milestone cap is three started AAR attempts, including failures, invalid output and timeouts. Unknown usage is shown as unknown, not zero. No paid fallback or automatic retry. **New manual AAR** remains available without a provider. Every finding quotes a captured record field with clickable IDs; the application rejects unresolvable citations, invented excerpts, invalid attribution and unsupported gap origins. AI drafts leave improvement owners blank. When you edit the draft you may assign an owner from the run's confirmed people and set a due date; assignment is not completion. AAR text is escaped, not executed as HTML. Quote validity does not prove a correct interpretation or capability: inspect evidence and explicitly accept, edit, reject or save a manual override with a review rationale.
 
 During a future active generated run, **Facilitator Clarifications** records the participant question and its answer against the current open release, with confirmed claim IDs. Unknown answers remain `not known at this time`. Logging does not send an answer to participants. Completed runs cannot be backfilled; this trial's private clarification answers remain outside its record and AAR evidence.
 
@@ -163,8 +163,26 @@ The optional browser-test image downloads Chromium and OS dependencies. Profile,
 
 ### Moving laptops
 
-Git carries the Dockerfile, Compose configuration, source and npm lockfile. On another laptop, clone and run the same startup command. The app creates a fresh synthetic dataset and new access codes there. Existing saved progress does **not** travel with Git: the `ai-ttx-capstone_exercise-data` volume is local to each Docker engine. Keep that volume if progress matters; transferring it requires a separate protected backup/restore. Backup/restore automation is not implemented. Docker engine permissions and organisational approval still apply on the destination laptop.
+Git carries the code: commit and push on one laptop, pull on the other, and run the same startup command. Saved progress (the database, its dated backups and the access codes) lives in the project's Docker volume and does **not** travel with Git. Keep it out of Git: it holds sign-in codes, Git cannot merge two copies of a database, and the repository rules keep runtime records out of version control. Size is not the obstacle; the preview volume compresses to about 3 MB.
 
+Move it as one archive instead, outside the repository (USB drive or a private cloud folder). On the laptop you are leaving:
+
+```powershell
+docker compose -p ai-ttx-intake-preview stop
+node --import tsx scripts/data-transfer.ts export ai-ttx-intake-preview "$env:LOCALAPPDATA\AI-TTX\transfers"
+```
+
+This writes `<project>-data-<time>.tgz` and a `.tgz.json` manifest with its SHA-256 and the exporting commit. Copy both files. On the other laptop, pull the same or a newer commit, start the project once so its image and volume exist, stop it, then import:
+
+```powershell
+$env:TTX_PORT = '3011'
+docker compose -p ai-ttx-intake-preview up --build -d --wait
+docker compose -p ai-ttx-intake-preview stop
+node --import tsx scripts/data-transfer.ts import ai-ttx-intake-preview "<path>\ai-ttx-intake-preview-data-<time>.tgz" --replace
+docker compose -p ai-ttx-intake-preview up -d --wait
+```
+
+Import checks the archive against its manifest, saves whatever the volume held before into a new archive next to it, restores the files and runs a database integrity check. It refuses to run while the app is using the volume, refuses an archive path inside the repository, and needs `--replace` to overwrite. Older code cannot open a database written by newer code, so keep both laptops on the same commit and move the data in one direction at a time. Live AI also needs the Codex app signed in on that laptop. Docker engine permissions and organisational approval still apply on the destination laptop.
 ## Source material and data
 The authoritative product brief is the local `references/GPT_ICT4011_Form_B_AI_Assisted_TTX.docx`, supplied in the primary checkout and reviewed on 4 October 2026. PROJECT records its source identity and requirement mapping. It remains ignored and is not copied into this worktree. Its presence, and that of other reference material, is not approval to redistribute, commit or transmit it to a provider.
 

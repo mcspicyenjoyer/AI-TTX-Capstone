@@ -1,5 +1,6 @@
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { existsSync, readdirSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import type { IntakeSource } from '../contracts/intake.js';
@@ -7,9 +8,49 @@ import { ExtractionOutputSchema } from '../contracts/extraction.js';
 import { extractionPrompt } from './extraction-prompt.js';
 import type { TSchema } from '@sinclair/typebox';
 
-export const CODEX_VERSION = 'codex-cli 0.165.0-alpha.1.2';
-export const CODEX_SHA256 = '5c1b55966bf9f757dcbf00065c9a6cb862ead55d34b015f1be1939ff18e43943';
 export const EXTRACTION_MODEL = 'gpt-6.1-sol';
+// The Codex CLI may auto-update (ADR-039). No version is pinned: the worker audits the binary
+// actually present at startup and before every job, and records its version and hash.
+export type CodexIdentity = { version: string; sha256: string };
+export async function codexIdentity(executable: string, directory: string) {
+  const sha256 = createHash('sha256')
+    .update(await readFile(executable))
+    .digest('hex');
+  const output = await boundedProcess(executable, ['--version'], { directory, deadlineMs: 10_000 });
+  const version = output.stdout.trim();
+  if (!/^codex-cli \d+\.\d+\.\d+\S*$/.test(version))
+    throw new Error('The executable is not a recognised Codex CLI.');
+  return { version, sha256 } satisfies CodexIdentity;
+}
+// Highest version wins; numeric comparison orders 0.166.0 after 0.130.0.
+export function newestCodex(candidates: readonly { path: string; version: string }[]) {
+  return [...candidates].sort((a, b) =>
+    b.version.localeCompare(a.version, 'en', { numeric: true }),
+  )[0]?.path;
+}
+// 'auto' follows the Codex desktop app, which moves its CLI to a new folder on each update.
+export function resolveCodexExecutable(value: string, env = process.env): string {
+  if (value !== 'auto') return resolve(value);
+  const bin = join(env.LOCALAPPDATA ?? '', 'OpenAI', 'Codex', 'bin');
+  const paths = existsSync(bin)
+    ? [
+        join(bin, 'codex.exe'),
+        ...readdirSync(bin, { withFileTypes: true })
+          .filter((entry) => entry.isDirectory())
+          .map((entry) => join(bin, entry.name, 'codex.exe')),
+      ].filter((path) => existsSync(path))
+    : [];
+  const found = newestCodex(
+    paths.map((path) => ({
+      path,
+      version: spawnSync(path, ['--version'], { encoding: 'utf8', windowsHide: true })
+        .stdout?.trim()
+        .replace(/^codex-cli /, ''),
+    })),
+  );
+  if (!found) throw new Error('No Codex CLI found. Install the Codex app or pass its path.');
+  return found;
+}
 export type ReasoningEffort = 'low' | 'medium';
 // Package generation writes the storyline and runs at medium effort with a longer deadline
 // (ADR-038). Extraction, interpretation and AAR keep the low effort their evidence used.
@@ -230,20 +271,8 @@ export async function prepareCodex(
 ) {
   if (process.platform !== 'win32')
     throw new Error('This reviewed local subscription adapter currently supports Windows only.');
-  if (
-    createHash('sha256')
-      .update(await readFile(executable))
-      .digest('hex') !== CODEX_SHA256
-  )
-    throw new Error(
-      'Codex binary differs from the verified version. Re-run the isolation audit before updating the pin.',
-    );
   await mkdir(directory, { recursive: true });
-  const version = await boundedProcess(executable, ['--version'], {
-    directory,
-    deadlineMs: 10_000,
-  });
-  if (version.stdout.trim() !== CODEX_VERSION) throw new Error('Unsupported Codex version.');
+  const identity = await codexIdentity(executable, directory);
   const result = await boundedProcess(executable, ['debug', 'models', '--bundled'], {
     directory,
     deadlineMs: 10_000,
@@ -266,6 +295,7 @@ export async function prepareCodex(
   await writeFile(join(directory, 'schema.json'), JSON.stringify(codexOutputSchema(schema)), {
     mode: 0o600,
   });
+  return identity;
 }
 
 export async function checkChatGptLogin(executable: string, directory: string) {

@@ -3,17 +3,12 @@ import { createServer } from 'node:http';
 import { readFile, writeFile, access } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import {
-  boundedProcess,
-  codexArgs,
-  codexEnvironment,
-  prepareCodex,
-  CODEX_SHA256,
-} from './codex-extraction.js';
+import { boundedProcess, codexArgs, codexEnvironment, prepareCodex } from './codex-extraction.js';
 
 // A synthetic local provider probes the exact CLI configuration before real source transmission.
+// It runs on whichever binary is present, so an auto-updated CLI is re-checked (ADR-039).
 export async function auditCodexBoundary(executable: string, directory: string) {
-  await prepareCodex(resolve(executable), directory);
+  const identity = await prepareCodex(resolve(executable), directory);
   const sentinel = `CANARY-${randomUUID()}`;
   const privateFile = join(directory, 'private-canary.txt');
   const writtenFile = join(directory, 'prohibited-write.txt');
@@ -134,7 +129,8 @@ export async function auditCodexBoundary(executable: string, directory: string) 
     await assert.rejects(access(writtenFile), 'Forced write must not execute.');
     assert.equal(await readFile(privateFile, 'utf8'), sentinel);
     const report = {
-      codexSha256: CODEX_SHA256,
+      codexVersion: identity.version,
+      codexSha256: identity.sha256,
       at: new Date().toISOString(),
       passed: true,
       registeredTools: [],
@@ -144,7 +140,8 @@ export async function auditCodexBoundary(executable: string, directory: string) 
       noCanaryDisclosure: true,
       noWrite: true,
       noAuthSentToFixture: true,
-      boundary: 'Pinned local tool registry, not an OS sandbox or arbitrary future Codex versions.',
+      boundary:
+        'Tool registry of this exact binary, re-audited before every job; not an OS sandbox.',
     };
     await writeFile(join(directory, 'isolation-result.json'), JSON.stringify(report, null, 2));
     return report;

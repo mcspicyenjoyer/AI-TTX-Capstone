@@ -1265,7 +1265,10 @@ test('preparation review corrects the storyline, resets acceptance and rejects c
 });
 test('generation prompt asks for the storyline while company facts stay claim-rendered', () => {
   const prompt = generationPrompt(generationProfile, generationTarget);
-  assert.match(prompt, /storyline\.threatActor: invent a fictional criminal ransomware group/);
+  assert.match(prompt, /storyline\.threatActor: create a criminal ransomware group/);
+  // Story text stays in-world; the application states the exercise rules itself.
+  assert.match(prompt, /no disclaimers, caveats or notes/);
+  assert.match(prompt, /no mention of exercises, simulations, assumptions or reference times/);
   assert.match(prompt, /Outside the storyline, no free prose or invented names/);
   assert.match(prompt, /invent no new staff or systems/);
 });

@@ -20,6 +20,8 @@ import {
   isDisabledCodeModeNotice,
   GENERATION_REASONING_EFFORT,
   GENERATION_DEADLINE_MS,
+  newestCodex,
+  resolveCodexExecutable,
   type ReasoningEffort,
 } from '../src/server/codex-extraction.js';
 import { syntheticProfile } from '../src/server/fixture.js';
@@ -289,6 +291,23 @@ test('typed output resolves exact citations; prompt and environment do not grant
   assert.equal(GENERATION_REASONING_EFFORT, 'medium');
   assert.ok(GENERATION_DEADLINE_MS < 300_000, 'within the server five-minute expiry');
   assert.throws(() => codexArgs('worker', undefined, 'ultra' as ReasoningEffort));
+});
+
+test('auto-updated Codex: the newest installed CLI is chosen and an explicit path is kept', () => {
+  assert.equal(
+    newestCodex([
+      { path: 'old', version: '0.130.0-alpha.5' },
+      { path: 'new', version: '0.166.0-alpha.6' },
+      { path: 'older', version: '0.99.9' },
+    ]),
+    'new',
+  );
+  assert.equal(newestCodex([]), undefined);
+  assert.match(resolveCodexExecutable('C:/tools/codex.exe'), /tools[\\/]codex\.exe$/);
+  assert.throws(
+    () => resolveCodexExecutable('auto', { LOCALAPPDATA: 'C:/missing-codex-install' }),
+    /No Codex CLI found/,
+  );
 });
 
 test('UTF-8 SME text retains line citations and rejects binary, oversized lines and excess units', async () => {

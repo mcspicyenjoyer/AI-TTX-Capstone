@@ -45,3 +45,7 @@ secrets/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Data transfer archives contain access codes; keep them outside the repository.
+*-data-*.tgz
+*-data-*.tgz.json
