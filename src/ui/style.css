@@ -1479,6 +1479,34 @@ input[type='checkbox'] {
   padding-top: 12px;
   margin-top: 16px;
 }
+
+.artefact-image-editor {
+  min-width: 0;
+  padding-block: 12px;
+}
+.evidence-image {
+  margin: 16px 0;
+  max-width: 900px;
+  min-width: 0;
+}
+.evidence-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #cbd6d3;
+  background: #fff;
+}
+.evidence-image figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.evidence-image .icon-button {
+  flex: 0 0 36px;
+}
 .package-review-actions {
   display: flex;
   flex-wrap: wrap;

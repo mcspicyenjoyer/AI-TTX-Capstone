@@ -29,19 +29,22 @@ import { interpretationPrompt, interpretationPromptVersion } from './interpretat
 import { fingerprint } from './integrity.js';
 import { AarJobSchema, AarOutputSchema } from '../contracts/aar.js';
 import { aarPrompt, aarPromptVersion } from './aar-content.js';
+import { ImageJobSchema } from '../contracts/artefact-images.js';
+import { runCodexImage } from './codex-images.js';
+import { imagePromptVersion } from '../contracts/artefact-images.js';
 
 const [executable, root, container, mode = 'extraction', execution = 'continuous'] =
   process.argv.slice(2);
 if (!['continuous', 'once'].includes(execution))
   throw new Error('Worker execution must be continuous or once.');
-if (!['extraction', 'packages', 'interpretations', 'aars'].includes(mode))
-  throw new Error('Worker mode must be extraction, packages, interpretations or aars.');
+if (!['extraction', 'packages', 'interpretations', 'aars', 'images'].includes(mode))
+  throw new Error('Worker mode must be extraction, packages, interpretations, aars or images.');
 if (!executable || !root || !container || !/^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,100}$/.test(container))
   throw new Error('Usage: subscription-worker CODEX_EXE ABSOLUTE_WORKER_DIRECTORY CONTAINER_NAME');
 const directory = prepareDataDirectory(root);
 // 'auto' or a path; re-resolved per job so an auto-updated CLI is found and re-audited (ADR-039).
 const codex = () => resolveCodexExecutable(executable);
-await auditCodexBoundary(codex(), directory);
+await auditCodexBoundary(codex(), directory, mode === 'images');
 await checkChatGptLogin(codex(), directory);
 const bridge = spawn(
   'docker',
@@ -50,13 +53,15 @@ const bridge = spawn(
     '-i',
     container,
     'node',
-    mode === 'aars'
-      ? 'dist/server/aar-bridge.js'
-      : mode === 'interpretations'
-        ? 'dist/server/interpretation-bridge.js'
-        : mode === 'packages'
-          ? 'dist/server/generation-bridge.js'
-          : 'dist/server/extraction-bridge.js',
+    mode === 'images'
+      ? 'dist/server/artefact-image-bridge.js'
+      : mode === 'aars'
+        ? 'dist/server/aar-bridge.js'
+        : mode === 'interpretations'
+          ? 'dist/server/interpretation-bridge.js'
+          : mode === 'packages'
+            ? 'dist/server/generation-bridge.js'
+            : 'dist/server/extraction-bridge.js',
   ],
   { windowsHide: true, shell: false, stdio: ['pipe', 'pipe', 'pipe'] },
 );
@@ -100,14 +105,66 @@ try {
       continue;
     }
     const job =
-      mode === 'aars'
-        ? readStored(AarJobSchema, value)
-        : mode === 'interpretations'
-          ? readStored(InterpretationJobSchema, value)
-          : mode === 'packages'
-            ? readStored(GenerationJobSchema, value)
-            : readStored(JobSchema, value);
+      mode === 'images'
+        ? readStored(ImageJobSchema, value)
+        : mode === 'aars'
+          ? readStored(AarJobSchema, value)
+          : mode === 'interpretations'
+            ? readStored(InterpretationJobSchema, value)
+            : mode === 'packages'
+              ? readStored(GenerationJobSchema, value)
+              : readStored(JobSchema, value);
     const started = Date.now();
+    if ('prompt' in job) {
+      let result: {
+        pngBase64: string | null;
+        inputTokens: number;
+        outputTokens: number;
+        failed: boolean;
+      };
+      let identity: { codexVersion?: string; codexSha256?: string } = {};
+      try {
+        if (job.promptVersion !== imagePromptVersion)
+          throw new Error('Image prompt version mismatch.');
+        const exe = codex();
+        identity = await auditCodexBoundary(exe, directory, true);
+        result = {
+          ...(await runCodexImage(exe, directory, job.prompt, controller.signal)),
+          failed: false,
+        };
+      } catch {
+        result = { pngBase64: null, inputTokens: -1, outputTokens: -1, failed: true };
+      }
+      if (stopped) break;
+      const completion = await rpc({ method: 'complete', value: { id: job.id, ...result } });
+      await writeFile(
+        join(directory, `${job.id}.json`),
+        JSON.stringify(
+          {
+            id: job.id,
+            ...identity,
+            promptVersion: job.promptVersion,
+            at: new Date().toISOString(),
+            elapsedMs: Date.now() - started,
+            failed: result.failed,
+            inputTokens: result.inputTokens,
+            outputTokens: result.outputTokens,
+            saved: completion.saved,
+          },
+          null,
+          2,
+        ),
+        { mode: 0o600 },
+      );
+      console.log(
+        `images ${job.id}: ${completion.saved ? 'image ready for review' : 'not saved'}.`,
+      );
+      if (execution === 'once') {
+        process.exitCode = completion.saved ? 0 : 1;
+        break;
+      }
+      continue;
+    }
     let result: { output: unknown; inputTokens: number; outputTokens: number; failed: boolean };
     let audited: { codexVersion?: string; codexSha256?: string } = {};
     try {

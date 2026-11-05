@@ -245,6 +245,11 @@ export class ExerciseService {
         ? (release.deliveries.find((delivery) => delivery.actorId === actor.id)?.body ?? '')
         : release.body,
       releasedAt: release.releasedAt,
+      ...(release.deliveries?.find((delivery) => delivery.actorId === actor.id)?.images
+        ? {
+            images: release.deliveries.find((delivery) => delivery.actorId === actor.id)!.images,
+          }
+        : {}),
     }));
   }
 
@@ -459,6 +464,25 @@ export class ExerciseService {
                     body.roleId ===
                     context.members.find((member) => member.actorId === actorId)!.roleId,
                 )!.body,
+                ...(inject.images
+                  ? {
+                      images: inject.images
+                        .filter((image) =>
+                          image.recipientRoleIds.includes(
+                            context.members.find((member) => member.actorId === actorId)!.roleId!,
+                          ),
+                        )
+                        .map(({ id, sha256, mimeType, width, height, byteLength, title }) => ({
+                          id,
+                          sha256,
+                          mimeType,
+                          width,
+                          height,
+                          byteLength,
+                          title,
+                        })),
+                    }
+                  : {}),
               })),
             }
           : {}),

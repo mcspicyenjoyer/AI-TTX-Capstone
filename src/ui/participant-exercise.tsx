@@ -1,6 +1,7 @@
 import { Inbox } from 'lucide-react';
 import type { ExerciseWorkspaceModel } from './use-exercise-workspace.js';
 import { date } from './exercise-format.js';
+import { EvidenceImages } from './artefact-images.js';
 
 export function ParticipantExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
   const { briefing: current, inbox } = vm;
@@ -40,6 +41,7 @@ export function ParticipantExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
             <article className="inbox-item" key={item.id}>
               <h3>{item.title}</h3>
               <time dateTime={item.releasedAt}>{date(item.releasedAt)}</time>
+              <EvidenceImages images={item.images} />
               <p className="inject-body">{item.body}</p>
             </article>
           ))

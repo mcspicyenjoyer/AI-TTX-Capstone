@@ -23,6 +23,7 @@ import {
   validateGeneratedPlan,
 } from './generation-content.js';
 import { assessFamily, mapPathway } from './threat-library.js';
+import { imageSourceHash } from './artefact-image-content.js';
 
 function conflict(message: string): never {
   throw new AppError(409, 'PACKAGE_CONFLICT', message);
@@ -82,7 +83,10 @@ export class GenerationService {
       };
     const profile = this.requireTarget(actor, this.target);
     // Like the AAR and interpretation lists, a read shows a stalled worker as failed.
-    this.store.transaction(() => this.expire());
+    this.store.transaction(() => {
+      this.expire();
+      this.store.artefactImages.expire();
+    });
     return {
       target: this.target,
       profile,
@@ -111,7 +115,21 @@ export class GenerationService {
     const coverage =
       draft.status !== 'frozen' && draft.plan ? objectiveCoverageProblems(draft.plan) : [];
     const pathway = draft.plan ? mapPathway(profile, draft.plan) : null;
-    return { ...saved, preview, coverage, pathway };
+    return {
+      ...saved,
+      preview,
+      coverage,
+      pathway,
+      imageRequests: this.store.artefactImages.list(id).map((job) => {
+        const position = draft.plan?.positions[job.position - 1];
+        return {
+          ...job,
+          current:
+            !!position?.artefacts?.[job.artefactIndex] &&
+            imageSourceHash(position, job.artefactIndex) === job.sourceHash,
+        };
+      }),
+    };
   }
 
   private replay(actor: Actor, commandId: string, hash: string): PackageDraftView | null {
@@ -276,6 +294,13 @@ export class GenerationService {
       if (replay) return replay;
       const { draft } = this.editable(actor, id, input);
       const next = structuredClone(draft);
+      if (next.images)
+        next.images = next.images.filter(
+          (image) =>
+            image.position !== input.position.position ||
+            (!!input.position.artefacts?.[image.artefactIndex] &&
+              image.sourceHash === imageSourceHash(input.position, image.artefactIndex)),
+        );
       next.plan!.positions[input.position.position - 1] = input.position;
       next.reviews[input.position.position - 1] = input.decision;
       next.revision++;
@@ -318,6 +343,8 @@ export class GenerationService {
       }
       // The reviewer may correct the model-written attacker and background (ADR-038).
       if (input.storyline) next.plan!.storyline = structuredClone(input.storyline);
+      // Preparation can change the context in which an image was reviewed.
+      if (next.images) next.images = [];
       next.reviews = next.reviews.map(() => 'pending');
       next.revision++;
       next.updatedAt = new Date().toISOString();
@@ -356,6 +383,19 @@ export class GenerationService {
         runId: `run-${randomUUID()}`,
       };
       const definition = compileGeneratedPackage(next, this.requireTarget(actor, next.target));
+      for (const attachment of next.images ?? []) {
+        const job = this.store.artefactImages.get(attachment.image.id);
+        if (
+          !job ||
+          job.packageId !== id ||
+          job.ownerId !== actor.id ||
+          job.status !== 'ready' ||
+          job.sourceHash !== attachment.sourceHash ||
+          fingerprint(job.image) !== fingerprint(attachment.image)
+        )
+          conflict('An attached image is no longer available for exact approval.');
+        this.store.artefactImages.bytes(job.id);
+      }
       next.frozenPackageHash = contentHash(JSON.stringify(definition));
       const members = [
         {

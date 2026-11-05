@@ -2,6 +2,20 @@
 
 Accepted means a direction for the user's authorised baseline, not organisation deployment or data approval.
 
+## ADR-041 - Reviewed story images through an image-only worker
+
+5 November 2026: the user chose generation inside TTX on a separate branch, rather than importing a ChatGPT Web image. The optional image represents an existing saved story message; it does not generate new incident evidence. Keep the text as the accessible and reportable source, preserve the existing review/freeze/release boundary, and omit the unwanted "TTX ARTEFACT PREVIEW" banner from the image itself. Do not remove the review screen or the exercise's simulation warning.
+
+Reuse the subscription worker with a separate `images` mode and external working directory. Only this mode enables Codex's native image-generation feature; the four text modes remain tool-free. The same ChatGPT-only authentication, disabled shell/browser/MCP features, startup/per-job audit and fail-closed policy apply. No ChatGPT Web scraping, credential copying, image API billing or fallback. The loopback audit checks the other tools but does not expose the native subscription image capability; live feasibility is therefore recorded separately in WORK. Neither test is an OS sandbox claim.
+
+The tested CLI writes a native image under its new thread's `.codex/generated_images/<thread-id>` directory without an image in its JSON event stream. Read only that exact directory after a completed CLI turn, require exactly one regular bounded PNG, reject redirects, and never trust a model-written path or scan another chat. This adapter is intentionally installation-specific and fails closed if that output contract changes. The normal CLI version/hash audit does not guarantee semantic image quality or future path compatibility.
+
+Choose `pngjs` 7.0.0 with `@types/pngjs` 6.0.5 to decode, CRC-check and re-encode bounded PNG pixels. It is pure JavaScript with no runtime dependencies; a custom PNG decoder would duplicate complex validation, while a native image-processing stack adds unnecessary binary maintenance for PNG-only storage. Keep versions locked, test malformed/dimension/size cases and re-verify on dependency or CLI changes. PNG bytes and request history live in the existing SQLite store (additive schema 12), not Git or a public static directory; no object store or general job framework is added.
+
+Each request binds the current draft revision/hash and selected message, with one active image request and ten requests per package including failures. A ready image is not attached automatically. Explicit facilitator attachment resets that inject's acceptance; changed text/recipients/clock detach it, and preparation changes clear attachments. Freeze and release bind the image hash and recipients using existing approval rules. No automatic retry, attach, accept or release. A failed image leaves the ordinary text workflow usable. The source message must be reviewed against the actual pixels because no OCR or automated truth check is claimed.
+
+Basis: [Codex image generation](https://learn.chatgpt.com/docs/image-generation), [authentication](https://learn.chatgpt.com/docs/auth), and [pngjs](https://github.com/pngjs/pngjs). [Architecture](architecture.md#reviewed-story-images) owns the implementation boundary; [WORK](WORK.md) owns executed evidence and limitations.
+
 ## ADR-040 - Moving saved data between laptops
 
 5 November 2026: the user asked to carry saved progress between two laptops and asked whether Git could do it. The code already travels through the personal GitHub repository. The data volume holds the SQLite database, dated database backups and the access-code files (about 21 MB, 3 MB compressed). Size is not the obstacle; the contents are. Git would publish sign-in codes and runtime records that AGENTS.md keeps out of version control, and it cannot merge two diverging copies of a database.

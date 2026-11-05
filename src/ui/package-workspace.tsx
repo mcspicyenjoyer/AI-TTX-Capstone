@@ -18,6 +18,7 @@ import {
 } from '../contracts/generation.js';
 import { ApiError, request } from './api.js';
 import { FamilyAssessmentView, ThreatPathwayView } from './threat-pathway.js';
+import { ArtefactImageEditor, EvidenceImages } from './artefact-images.js';
 
 const label = (value: string) => value.replaceAll('-', ' ');
 type Pending = { url: string; body: object };
@@ -55,6 +56,9 @@ export function PackageWorkspace({
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
   const [error, setError] = useState('');
+  const imagePending = view?.imageRequests?.some((job) =>
+    ['queued', 'running'].includes(job.status),
+  );
   const current = useRef({ dirty, busy, pending, selected });
   current.current = { dirty: dirty || preparationDirty, busy, pending, selected };
   function failure(error: unknown) {
@@ -88,7 +92,7 @@ export function PackageWorkspace({
     onGuardChange(pending ? 'pending' : dirty || preparationDirty ? 'dirty' : null);
   }, [pending, dirty, preparationDirty, onGuardChange]);
   useEffect(() => {
-    if (!view || !['queued', 'running'].includes(view.draft.status)) return;
+    if (!view || (!['queued', 'running'].includes(view.draft.status) && !imagePending)) return;
     const timer = window.setInterval(() => {
       if (
         !current.current.busy &&
@@ -99,7 +103,7 @@ export function PackageWorkspace({
         void refresh();
     }, 3000);
     return () => window.clearInterval(timer);
-  }, [view?.draft.status]);
+  }, [view?.draft.status, imagePending]);
   useEffect(() => {
     setEdit(view?.draft.plan ? structuredClone(view.draft.plan.positions[positionIndex]!) : null);
   }, [positionIndex]);
@@ -713,6 +717,16 @@ export function PackageWorkspace({
                   {edit.artefacts?.map((artefact, index) => (
                     <div className="package-artefact-edit" key={'artefact-' + index}>
                       <h3>Story message {index + 1}</h3>
+                      {editable && (
+                        <ArtefactImageEditor
+                          view={view}
+                          position={positionIndex + 1}
+                          index={index}
+                          disabled={disabled || unsaved}
+                          enabled={!!context?.ready}
+                          send={send}
+                        />
+                      )}
                       <label>
                         Kind
                         <select
@@ -830,6 +844,7 @@ export function PackageWorkspace({
                 </fieldset>
                 <div>
                   <h3>Saved role-specific messages</h3>
+                  <EvidenceImages images={inject.images} />
                   {inject.roleBodies!.map((message) => (
                     <details key={message.roleId} open>
                       <summary>

@@ -2,6 +2,7 @@ import { Type, type Static } from '@sinclair/typebox';
 import { IdSchema, ProfileSchema } from './profile.js';
 import { PackageSchema } from './exercise.js';
 import { FamilyAssessmentSchema, ThreatPathwaySchema } from './threat.js';
+import { ImageAttachmentSchema, ImageRequestViewSchema } from './artefact-images.js';
 
 const strict = { additionalProperties: false };
 const hash = Type.String({ pattern: '^[a-f0-9]{64}$' });
@@ -206,6 +207,7 @@ export const PackageDraftSchema = Type.Object(
     status: choice(['queued', 'running', 'failed', 'review', 'frozen'] as const),
     plan: Type.Union([GeneratedPlanSchema, Type.Null()]),
     preparation: Type.Optional(PackagePreparationSchema),
+    images: Type.Optional(Type.Array(ImageAttachmentSchema, { maxItems: 10 })),
     reviews: Type.Array(choice(['pending', 'accepted', 'rejected'] as const), { maxItems: 5 }),
     error: Type.Union([Type.String({ maxLength: 300 }), Type.Null()]),
     createdAt: Type.String({ format: 'date-time' }),
@@ -226,6 +228,7 @@ export const PackageDraftViewSchema = Type.Object(
     coverage: Type.Array(Type.String({ minLength: 1, maxLength: 300 }), { maxItems: 20 }),
     // Facilitator-only threat pathway derived from the plan and confirmed profile (ADR-037).
     pathway: Type.Union([ThreatPathwaySchema, Type.Null()]),
+    imageRequests: Type.Optional(Type.Array(ImageRequestViewSchema, { maxItems: 10 })),
   },
   strict,
 );

@@ -14,6 +14,7 @@ import {
 import { readStored } from './validation.js';
 import { readPackage } from './exercise-validation.js';
 import { fingerprint } from './integrity.js';
+import { imageSourceHash } from './artefact-image-content.js';
 import {
   assessFamily,
   dependsOnFact,
@@ -358,6 +359,18 @@ export function evidenceText(
 
 export function compileGeneratedPackage(draft: PackageDraft, profile: Profile): ExercisePackage {
   const plan = validateGeneratedPlan(draft.plan, profile, draft.target);
+  const imageKeys = new Set<string>();
+  for (const attachment of draft.images ?? []) {
+    const position = plan.positions[attachment.position - 1];
+    const key = `${attachment.position}:${attachment.artefactIndex}`;
+    if (
+      !position ||
+      imageKeys.has(key) ||
+      imageSourceHash(position, attachment.artefactIndex) !== attachment.sourceHash
+    )
+      throw new Error('Image attachment does not match the saved story message.');
+    imageKeys.add(key);
+  }
   const preparation = draft.preparation;
   const exercisedPlan =
     preparation &&
@@ -464,6 +477,19 @@ export function compileGeneratedPackage(draft: PackageDraft, profile: Profile): 
       title: eventTitles[position.event],
       body: 'SIMULATION. The released message is specific to your assigned role.',
       recipientRoleIds: [...playerRoles],
+      ...((draft.images ?? []).some((image) => image.position === position.position)
+        ? {
+            images: draft
+              .images!.filter((image) => image.position === position.position)
+              .map((attachment) => ({
+                ...attachment.image,
+                title: position.artefacts![attachment.artefactIndex]!.headline,
+                recipientRoleIds: [
+                  ...position.artefacts![attachment.artefactIndex]!.recipientRoleIds,
+                ],
+              })),
+          }
+        : {}),
       roleBodies: position.messages.map((message) => ({
         roleId: message.roleId,
         body: `SIMULATION / +${position.elapsedMinutes} elapsed minutes\n${eventText(position.event)}${(

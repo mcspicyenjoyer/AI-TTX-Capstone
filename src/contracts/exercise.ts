@@ -1,5 +1,6 @@
 import { Type, type Static } from '@sinclair/typebox';
 import { IdSchema } from './profile.js';
+import { DeliveredImageSchema, InjectImageSchema } from './artefact-images.js';
 
 const strict = { additionalProperties: false };
 const text = (maxLength = 1000) => Type.String({ minLength: 1, maxLength, pattern: '\\S' });
@@ -41,6 +42,7 @@ export const InjectSchema = Type.Object(
     expectedActions: Type.Optional(Type.Array(text(500), { minItems: 1, maxItems: 6 })),
     evaluationCriteria: Type.Optional(Type.Array(text(700), { minItems: 1, maxItems: 6 })),
     groundingClaimIds: Type.Optional(Type.Array(IdSchema, { minItems: 1, maxItems: 30 })),
+    images: Type.Optional(Type.Array(InjectImageSchema, { maxItems: 2 })),
   },
   strict,
 );
@@ -186,24 +188,40 @@ export const ReleaseSchema = Type.Object(
     releasedAt: at,
     recipientIds: Type.Array(IdSchema, { minItems: 1, maxItems: 50, uniqueItems: true }),
     deliveries: Type.Optional(
-      Type.Array(Type.Object({ actorId: IdSchema, body: text(6000) }, strict), {
-        minItems: 1,
-        maxItems: 50,
-      }),
+      Type.Array(
+        Type.Object(
+          {
+            actorId: IdSchema,
+            body: text(6000),
+            images: Type.Optional(Type.Array(DeliveredImageSchema, { maxItems: 2 })),
+          },
+          strict,
+        ),
+        {
+          minItems: 1,
+          maxItems: 50,
+        },
+      ),
     ),
   },
   strict,
 );
 export const InboxSchema = Type.Array(
-  Type.Pick(ReleaseSchema, [
-    'id',
-    'runId',
-    'injectId',
-    'injectRevisionId',
-    'title',
-    'body',
-    'releasedAt',
-  ]),
+  Type.Object(
+    {
+      ...Type.Pick(ReleaseSchema, [
+        'id',
+        'runId',
+        'injectId',
+        'injectRevisionId',
+        'title',
+        'body',
+        'releasedAt',
+      ]).properties,
+      images: Type.Optional(Type.Array(DeliveredImageSchema, { maxItems: 2 })),
+    },
+    strict,
+  ),
   { maxItems: 15 },
 );
 export const BriefingViewSchema = Type.Object(

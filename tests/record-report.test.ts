@@ -539,14 +539,14 @@ test('v8 to current adds snapshot storage without altering completed runs or pen
   store.close();
   database((db) =>
     db.exec(
-      'DROP TABLE run_debriefs; DROP TABLE aar_revisions; DROP TABLE clarification_records; DROP TABLE record_reports; PRAGMA user_version=8;',
+      'DROP TABLE artefact_image_history; DROP TABLE artefact_images; DROP TABLE run_debriefs; DROP TABLE aar_revisions; DROP TABLE clarification_records; DROP TABLE record_reports; PRAGMA user_version=8;',
     ),
   );
   store = new Store(join(directory, 'ttx.sqlite'));
   service = new RecordReportService(store);
   assert.equal(
     database((db) => db.prepare('PRAGMA user_version').get()!.user_version),
-    11,
+    12,
   );
   assert.deepEqual(sourceRows(), before);
   assert.equal(capture().report.records.filter((r) => r.kind === 'interpretation').length, 0);

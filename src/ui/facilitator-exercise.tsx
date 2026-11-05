@@ -3,6 +3,7 @@ import { RunSchema, ApprovalSchema, ReleaseSchema } from '../contracts/exercise.
 import type { ExerciseWorkspaceModel } from './use-exercise-workspace.js';
 import { date, labels } from './exercise-format.js';
 import { Step0Form } from './step0-form.js';
+import { EvidenceImages } from './artefact-images.js';
 
 export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
   const {
@@ -147,6 +148,7 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
                 <>
                   <h3>{inject.title}</h3>
                   <p className="inject-body">{inject.body}</p>
+                  <EvidenceImages images={inject.images} />
                   <details className="facilitator-note">
                     <summary>Facilitator notes</summary>
                     <p>{inject.facilitatorNotes}</p>

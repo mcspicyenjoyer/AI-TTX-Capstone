@@ -21,6 +21,14 @@ export function readPackage(value: unknown): ExercisePackage {
     throw new Error('Unknown recipient role.');
   for (const inject of definition.injects) {
     if (
+      inject.images &&
+      (new Set(inject.images.map((image) => image.id)).size !== inject.images.length ||
+        inject.images.some((image) =>
+          image.recipientRoleIds.some((role) => !inject.recipientRoleIds.includes(role)),
+        ))
+    )
+      throw new Error('Image recipients must belong to the inject.');
+    if (
       inject.roleBodies &&
       (new Set(inject.roleBodies.map((body) => body.roleId)).size !== inject.roleBodies.length ||
         inject.roleBodies.length !== inject.recipientRoleIds.length ||

@@ -4,10 +4,15 @@ import { readFile, writeFile, access } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { boundedProcess, codexArgs, codexEnvironment, prepareCodex } from './codex-extraction.js';
+import { codexImageArgs } from './codex-images.js';
 
 // A synthetic local provider probes the exact CLI configuration before real source transmission.
 // It runs on whichever binary is present, so an auto-updated CLI is re-checked (ADR-039).
-export async function auditCodexBoundary(executable: string, directory: string) {
+export async function auditCodexBoundary(
+  executable: string,
+  directory: string,
+  imageGeneration = false,
+) {
   const identity = await prepareCodex(resolve(executable), directory);
   const sentinel = `CANARY-${randomUUID()}`;
   const privateFile = join(directory, 'private-canary.txt');
@@ -112,7 +117,10 @@ export async function auditCodexBoundary(executable: string, directory: string) 
   try {
     const result = await boundedProcess(
       resolve(executable),
-      codexArgs(directory, `http://127.0.0.1:${address.port}/v1`),
+      (imageGeneration ? codexImageArgs : codexArgs)(
+        directory,
+        `http://127.0.0.1:${address.port}/v1`,
+      ),
       {
         directory,
         input: 'Synthetic offline isolation fixture. No network model call is permitted.',
@@ -134,6 +142,7 @@ export async function auditCodexBoundary(executable: string, directory: string) 
       at: new Date().toISOString(),
       passed: true,
       registeredTools: [],
+      imageGenerationEnabled: imageGeneration,
       forcedCalls: attacks.map((attack) => attack.name),
       requests: requests.length,
       canaryUnchanged: true,
@@ -141,7 +150,7 @@ export async function auditCodexBoundary(executable: string, directory: string) 
       noWrite: true,
       noAuthSentToFixture: true,
       boundary:
-        'Tool registry of this exact binary, re-audited before every job; not an OS sandbox.',
+        'Tool registry at the loopback fixture, re-audited before every job; not an OS sandbox. Native subscription image output is tested separately.',
     };
     await writeFile(join(directory, 'isolation-result.json'), JSON.stringify(report, null, 2));
     return report;

@@ -476,7 +476,7 @@ test('v9 migration preserves the exact captured bytes and completed evidence', (
   store.close();
   database((db) =>
     db.exec(
-      'DROP TABLE run_debriefs; DROP TABLE aar_revisions; DROP TABLE clarification_records; PRAGMA user_version=9;',
+      'DROP TABLE artefact_image_history; DROP TABLE artefact_images; DROP TABLE run_debriefs; DROP TABLE aar_revisions; DROP TABLE clarification_records; PRAGMA user_version=9;',
     ),
   );
   store = new Store(join(directory, 'ttx.sqlite'));
@@ -485,7 +485,7 @@ test('v9 migration preserves the exact captured bytes and completed evidence', (
   assert.deepEqual(store.recordReports.get(snapshot.report.id), snapshot);
   assert.equal(
     database((db) => db.prepare('PRAGMA user_version').get()!.user_version),
-    11,
+    12,
   );
 });
 test('future clarification logging requires current open release and bound claims; no completed trial backfill or delivery', () => {

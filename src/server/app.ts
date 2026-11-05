@@ -39,6 +39,8 @@ import { AarService } from './aar-service.js';
 import { registerAarRoutes } from './aar-routes.js';
 import { ClarificationService, registerClarificationRoutes } from './clarification-service.js';
 import { DebriefService, registerDebriefRoutes } from './debrief-service.js';
+import { ArtefactImageService } from './artefact-image-service.js';
+import { registerArtefactImageRoutes } from './artefact-image-routes.js';
 
 export async function buildApp(options: {
   dataDirectory: string;
@@ -57,6 +59,7 @@ export async function buildApp(options: {
     store.transaction(() => store.generation.recover());
     store.transaction(() => store.interpretations.recover());
     store.transaction(() => store.aars.recover());
+    store.transaction(() => store.artefactImages.expire(true));
   } catch (error) {
     store.close();
     throw error;
@@ -222,6 +225,15 @@ export async function buildApp(options: {
     app,
     sessions,
     new GenerationService(store, packageTarget, !!options.subscriptionEnabled),
+  );
+  registerArtefactImageRoutes(
+    app,
+    sessions,
+    new ArtefactImageService(
+      store,
+      new GenerationService(store, packageTarget, !!options.subscriptionEnabled),
+      !!options.subscriptionEnabled,
+    ),
   );
   registerInterpretationRoutes(
     app,

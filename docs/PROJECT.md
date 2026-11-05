@@ -17,6 +17,8 @@ Material reconciliation items:
 
 Build only the operational development skeleton needed to unblock the other worker alongside the technical baseline. It needs a runnable track boundary, shared contracts, a synthetic development example, checks and a clear handoff. Detailed operational scenarios, grading and reports remain that worker's responsibility; no mixed-track exercise, second framework or new hosting/provider choice is implied. [Architecture](architecture.md#operational-development-skeleton) owns the design; [WORK](WORK.md#next-milestones) owns sequence and acceptance.
 
+5 November 2026 explicit exception (ADR-041): on a separate branch, the user authorises generating inert images inside TTX from saved synthetic story messages through their signed-in Codex subscription. Remove the image's "TTX ARTEFACT PREVIEW" banner, not facilitator review, exact package/release approval or the existing exercise simulation boundary. Images are optional representations of the saved text, not new technical facts, executable ransomware, OCR evidence or autonomous releases. Preserve text-only continuation and existing architecture. Live feasibility is limited to two authorised attempts on isolated synthetic data, with no paid API fallback and no change to the port-3030 demo. This bounded exception does not complete branching, ten-position delivery or the remaining Form B evaluation.
+
 ### Form B traceability
 
 FB IDs below map all twelve Project Objectives; numbered Project Scope items and named deliverables supply their detail. These are verified requirements, not claims of implementation. WORK owns completion and exact test results.
