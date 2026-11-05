@@ -101,7 +101,7 @@ Before generating, the binding section shows whether the threat library's family
 
 The generator selects confirmed evidence and supported event/action fields. Organisation facts are never model-written. Since ADR-038 the model also writes a storyline: a threat actor for the facilitator, a backstory every player reads and one or two story messages per inject. Review and correct it under **Preparation** and in each inject's story messages before accepting. Review the scenario, functional role assignments, evidence distribution, timing, expected actions and criteria. Save any inject edit, inspect its rendered messages, then accept or reject it. All five must be accepted before **Approve and freeze package** creates a draft run. **Exercises** then uses the existing Step 0, per-position approval/release, team response, facilitator review, closure and explicit completion. Interpretation and AAR review are separate from progression; branches are not implemented yet.
 
-Run the existing worker in package mode with the same pinned CLI and ChatGPT login:
+Run the existing worker in package mode with the same auto-selected or explicit CLI and ChatGPT login:
 
 ```powershell
 $codex = 'auto'  # or the full path to a codex.exe
@@ -183,6 +183,26 @@ docker compose -p ai-ttx-intake-preview up -d --wait
 ```
 
 Import checks the archive against its manifest, saves whatever the volume held before into a new archive next to it, restores the files and runs a database integrity check. It refuses to run while the app is using the volume, refuses an archive path inside the repository, and needs `--replace` to overwrite. Older code cannot open a database written by newer code, so keep both laptops on the same commit and move the data in one direction at a time. Live AI also needs the Codex app signed in on that laptop. Docker engine permissions and organisational approval still apply on the destination laptop.
+### Live AI on the storyline demo
+
+The storyline copy uses Compose project `ttx-storyline` and port 3030. A transferred archive restores saved progress, not the other laptop's Codex login, environment settings or worker processes. After pulling the current code and importing the archive, enable requests on that copy:
+
+```powershell
+$env:TTX_PORT = '3030'
+$env:TTX_AI_ENABLED = 'codex-subscription'
+docker compose -p ttx-storyline up --build -d --wait
+```
+
+Sign into Codex on that laptop. Start the following in four separate PowerShell terminals from the repository, using `extraction`, `packages`, `interpretations` and `aars` respectively for `$mode`. Leave each worker running. Each uses its own external directory, passes the offline audit and waits for an explicit UI request; do not start workers against queued jobs unless those calls are intended.
+
+```powershell
+$mode = 'packages'
+$root = Join-Path $env:LOCALAPPDATA "AI-TTX\live-demo-workers\$mode"
+node --import tsx src/server/subscription-worker.ts auto $root ttx-storyline-app-1 $mode
+```
+
+Open `http://127.0.0.1:3030/`. Restart the workers after the app/Docker restarts. Existing generation/interpretation/AAR caps remain unchanged; enabling AI does not grant unlimited requests or approve the draft. Setting `TTX_AI_ENABLED=false` and recreating the container blocks new AI requests while keeping saved records and manual play available. Do not enable this on the port-3011 fallback merely to run the storyline demo.
+
 ## Source material and data
 The authoritative product brief is the local `references/GPT_ICT4011_Form_B_AI_Assisted_TTX.docx`, supplied in the primary checkout and reviewed on 4 October 2026. PROJECT records its source identity and requirement mapping. It remains ignored and is not copied into this worktree. Its presence, and that of other reference material, is not approval to redistribute, commit or transmit it to a provider.
 

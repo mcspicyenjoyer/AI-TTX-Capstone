@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { rcompare, valid } from 'semver';
 import type { IntakeSource } from '../contracts/intake.js';
 import { ExtractionOutputSchema } from '../contracts/extraction.js';
 import { extractionPrompt } from './extraction-prompt.js';
@@ -22,11 +23,11 @@ export async function codexIdentity(executable: string, directory: string) {
     throw new Error('The executable is not a recognised Codex CLI.');
   return { version, sha256 } satisfies CodexIdentity;
 }
-// Highest version wins; numeric comparison orders 0.166.0 after 0.130.0.
+// A release outranks its prereleases; build metadata does not affect precedence.
 export function newestCodex(candidates: readonly { path: string; version: string }[]) {
-  return [...candidates].sort((a, b) =>
-    b.version.localeCompare(a.version, 'en', { numeric: true }),
-  )[0]?.path;
+  return candidates
+    .filter(({ version }) => valid(version) !== null)
+    .sort((a, b) => rcompare(a.version, b.version))[0]?.path;
 }
 // 'auto' follows the Codex desktop app, which moves its CLI to a new folder on each update.
 export function resolveCodexExecutable(value: string, env = process.env): string {

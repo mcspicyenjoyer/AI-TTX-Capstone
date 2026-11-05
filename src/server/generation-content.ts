@@ -27,7 +27,7 @@ import {
 
 type ActionKind = (typeof actionKinds)[number];
 
-export const generationPromptVersion = 'five-position-6';
+export const generationPromptVersion = 'five-position-7';
 export const roleNames = {
   'business-leadership': 'Business leadership',
   'engineering-projects': 'Engineering/project operations',
@@ -519,7 +519,7 @@ Eligible choices computed by the application: ${JSON.stringify({ targets, refere
 Compose different evidence/questions for each role at all five positions. Select only existing claim IDs and copy their exact status. Keep briefings short (1-2 evidence claims), each role inject under 5000 rendered characters including its storyline messages (prefer 1-3 claims). Do not reveal all private technical weaknesses in every role's baseline brief. Ground the dependency/monitoring, backup coverage/unverified restore, recovery-target comparison, authority, contact, project deadline and reference-time discussion in the profile.
 Storyline: the only text you write yourself. Make it realistic, specific and different from a generic template. Write everything in-world, as the real thing would read: no disclaimers, caveats or notes about what a message does or does not establish (never, for example, "this call supplies no result" or "this remains unverified"), and no mention of exercises, simulations, assumptions or reference times. The application states the exercise rules and start time separately.
 - storyline.threatActor: create a criminal ransomware group with a name that is not any real group's, and a short threat-intelligence style profile of its motive, usual approach and how it pressures victims. Only the facilitator sees this.
-- storyline.background: 2-4 short items describing events and conditions in the days or weeks before Monday's disruption, shared with every player: for example sector news, an industry advisory, an odd but unexplained event, workload or deadline pressure. Do not restate the start time or company facts the players already have.
+- storyline.background: 2-4 short items describing events and conditions in the days or weeks before the selected disruption/discovery reference, shared with every player: for example sector news, an industry advisory, an odd but unexplained event, workload or deadline pressure. Derive any weekday or date from that selected reference; never assume a fixed weekday. Do not restate the start time or company facts the players already have.
 - positions[].artefacts: 1-2 in-story messages per position that move the story on and put pressure on that position's decision: for example a staff chat, a helpdesk ticket, the ransom note, a client chasing a deadline, a supplier call, a leak-site post, a news item or a journalist's voicemail. Escalate across the five positions. Send each only to the roles that would realistically receive it, and vary who receives what.
 - Use the profile's names for the organisation's own people, systems, services and suppliers, and invent no new staff or systems. You may invent outside parties such as clients, journalists and other firms.
 - Outsiders, including the attackers, may make claims, threats and demands. Never state as fact anything the profile does not support: the entry point, an endpoint-agent alert on the target, the state of backups or restores, completed isolation or restoration, or any action the players have not decided. Messages from the facilitator-played suppliers acknowledge, ask questions or say plainly what they do not know yet; they report no findings or results, without saying so as a disclaimer.

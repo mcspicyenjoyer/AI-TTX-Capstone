@@ -47,5 +47,6 @@ secrets/
 Thumbs.db
 
 # Data transfer archives contain access codes; keep them outside the repository.
+transfers/
 *-data-*.tgz
 *-data-*.tgz.json

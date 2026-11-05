@@ -1272,3 +1272,21 @@ test('generation prompt asks for the storyline while company facts stay claim-re
   assert.match(prompt, /Outside the storyline, no free prose or invented names/);
   assert.match(prompt, /invent no new staff or systems/);
 });
+
+test('storyline background follows the selected reference without a fixed weekday', () => {
+  for (const reference of ['2026-09-28T09:00:00+08:00', '2026-09-29T09:00:00+08:00']) {
+    const profile = structuredClone(generationProfile);
+    profile.environment!.claims.find((claim) => claim.id === 'reference')!.value = reference;
+    assert.equal(assessFamily(profile).applicable, true);
+    const prompt = generationPrompt(profile, generationTarget);
+    assert.ok(prompt.includes(reference));
+    const background = prompt
+      .split('\n')
+      .find((line) => line.startsWith('- storyline.background:'))!;
+    assert.match(background, /before the selected disruption\/discovery reference/);
+    assert.doesNotMatch(
+      background,
+      /\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/,
+    );
+  }
+});
