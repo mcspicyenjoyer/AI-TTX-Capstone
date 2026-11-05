@@ -28,6 +28,7 @@ import {
   type UploadSource,
 } from '../contracts/intake.js';
 import { ApiError, request } from './api.js';
+import { optionLabel, sourceTitle } from './exercise-format.js';
 
 type Guard = 'dirty' | 'pending' | null;
 type Command = { path: string; body: unknown; confirmation?: boolean };
@@ -568,7 +569,7 @@ export function IntakeWorkspace({
                   </form>
                   {edit.sources.map((item) => (
                     <div className="intake-source-row" key={item.id}>
-                      <strong>{item.title}</strong>
+                      <strong>{sourceTitle(item.title)}</strong>
                       <span>
                         {item.version} / {item.format} / {item.units.length} passages
                       </span>
@@ -679,7 +680,7 @@ export function IntakeWorkspace({
                         >
                           {entityKinds.map((kind) => (
                             <option key={kind} value={kind}>
-                              {kind}
+                              {optionLabel(kind)}
                             </option>
                           ))}
                         </select>
@@ -791,7 +792,7 @@ export function IntakeWorkspace({
                           >
                             {predicates.map((predicate) => (
                               <option key={predicate} value={predicate}>
-                                {predicate}
+                                {optionLabel(predicate)}
                               </option>
                             ))}
                           </select>
@@ -820,7 +821,7 @@ export function IntakeWorkspace({
                           >
                             {statuses.map((status) => (
                               <option key={status} value={status}>
-                                {status === 'fact' ? 'Sourced claim' : status}
+                                {status === 'fact' ? 'Sourced claim' : optionLabel(status)}
                               </option>
                             ))}
                           </select>
@@ -1088,7 +1089,7 @@ export function IntakeWorkspace({
                   <option value="">Choose source</option>
                   {edit.sources.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.title}
+                      {sourceTitle(item.title)}
                     </option>
                   ))}
                 </select>

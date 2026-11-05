@@ -1,5 +1,24 @@
 import type { RunActivity } from '../contracts/exercise.js';
 
+const sourceTitles: Record<string, string> = {
+  'Synthetic organisation brief': 'Organisation brief',
+  'Synthetic network inventory': 'Network inventory',
+  'Synthetic continuity notes': 'Continuity notes',
+  'Synthetic recovery notes': 'Recovery notes',
+};
+
+// Display aliases only; source identity, titles in exports and quoted evidence stay exact.
+export function sourceTitle(value: string): string {
+  return Object.hasOwn(sourceTitles, value) ? sourceTitles[value]! : value;
+}
+
+export function optionLabel(value: string): string {
+  const label = value
+    .replaceAll('-', ' ')
+    .replace(/\b(mfa|rto|rpo|bcp|drp|bia|it|msp|mssp|soc)\b/g, (acronym) => acronym.toUpperCase());
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 const stockCopy: [string, string][] = [
   ['A simulated user report says ', 'A user report says '],
   ['A simulated planning request asks ', 'A planning request asks '],
@@ -39,6 +58,8 @@ const stockCopy: [string, string][] = [
 // stored records, hashes, prompts or report evidence; those retain their exact wording.
 export function exerciseText(value: string): string {
   let display = value.replace(/^SIMULATED SCENARIO: /, '').replace(/^SIMULATION(?:\. | \/ )/, '');
+  if (value.startsWith('SIMULATED SCENARIO: '))
+    display = display.charAt(0).toUpperCase() + display.slice(1);
   for (const [before, after] of stockCopy) display = display.replaceAll(before, after);
   return display;
 }

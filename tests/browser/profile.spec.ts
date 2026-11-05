@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import type { ProfileView } from '../../src/contracts/profile.js';
 
 function code(role: 'facilitator' | 'participant'): string {
   const directory = process.env.TTX_BROWSER_DATA_DIR;
@@ -52,6 +53,40 @@ test('facilitator reviews evidence, filters, confirms, reloads and sees durable 
   await expect(page.getByRole('heading', { name: 'Example SME 01' })).toBeVisible();
   await expect(page.getByRole('banner')).toContainText('TTX Platform');
   await expect(page.locator('.page-heading')).toContainText('Track: Technical');
+  await expect(page.locator('.page-heading strong').filter({ hasText: /^Track:$/ })).toBeVisible();
+  const profileUrl = '/api/profiles/example-sme-01/revisions/profile-r1';
+  const originalResponse = await page.request.get(profileUrl);
+  expect(originalResponse.ok()).toBe(true);
+  const original = (await originalResponse.json()) as ProfileView;
+  expect(original.profile.sources.map((source) => source.title)).toEqual([
+    'Synthetic organisation brief',
+    'Synthetic network inventory',
+    'Synthetic continuity notes',
+    'Synthetic recovery notes',
+  ]);
+  const register = page.locator('.sources-section');
+  await expect(register).not.toContainText('Synthetic');
+  for (const title of [
+    'Organisation brief',
+    'Network inventory',
+    'Continuity notes',
+    'Recovery notes',
+  ]) {
+    await expect(register.getByRole('button', { name: new RegExp(`^${title}`) })).toBeVisible();
+  }
+  const organisationSource = register.getByRole('button', { name: /^Organisation brief/ });
+  await organisationSource.click();
+  await expect(organisationSource).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.filter-state')).toContainText('All statuses / Organisation brief');
+  await expect(page.locator('.entry')).toHaveCount(4);
+  await page.getByRole('button', { name: /Staff and location/ }).click();
+  await expect(page.locator('#evidence-staff .source-excerpt strong')).toHaveText(
+    'Organisation brief',
+  );
+  await expect(page.locator('#evidence-staff blockquote')).toHaveText(
+    'The synthetic organisation has 42 staff working from one office.',
+  );
+  await page.getByRole('button', { name: 'Clear filters', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Confirm revision', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: /File service recovery target/ }).click();
   await expect(
@@ -80,6 +115,11 @@ test('facilitator reviews evidence, filters, confirms, reloads and sees durable 
   await expect(page.getByText('Revision confirmed', { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByText('Revision confirmed', { exact: true })).toBeVisible();
+  const savedResponse = await page.request.get(profileUrl);
+  expect(savedResponse.ok()).toBe(true);
+  const saved = (await savedResponse.json()) as ProfileView;
+  expect(saved.profile).toEqual(original.profile);
+  expect(saved.contentHash).toBe(original.contentHash);
   await expect(page.getByRole('button', { name: /MSSP containment authority/ })).toContainText(
     'Unknown',
   );

@@ -1,6 +1,6 @@
 import { Inbox } from 'lucide-react';
 import type { ExerciseWorkspaceModel } from './use-exercise-workspace.js';
-import { date, exerciseText } from './exercise-format.js';
+import { date, exerciseText, optionLabel } from './exercise-format.js';
 import { EvidenceImages } from './artefact-images.js';
 
 export function ParticipantExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
@@ -14,11 +14,13 @@ export function ParticipantExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
         <div className="section-heading">
           <h2>Starting arrangements</h2>
           <span className={`badge ${briefing.state === 'active' ? 'confirmed' : 'pending'}`}>
-            {briefing.state}
+            {optionLabel(briefing.state)}
           </span>
         </div>
         {!['ready', 'not-required'].includes(briefing.step0Status) && (
-          <p className="run-notice">Step 0: {briefing.step0Status.replaceAll('-', ' ')}</p>
+          <p className="run-notice">
+            <strong>Step 0:</strong> {optionLabel(briefing.step0Status)}
+          </p>
         )}
         <p className="preserve-lines">{exerciseText(briefing.common)}</p>
         <h3>{briefing.role.name}</h3>

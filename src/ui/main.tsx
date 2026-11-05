@@ -38,6 +38,7 @@ import './style.css';
 import { ExerciseWorkspace } from './exercise-workspace.js';
 import { IntakeWorkspace } from './intake-workspace.js';
 import { PackageWorkspace } from './package-workspace.js';
+import { optionLabel, sourceTitle } from './exercise-format.js';
 import { GuardProvider, useGuardRegistry, type GuardState } from './unsaved-guard.js';
 
 type Status = ProfileView['profile']['statements'][number]['status'];
@@ -401,7 +402,8 @@ function App() {
                     </div>
                     <p className="muted">
                       Revision {profile.revisionNumber}
-                      <span className="separator">/</span>Track: Technical
+                      <span className="separator">/</span>
+                      <strong>Track:</strong> Technical
                       <span className="separator">/</span>
                       {date(profile.createdAt)}
                     </p>
@@ -523,7 +525,7 @@ function App() {
                           <span>
                             {status === 'all' ? 'All statuses' : statusLabels[status as Status]}
                             {source !== 'all'
-                              ? ` / ${profile.sources.find((item) => item.id === source)?.title}`
+                              ? ` / ${sourceTitle(profile.sources.find((item) => item.id === source)?.title ?? '')}`
                               : ''}
                           </span>
                           <button
@@ -582,7 +584,9 @@ function App() {
                                 >
                                   <span className="entry-label">
                                     <strong>{statement.label}</strong>
-                                    <span className="category-name">{statement.category}</span>
+                                    <span className="category-name">
+                                      {optionLabel(statement.category)}
+                                    </span>
                                   </span>
                                   <span className={statement.value === null ? 'no-value' : ''}>
                                     {statement.value ??
@@ -607,11 +611,11 @@ function App() {
                                         <div>
                                           <FileText size={15} />
                                           <strong>
-                                            {
+                                            {sourceTitle(
                                               profile.sources.find(
                                                 (source) => source.id === item.sourceId,
-                                              )?.title
-                                            }
+                                              )?.title ?? '',
+                                            )}
                                           </strong>
                                           <span>{item.locator}</span>
                                         </div>
@@ -701,7 +705,7 @@ function App() {
                               >
                                 <FileText size={18} />
                                 <span>
-                                  {item.title}
+                                  <strong>{sourceTitle(item.title)}</strong>
                                   <small>Version {item.version}</small>
                                 </span>
                                 <ChevronRight size={15} />

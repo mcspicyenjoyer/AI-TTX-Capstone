@@ -106,7 +106,7 @@ test('generate review attach freeze and release a role-filtered image with reloa
       await page.getByRole('tab', { name: new RegExp(`^${i + 1}\\.`) }).click();
       await page.getByRole('button', { name: 'Accept inject', exact: true }).click();
       await expect(page.getByRole('tab', { name: new RegExp(`^${i + 1}\\.`) })).toContainText(
-        'accepted',
+        'Accepted',
       );
     }
     await page.getByRole('button', { name: 'Approve and freeze package', exact: true }).click();
@@ -241,7 +241,7 @@ test('failed image generation permits manual review and uncertain requests retry
     });
     await expect(page.getByRole('button', { name: 'Accept inject', exact: true })).toBeEnabled();
     await page.getByRole('button', { name: 'Accept inject', exact: true }).click();
-    await expect(page.getByRole('tab', { name: /^1\./ })).toContainText('accepted');
+    await expect(page.getByRole('tab', { name: /^1\./ })).toContainText('Accepted');
   } finally {
     store.close();
   }

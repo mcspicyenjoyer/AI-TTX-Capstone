@@ -1,7 +1,7 @@
 import { Activity, Check, CheckCircle2, Pause, Play, Send, ShieldCheck } from 'lucide-react';
 import { RunSchema, ApprovalSchema, ReleaseSchema } from '../contracts/exercise.js';
 import type { ExerciseWorkspaceModel } from './use-exercise-workspace.js';
-import { date, labels, exerciseText } from './exercise-format.js';
+import { date, labels, exerciseText, optionLabel } from './exercise-format.js';
 import { Step0Form } from './step0-form.js';
 import { EvidenceImages } from './artefact-images.js';
 
@@ -28,11 +28,11 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
       <div className="section-heading run-heading">
         <h2>{review.package.title}</h2>
         <span className={`badge ${review.run.state === 'active' ? 'confirmed' : 'pending'}`}>
-          {isSkeleton ? 'Development / Not playable' : review.run.state}
+          {isSkeleton ? 'Development / Not playable' : optionLabel(review.run.state)}
         </span>
       </div>
       <p className="muted run-meta">
-        Track: {review.run.track === 'technical' ? 'Technical' : 'Operational'}
+        <strong>Track:</strong> {review.run.track === 'technical' ? 'Technical' : 'Operational'}
         <span className="separator">/</span>
         {review.package.revisionId}
         <span className="separator">/</span>Run revision {review.run.revision}
@@ -71,9 +71,11 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
                   <tr key={member.actorId}>
                     <td>{member.displayName}</td>
                     <td>
-                      {member.kind === 'facilitator'
-                        ? 'Facilitator'
-                        : review.package.roles.find((role) => role.id === member.roleId)?.name}
+                      <strong>
+                        {member.kind === 'facilitator'
+                          ? 'Facilitator'
+                          : review.package.roles.find((role) => role.id === member.roleId)?.name}
+                      </strong>
                     </td>
                   </tr>
                 ))}
@@ -82,7 +84,7 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
             <h3>Preparation gaps</h3>
             {review.package.briefing.gaps.map((gap) => (
               <div className="run-gap" key={gap.id}>
-                <strong>{gap.disposition.replaceAll('-', ' ')}</strong>
+                <strong>{optionLabel(gap.disposition)}</strong>
                 <p>{gap.description}</p>
                 <p className="muted">{gap.rationale}</p>
               </div>

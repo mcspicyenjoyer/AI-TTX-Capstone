@@ -19,9 +19,8 @@ import {
 import { ApiError, request } from './api.js';
 import { FamilyAssessmentView, ThreatPathwayView } from './threat-pathway.js';
 import { ArtefactImageEditor, EvidenceImages } from './artefact-images.js';
-import { exerciseText } from './exercise-format.js';
+import { exerciseText, optionLabel as label, sourceTitle } from './exercise-format.js';
 
-const label = (value: string) => value.replaceAll('-', ' ');
 type Pending = { url: string; body: object };
 type PreparationEdit = Pick<ReviewPreparation, 'preparation' | 'roles' | 'storyline'>;
 function preparationEdit(view: PackageDraftView): PreparationEdit {
@@ -179,7 +178,7 @@ export function PackageWorkspace({
   const claimLabel = (id: string) => {
     const claim = claims.find((item) => item.id === id);
     return claim
-      ? `${claim.status} / ${entities.find((item) => item.id === claim.subjectId)?.name} / ${claim.predicate} / ${claim.value ?? claim.explanation}`
+      ? `${label(claim.status)} / ${entities.find((item) => item.id === claim.subjectId)?.name} / ${label(claim.predicate)} / ${claim.value ?? claim.explanation}`
       : id;
   };
   return (
@@ -288,7 +287,7 @@ export function PackageWorkspace({
           >
             {context.drafts.map((item) => (
               <option key={item.draft.id} value={item.draft.id}>
-                {item.draft.createdAt} / {item.draft.status} / revision {item.draft.revision}
+                {item.draft.createdAt} / {label(item.draft.status)} / Revision {item.draft.revision}
               </option>
             ))}
           </select>
@@ -328,12 +327,14 @@ export function PackageWorkspace({
             <h3>Player roles</h3>
             {view.preview.roles.map((role) => (
               <details key={role.id}>
-                <summary>{role.name}</summary>
+                <summary>
+                  <strong>{role.name}</strong>
+                </summary>
                 <p className="preserve-lines">{exerciseText(role.briefing)}</p>
               </details>
             ))}
             <p>
-              Facilitator:{' '}
+              <strong>Facilitator:</strong>{' '}
               {view.preview
                 .facilitatorSupplierIds!.map(
                   (id) => entities.find((entity) => entity.id === id)?.name,
@@ -368,7 +369,7 @@ export function PackageWorkspace({
                       .filter((source) => ['bcp', 'drp'].includes(source.kind))
                       .map((source) => (
                         <option key={source.id} value={source.id}>
-                          {source.title} / {source.version}
+                          {sourceTitle(source.title)} / {source.version}
                         </option>
                       ))}
                   </select>
@@ -568,7 +569,7 @@ export function PackageWorkspace({
               <ul>
                 {view.preview.briefing.gaps.map((gap) => (
                   <li key={gap.id}>
-                    {gap.disposition}: {gap.description}
+                    <strong>{label(gap.disposition)}:</strong> {gap.description}
                   </li>
                 ))}
               </ul>
@@ -584,7 +585,7 @@ export function PackageWorkspace({
                 onClick={() => setPositionIndex(index)}
               >
                 {index + 1}. {item.title}
-                <span>{view.draft.reviews[index]}</span>
+                <span>{label(view.draft.reviews[index] ?? '')}</span>
               </button>
             ))}
           </div>
@@ -835,7 +836,7 @@ export function PackageWorkspace({
                         >
                           {(field === 'facilitatorNotes' ? noteKinds : actionKinds).map((key) => (
                             <option key={key} value={key}>
-                              {key === 'simulation-only' ? 'exercise boundaries' : label(key)}
+                              {key === 'simulation-only' ? 'Exercise boundaries' : label(key)}
                             </option>
                           ))}
                         </select>
@@ -849,7 +850,9 @@ export function PackageWorkspace({
                   {inject.roleBodies!.map((message) => (
                     <details key={message.roleId} open>
                       <summary>
-                        {view.preview!.roles.find((role) => role.id === message.roleId)!.name}
+                        <strong>
+                          {view.preview!.roles.find((role) => role.id === message.roleId)!.name}
+                        </strong>
                       </summary>
                       <p className="preserve-lines">{exerciseText(message.body)}</p>
                     </details>

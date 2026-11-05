@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 import { Step0CheckSchema } from '../contracts/exercise.js';
 import type { ExerciseWorkspaceModel } from './use-exercise-workspace.js';
-import { date } from './exercise-format.js';
+import { date, optionLabel } from './exercise-format.js';
 
 export function Step0Form({ vm }: { vm: ExerciseWorkspaceModel }) {
   const {
@@ -42,7 +42,7 @@ export function Step0Form({ vm }: { vm: ExerciseWorkspaceModel }) {
                 <li key={check.id}>
                   <details>
                     <summary>
-                      {check.decision.replaceAll('-', ' ')} / {date(check.recordedAt)}
+                      {optionLabel(check.decision)} / {date(check.recordedAt)}
                     </summary>
                     <p>
                       <strong>Respondents:</strong>{' '}

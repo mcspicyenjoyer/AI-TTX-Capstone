@@ -39,6 +39,27 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   }
   await page.getByRole('button', { name: 'Refresh packages', exact: true }).click();
   await expect(page.getByRole('tab', { name: /1. Shared engineering files/ })).toBeVisible();
+  await expect(
+    page.locator('.preserve-lines').filter({ hasText: /^Suspected ransomware/ }),
+  ).toBeVisible();
+  await expect(page.locator('strong').filter({ hasText: /^Facilitator:$/ })).toBeVisible();
+  const scenario = page.locator('.run-section').filter({
+    has: page.getByRole('heading', { name: 'Scenario and objectives', exact: true }),
+  });
+  await expect(
+    scenario.locator('summary > strong').filter({ hasText: /^Business leadership$/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel('Story message 1 kind', { exact: true }).locator('option[value="ransom-note"]'),
+  ).toHaveText('Ransom note');
+  await expect(
+    page
+      .getByLabel('business-leadership questions', { exact: true })
+      .locator('option[value="preserve-evidence"]'),
+  ).toHaveText('Preserve evidence');
+  await expect(
+    page.getByLabel('facilitatorNotes', { exact: true }).locator('option[value="simulation-only"]'),
+  ).toHaveText('Exercise boundaries');
   // The facilitator sees the mapped pathway, with access links marked as hypotheses.
   const pathway = page.getByRole('region', { name: 'Threat pathway', exact: true });
   await expect(pathway).toContainText('Target system: TE-FS01');
@@ -61,7 +82,7 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   await expect(freeze).toBeDisabled();
   await page.getByRole('button', { name: 'Reject inject', exact: true }).click();
   await expect(page.getByRole('tab', { name: /1. Shared engineering files/ })).toContainText(
-    'rejected',
+    'Rejected',
   );
   await page
     .getByLabel('business-leadership questions', { exact: true })
@@ -71,7 +92,7 @@ test('generated package review edit reject freeze at desktop and mobile widths',
     .fill('EDITED_STORY: the drawings folder will not open for anyone.');
   await page.getByRole('button', { name: 'Save edit', exact: true }).click();
   await expect(page.getByRole('tab', { name: /1. Shared engineering files/ })).toContainText(
-    'pending',
+    'Pending',
   );
   await expect(
     page.getByText(/Chat message from Project team chat: Story update 1\nEDITED_STORY/),
@@ -91,6 +112,9 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   ];
   await criteria.selectOption(covered.slice(0, 3));
   await page.getByRole('button', { name: 'Save edit', exact: true }).click();
+  await expect(page.getByLabel('business-leadership questions', { exact: true })).toHaveValues([
+    'preserve-evidence',
+  ]);
   const coverage = page.getByRole('status', { name: 'Objective coverage', exact: true });
   await expect(coverage).toContainText(
     'Position 1 (containment decision) must evaluate obtain-isolation-authority.',
@@ -102,7 +126,7 @@ test('generated package review edit reject freeze at desktop and mobile widths',
     await page.getByRole('tab', { name: new RegExp(`^${position + 1}\\.`) }).click();
     await page.getByRole('button', { name: 'Accept inject', exact: true }).click();
     await expect(page.getByRole('tab', { name: new RegExp(`^${position + 1}\\.`) })).toContainText(
-      'accepted',
+      'Accepted',
     );
   }
   await expect(freeze).toBeEnabled();
@@ -142,7 +166,7 @@ test('generated package review edit reject freeze at desktop and mobile widths',
     await page.getByRole('tab', { name: new RegExp(`^${position + 1}\\.`) }).click();
     await page.getByRole('button', { name: 'Accept inject', exact: true }).click();
     await expect(page.getByRole('tab', { name: new RegExp(`^${position + 1}\\.`) })).toContainText(
-      'accepted',
+      'Accepted',
     );
   }
   for (const width of [1440, 390]) {

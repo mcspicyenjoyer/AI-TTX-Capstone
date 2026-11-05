@@ -21,6 +21,8 @@ Build only the operational development skeleton needed to unblock the other work
 
 Later 5 November presentation clarification (ADR-042): the user explicitly requests removal of repeated visible "Synthetic", "SIMULATION" and "fictional" labels from the interface and inject presentation. This supersedes the repeated-warning presentation direction, not the synthetic-only data requirement or discussion-exercise boundary. Preserve original source quotations, historical records, evidence/report text, knowledge states and approval checks. Do not rewrite stored packages or release hashes to change display wording.
 
+The subsequent source-register request extends this presentation cleanup to the existing fixture source-title labels and clearer role/metadata emphasis and capitalisation. Source identity, quoted passages, user-authored titles and submitted enum values remain unchanged; ADR-042 records the bounded display approach.
+
 ### Form B traceability
 
 FB IDs below map all twelve Project Objectives; numbered Project Scope items and named deliverables supply their detail. These are verified requirements, not claims of implementation. WORK owns completion and exact test results.
