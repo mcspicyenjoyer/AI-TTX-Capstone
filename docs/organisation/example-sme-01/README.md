@@ -2,17 +2,38 @@
 
 **Author/reviewer index. Do not distribute this index as a player handout.**
 
-Form B alignment, 29 September: this authored context is the foundation for the synthetic input/known-answer pack required by [TASK-006](../../WORK.md#task-006---document-intake-and-profile-reconciliation). The agreed network diagram, selected text-based continuity material and expected extraction facts still need preparation and review. This register and the seeded application profile do not substitute for ingestion, reconciliation or generation. Seven fictional characters must be mapped to the first delivery's 3-4 functional roles after objective selection; the integrated first package has five MSEL positions and three key decision points, followed by ten positions for final Form B acceptance under [PROJECT](../../PROJECT.md#target-mvp-and-first-slice).
+Source-folder update, 6 November 2026: the existing network diagram and continuity documents are now collected here alongside the company brief, register and role cards. This is the authored foundation for the synthetic reference pack under [TASK-006](../../WORK.md#task-006---document-intake-and-profile-reconciliation), not a claim of independent reference-pack acceptance. Selected sources have already been used for intake and the [five-position rehearsal](../../evaluation/full-demo-rehearsal-2026-11-05.md). Current implementation and remaining Form B work belong in [WORK](../../WORK.md); the original authoring notes below are not current runtime status.
+
+## Find the files
+
+All paths below are relative to this folder, `docs/organisation/example-sme-01`.
+
+| File | Purpose | Intake source type |
+| --- | --- | --- |
+| [Network diagram](network-diagram.drawio.svg) | Viewable SVG with its editable draw.io model retained; formerly `Untitled Diagram.drawio.svg` on the Desktop | Network diagram |
+| [Business continuity plan](business-continuity-plan.md) | Draft BCP, including the four-service BIA/target table, practical fallbacks and recovery checklist; not separate BIA/DRP manuals | BCP |
+| [Company brief](organisation-brief.md) | Shared organisation background | Guided context, uploaded as a text file |
+| [Imran's IT reference](role-cards/imran.md) | Technical configuration, authority and recovery context | Guided context, uploaded as a text file |
+
+These are the four source inputs used for the rehearsal, not instructions to upload the whole folder. The [continuity review](continuity-review.md), master register and author notes are reviewer material; keep expected extraction answers out of evaluation inputs. See the [user guide](../../user-guide.md) for intake and review.
+
+## Keeping and retrieving the pack
+
+This folder is the repository home for these selected synthetic reference documents. Keep the folder together so its relative links and `role-cards` references continue to work. Open this index from the top-level README; Git history retains committed editions even after later edits. For an older edition, use `git log -- docs/organisation/example-sme-01` and inspect the relevant commit without resetting the current worktree. Access from another machine requires an authorised push or a separate backup; a local commit alone is not an off-device backup.
+
+On 6 November the diagram was copied from the Desktop and the BCP/review from planning worktree `2777`; all three copies match the original bytes, and the originals were left untouched. Only these selected synthetic reference files were brought in, not runtime uploads, databases, credentials or the worktree's other edits. The BCP remains `bcp-draft-0.1`. The preserved 8 October review refers to that planning worktree's `org-draft-0.4`; this folder's baseline register, brief and cards remain their existing editions, not a newly reconciled revision. Read its remaining-work statements as historical authoring notes, not current software status.
+
+## Source editions
 
 | Item | Value |
 | --- | --- |
 | Package | `ORG-EXAMPLE-SME-01`; stable ID/path retained from Example SME 01 |
-| Revision | `org-draft-0.3`, 28 September 2026 |
+| Revision | Baseline register/brief/cards: `org-draft-0.3`, 28 September 2026; separate continuity draft: `bcp-draft-0.1`, 8 October 2026 |
 | Company | Teralqen Engineering Pte. Ltd.; 42-person Singapore civil/structural consultancy |
 | Fictional calendar | 28 September 2026 at 09:00 SGT; project commitments 31 and 56 hours away |
 | Review | Shared-context and role-knowledge revision following the user's second realism review |
 | Naming | Teralqen and ten supplier/customer labels have user-reported BizFile no-match results; no independent clearance |
-| Runtime | Not imported, confirmed or released by the TTX Platform; original fixture unchanged |
+| Runtime | Selected source intake and generated play are recorded in the [rehearsal report](../../evaluation/full-demo-rehearsal-2026-11-05.md); this folder is not a live profile or run export |
 
 ## Reading and distribution
 
@@ -22,6 +43,9 @@ The short summary is the read-first, one-page-length text; Markdown print pagina
 | --- | --- | --- |
 | [Read-first brief](participant-summary.md) | All players | Company, people, deadlines, normal work |
 | [Company reference](organisation-brief.md) | All players | Shared everyday company context |
+| [Network diagram](network-diagram.drawio.svg) | Planner/reviewer; role-appropriate excerpts for play | Editable network and dependency source |
+| [Business continuity plan](business-continuity-plan.md) | Restricted planning reference; reviewed role excerpts for play | Proposed service targets, fallbacks, authority and recovery checks |
+| [Continuity basis and review](continuity-review.md) | Authors/reviewers only | Historical plan rationale, source references and draft extraction expectations |
 | [Ethan](role-cards/ethan.md) | MD role holder | Business authority and company arrangements |
 | [Clara](role-cards/clara.md) | Technical Director role holder | Engineering work, deputy authority and competing responsibilities |
 | [Nadia](role-cards/nadia.md) | Project Manager role holder | Project issues, guests and customer commitments |
@@ -53,7 +77,7 @@ The [research note](../../research/technical-ttx-inputs-and-synthetic-pack.md) r
 
 ## Next decision and maintenance
 
-**OPEN-11 comes next:** choose incident family and learning objectives, then select the relevant role-card detail and derive the necessary diagram/plan extracts. The network diagram or full plan library is not the immediate prerequisite to making that choice. No incident, objectives, injects, branch rules, detailed exercise RACI, rubric or AAR template is approved here.
+The baseline's OPEN-11 notes predate the reviewed five-position package. Follow [WORK](../../WORK.md#next-milestones) for current sequencing and [PROJECT](../../PROJECT.md) for approved scope. Collecting the sources does not approve new continuity targets, release the complete folder to players, or complete independent evaluation, branching or the final ten-position workflow.
 
 The naming revision uses the user's reported batch no-match result for all ten replacements. Individual query details were not supplied; this is not independent registry verification, registration or guaranteed uniqueness. The screening record preserves the previous labels.
 
@@ -66,3 +90,4 @@ Change the master register first, reconcile every affected shared/role document,
 | `org-draft-0.1` / 27 September 2026 | Initial brief/register with stable IDs and provenance | Structure accepted; realism gaps identified |
 | `org-draft-0.2` / 28 September 2026 | Named company; expanded operational context and player/author separation | Second review identified over-disclosure and over-preparedness |
 | `org-draft-0.3` / 28 September 2026 | Read-first/shared/role-specific knowledge; deliberate friction and SaaS recovery gap; mixed-style names; circular recheck | Content draft; OPEN-11 pending; no runtime release |
+| Source consolidation / 6 November 2026 | Added byte-identical diagram, BCP and continuity-review copies; indexed inputs and retrieval | File organisation only; source editions, proposals and live records unchanged |
