@@ -1,6 +1,60 @@
-import { Download, ImagePlus, Link, LoaderCircle, Unlink } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Download, ImagePlus, Link, LoaderCircle, Maximize2, Unlink } from 'lucide-react';
 import type { DeliveredImage } from '../contracts/artefact-images.js';
 import type { PackageDraftView } from '../contracts/generation.js';
+
+function ImageDialog({ image, onClose }: { image: DeliveredImage; onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const current = dialog.current;
+    if (current && !current.open) current.showModal();
+    return () => current?.close();
+  }, []);
+  return (
+    <dialog ref={dialog} className="image-dialog" aria-label={image.title} onClose={onClose}>
+      <img
+        src={`/api/artefact-images/${image.id}`}
+        alt={image.title}
+        width={image.width}
+        height={image.height}
+      />
+      <form method="dialog">
+        <button className="secondary">Close</button>
+      </form>
+    </dialog>
+  );
+}
+
+// A participant-sized preview; the full image opens in a dialog or downloads unchanged.
+export function ImageThumbnail({ image }: { image: DeliveredImage }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <figure className="image-thumb">
+      <img
+        src={`/api/artefact-images/${image.id}`}
+        alt={image.title}
+        width={image.width}
+        height={image.height}
+      />
+      <figcaption>
+        <button className="secondary" onClick={() => setOpen(true)}>
+          <Maximize2 size={16} />
+          Enlarge image
+        </button>
+        <a
+          className="icon-button"
+          href={`/api/artefact-images/${image.id}`}
+          download={`${image.id}.png`}
+          title="Download image"
+          aria-label={`Download ${image.title}`}
+        >
+          <Download size={18} />
+        </a>
+      </figcaption>
+      {open && <ImageDialog image={image} onClose={() => setOpen(false)} />}
+    </figure>
+  );
+}
 
 export function EvidenceImages({ images }: { images?: DeliveredImage[] }) {
   return images?.map((image) => (

@@ -80,12 +80,12 @@ test('team response, exact retry, revision, private facilitator review and expli
     await participant.setViewportSize({ width: 1440, height: 1080 });
     await fits(participant);
     await participant
-      .locator('.outcomes')
+      .locator('.participant-run')
       .screenshot({ path: testInfo.outputPath('team-response-desktop.png') });
     await participant.setViewportSize({ width: 390, height: 844 });
     await fits(participant);
     await participant
-      .locator('.outcomes')
+      .locator('.participant-run')
       .screenshot({ path: testInfo.outputPath('team-response-mobile.png') });
 
     await page
@@ -204,7 +204,7 @@ test('pause retains participant drafts and an obsolete mutation cannot sign out 
       .getByLabel('Team rationale', { exact: true })
       .fill('Await explicit facilitator resume.');
     await page.getByRole('button', { name: 'Pause run', exact: true }).click();
-    await expect(participant.locator('.outcomes')).toContainText('Paused. Submissions', {
+    await expect(participant.locator('.participant-run')).toContainText('Paused. Submissions', {
       timeout: 12000,
     });
     await expect(participant.getByLabel('Agreed actions', { exact: true })).toHaveValue(
@@ -214,7 +214,7 @@ test('pause retains participant drafts and an obsolete mutation cannot sign out 
       participant.getByRole('button', { name: 'Submit team response', exact: true }),
     ).toBeDisabled();
     await page.getByRole('button', { name: 'Resume run', exact: true }).click();
-    await expect(participant.locator('.outcomes')).not.toContainText('Paused. Submissions', {
+    await expect(participant.locator('.participant-run')).not.toContainText('Paused. Submissions', {
       timeout: 12000,
     });
     await participant.getByRole('button', { name: 'Review latest state', exact: true }).click();

@@ -103,6 +103,8 @@ ADR-043 adds the `powershell-transcript` kind to the same story-message contract
 
 ADR-042 removes repeated labels only in UI presentation. The shared `exerciseText` presenter replaces known stock warning/clock phrases for facilitator and participant views; it never writes back into a package, release, source, response or report. Original source review and report evidence remain exact. Server-side renderers, hashes, clock extraction, prompts, data restrictions and approval acknowledgements are unchanged. Do not use this display helper for evidence processing or strip arbitrary words from user-authored content.
 
+ADR-044 arranges the [participant view](../src/ui/participant-exercise.tsx) as a Briefing tab plus one tab per released inject, with that inject's team-response panel beside it. `parseExerciseText` reads the generator's existing role-body layout into display blocks for this view only; unrecognised text stays plain. Server projections, hashes, access checks, response rules and the facilitator view are unchanged.
+
 The same UI formatting module provides exact display aliases for the four fixture source titles and sentence-case labels for controlled enums with preserved acronyms. Source identifiers, editable title inputs, original quotations, exports and submitted enum values are unchanged. Source lists, filter breadcrumbs, evidence headings and source selectors use the same aliases; semantic `strong` elements emphasise role labels without changing their meaning.
 
 ### Bounded source intake

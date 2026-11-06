@@ -180,14 +180,22 @@ test('generate review attach freeze and release a PowerShell image with reload a
           .getByRole('combobox', { name: 'Exercise', exact: true })
           .selectOption(`technical/${runId}`);
         const inbox = participant.getByRole('region', { name: 'Released inbox', exact: true });
+        const story = inbox.locator('.story-message.powershell-transcript');
         await expect(inbox.getByRole('img')).toHaveCount(username === 'player-engineering' ? 1 : 0);
         if (username === 'player-engineering') {
-          await expect(inbox.locator('.inject-body')).toContainText('PowerShell transcript from');
-          await expect(inbox.locator('.inject-body')).toContainText(transcript);
+          await expect(story.locator('.story-kind')).toHaveText('PowerShell transcript');
+          await expect(story.locator('.story-body')).toContainText(transcript);
+          await expect(story.getByRole('img')).toHaveCount(1);
+          await story.getByRole('button', { name: 'Enlarge image', exact: true }).click();
+          const dialog = participant.getByRole('dialog');
+          await expect(dialog.getByRole('img')).toBeVisible();
+          await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+          await expect(participant.getByRole('dialog')).toHaveCount(0);
         } else {
-          await expect(inbox.locator('.inject-body')).not.toContainText(transcript);
+          await expect(story).toHaveCount(0);
+          await expect(inbox).not.toContainText(transcript);
         }
-        await expect(inbox.locator('.inject-body')).not.toContainText('SIMULATION');
+        await expect(inbox).not.toContainText('SIMULATION');
         const stored = store.exercises.releases(runId)[0]!;
         expect(
           stored.deliveries!.some((delivery) => delivery.body.startsWith('SIMULATION /')),

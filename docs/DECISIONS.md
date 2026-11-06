@@ -2,6 +2,16 @@
 
 Accepted means a direction for the user's authorised baseline, not organisation deployment or data approval.
 
+## ADR-044 - One released inject per participant tab
+
+6 November 2026: the user asked for a participant workspace that needs less scrolling and looks clearer, and approved this layout on a separate branch. Measured on the 3031 rehearsal data at 1440×900, the participant page was 9,471 px tall: the full briefing, then every released inject with full-width images, then every response, so inject 1's response form started about 4,000 px below inject 1.
+
+Participants now get a Briefing tab and one tab per released inject, numbered by position. Each inject tab shows its text with the team's response panel beside it (stacked below 1100 px), so reading and answering happen on one screen. Story messages are cards with their kind, sender and headline; an attached image is a thumbnail beside its message (matched by the delivered headline title) that opens full size in a dialog or downloads unchanged. Profile lines become rows tagged Fact, Proposal, Assumption, Unknown or Conflict, keeping knowledge states distinct, and discussion questions sit in their own box. A newly released inject opens automatically only when the player was on the latest inject or the briefing and is not typing; otherwise its tab is marked New. Inactive panels stay mounted and hidden, and the view stays mounted during a foreground reload, so unsaved response drafts survive tab changes and refreshes as before.
+
+This is display only. `parseExerciseText` in `src/ui/exercise-format.ts` reads the layout the generator already writes (elapsed-time line, story headings at the start of a paragraph, `STATUS / subject / field:` lines, `Background:` and `Discussion:` lists). Every non-blank line lands in exactly one block, and text in any other layout, such as the authored delivery-check package, stays plain. Stored bodies, release hashes, participant projections, access checks, response rules and the facilitator view are unchanged; no migration, server change or dependency is needed. Maintenance: update the parser and its tests if the generator's role-body layout changes.
+
+Alternatives: add structured fields to frozen packages (changes stored contracts and old hashes), keep one page with collapsible sections (still separates injects from responses), or show only the latest inject (hides earlier context players need). All are rejected for this request.
+
 ## ADR-043 - Full branch rehearsal and inert PowerShell artefacts
 
 5 November 2026: the user chooses the image branch for a complete live-demo rehearsal on port 3031, with all five subscription worker modes, while retaining port 3030 unchanged. The request supersedes the earlier two-image-attempt allowance for this rehearsal. It is not evidence of unlimited account capacity and does not remove application request caps or authorise a paid fallback. Preserve the prior preview volume and its access files; a fresh, separately named rehearsal dataset avoids rewriting historic trials and their usage counters.

@@ -13,7 +13,7 @@ import {
   InterpretationStatus,
 } from './interpretation-workspace.js';
 
-function SavedResponse({ response }: { response: ResponseView }) {
+export function SavedResponse({ response }: { response: ResponseView }) {
   return (
     <div className="saved-response">
       <p className="muted">

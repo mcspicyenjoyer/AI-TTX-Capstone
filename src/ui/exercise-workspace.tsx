@@ -3,7 +3,7 @@ import { FileText, Inbox, List, LoaderCircle, RefreshCw, TriangleAlert } from 'l
 import type { Actor } from '../contracts/profile.js';
 import { useExerciseWorkspace } from './use-exercise-workspace.js';
 import { FacilitatorExercise } from './facilitator-exercise.js';
-import { ParticipantExercise } from './participant-exercise.js';
+import { ParticipantExercise, ParticipantTechnicalExercise } from './participant-exercise.js';
 import { OutcomeWorkspace } from './outcome-workspace.js';
 import { RecordReportWorkspace } from './record-report-workspace.js';
 import { ClarificationWorkspace } from './clarification-workspace.js';
@@ -34,7 +34,6 @@ export function ExerciseWorkspace({
     runs,
     loading,
     review,
-    briefing,
   } = vm;
   useUnsavedGuard(editing.current);
   return (
@@ -163,8 +162,21 @@ export function ExerciseWorkspace({
             onSessionExpired={onSessionExpired}
           />
         )}
-        {!loading && briefing && <ParticipantExercise vm={vm} />}
-        {selected.startsWith('technical/') && (
+        {actor.role === 'participant' &&
+          (selected.startsWith('technical/') ? (
+            <ParticipantTechnicalExercise
+              key={selected}
+              vm={vm}
+              actor={actor}
+              selected={selected}
+              blocked={disabled || editing.current}
+              onChanged={() => void reload()}
+              onSessionExpired={onSessionExpired}
+            />
+          ) : (
+            <ParticipantExercise key={selected} vm={vm} />
+          ))}
+        {selected.startsWith('technical/') && actor.role !== 'participant' && (
           <OutcomeWorkspace
             key={selected}
             actor={actor}
