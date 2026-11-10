@@ -214,6 +214,9 @@ test('uncertain AAR review keeps edits and exact retry while draft and snapshot 
     await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
     await page.getByRole('tab', { name: 'Record report', exact: true }).click();
     const workspace = page.getByRole('region', { name: 'AAR workspace', exact: true });
+    await expect(
+      workspace.getByRole('heading', { name: 'After-action review', exact: true, level: 2 }),
+    ).toBeVisible();
     const rationale = workspace.getByLabel('AAR review rationale', { exact: true });
     await rationale.fill('Retain this exact review until the outcome is confirmed.');
     const commands: string[] = [];
@@ -289,6 +292,12 @@ test('AAR draft is bound to snapshot, quoted and facilitator-reviewed with unass
     service.complete({ id: job.id, failed: false, output, inputTokens: 10, outputTokens: 20 });
     await workspace.getByRole('button', { name: 'Refresh AAR', exact: true }).click();
     const draft = workspace.getByRole('article', { name: 'After-action review draft' });
+    await expect(
+      draft.getByRole('heading', { name: 'After-action review', exact: true }),
+    ).toBeVisible();
+    await expect(
+      draft.getByRole('heading', { name: 'Proposed improvement actions', exact: true }),
+    ).toBeVisible();
     await expect(draft).toContainText('Unreviewed draft');
     await expect(draft.locator('.aar-finding')).toHaveCount(6);
     expect(

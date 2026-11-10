@@ -43,7 +43,7 @@ For the currently prepared demonstration, the address is [http://127.0.0.1:3031/
 | **Package**                  | The scenario, roles, briefing, five injects and facilitator material prepared before play.                                                       |
 | **Freeze**                   | Approve the reviewed package as a read-only version and create its exercise run. It does not start play or send an inject.                       |
 | **Snapshot**                 | A fixed copy of the completed exercise record used as the source for a report.                                                                   |
-| **AAR**                      | After-action review: findings and proposed improvements based on that snapshot.                                                                  |
+| **AAR**                      | After-action report: findings and proposed improvements based on that snapshot, reviewed in the **After-action review** section.                 |
 
 **The overall sequence:** review organisation -> configure generation -> review package -> freeze -> Step 0 and briefing -> release and discuss five injects -> complete -> debrief -> snapshot -> reviewed AAR.
 
@@ -84,9 +84,9 @@ If the intended preparation already says **Confirmed snapshot**, inspect its sou
 ### Import the Sources
 
 1. Open **Source intake**, expand **New preparation**, enter **Organisation name**, read and tick the data-requirements acknowledgement, then select **Create draft**.
-2. In **Sources**, choose **Document**. Enter **Source title**, **Version** and **Source type**, select the **Source file**, acknowledge its data requirements and select **Import source**.
-3. Repeat for the supporting documents. Select the appropriate source type: **Network diagram**, **BCP**, **BIA**, **DRP** or **Guided context**.
-4. For an explicitly supplied statement rather than a file, choose **Guided evidence**. Complete **Source title**, **Version**, **Source type** and **Attributed source statement**, identifying where the statement came from. Tick the acknowledgement and select **Import source**. Do not present an assumption as independently verified evidence.
+2. In **Sources**, choose **Document**. Enter **Source title**, **Version** and **Document type**, select the **Source file**, acknowledge its data requirements and select **Import source**.
+3. Repeat for the supporting documents. Select the appropriate document type: **Network diagram**, **BCP**, **BIA**, **DRP** or **Guided context**. The imported source list and organisation profile's **Source register** use these same document-type labels.
+4. For an explicitly supplied statement rather than a file, choose **Guided evidence**. Complete **Source title**, **Version**, **Document type** and **Attributed source statement**, identifying where the statement came from. Tick the acknowledgement and select **Import source**. Do not present an assumption as independently verified evidence.
 
 | Input                                                                                  | What works in this version                                                                                                                        |
 | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -269,7 +269,7 @@ After all five positions are closed, enter **Completion rationale** and select *
 1. Open **After-action review**. Select the intended **Snapshot**, check the remaining attempts, then choose **Draft AAR**. This starts the AI request immediately; there is no separate subscription-use confirmation dialog. **New manual AAR** is available when AI is unavailable or a manual review is preferred.
 2. Treat **Unreviewed draft** as a proposal. Read each finding and follow its evidence links into the captured record: a link such as `[response 1a2b]` opens that record in **Records**, and hovering over it shows the full record ID. Return to **After-action review** to continue; unsaved edits are kept. Check that a statement about what someone proposed is not described as something they actually carried out.
 3. Use **Edit draft** to correct findings or proposed improvements; **Preview draft** returns to the reading view. Manual findings also need supporting snapshot citations, not unsupported free-form conclusions.
-4. In **Proposed Improvement Actions**, leave **Owner** as **Unassigned** unless a person has actually accepted responsibility. The owner list uses people in the confirmed profile. An assigned owner also needs a date in the **Due** column; agree these outside the application before saving them.
+4. In **Proposed improvement actions**, leave **Owner** as **Unassigned** unless a person has actually accepted responsibility. The owner list uses people in the confirmed profile. An assigned owner also needs a date in the **Due** column; agree these outside the application before saving them.
 5. Enter **Review rationale**. Use **Accept AAR** for suitable unchanged AI output, **Save AAR edits** for edited output, **Save manual AAR** for a manual report, or **Reject AAR** if the proposal is unsuitable. Assigning an owner changes the output, so save it as an edit.
 
 **Expected result:** a saved reviewed AAR or an explicitly rejected proposal, with an honest record of findings and proposed actions. Neither a valid quotation nor AI acceptance proves operational capability.

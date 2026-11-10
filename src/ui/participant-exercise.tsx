@@ -162,11 +162,7 @@ export function ParticipantExercise({
   outcomes?: OutcomeModel;
   blocked?: boolean;
 }) {
-  // A foreground reload clears the briefing briefly; keep the last view mounted meanwhile so
-  // response drafts survive, as they did when responses sat outside the reloading section.
-  const cache = useRef({ briefing: vm.briefing, inbox: vm.inbox });
-  if (vm.briefing) cache.current = { briefing: vm.briefing, inbox: vm.inbox };
-  const { briefing, inbox } = vm.loading ? cache.current : vm;
+  const { briefing, inbox } = vm;
   const positions = outcomes?.view?.positions;
   const entries = useMemo(() => entriesFor(inbox, positions), [inbox, positions]);
   const newest = entries.at(-1)?.id ?? null;

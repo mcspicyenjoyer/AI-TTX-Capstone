@@ -1,4 +1,18 @@
 import type { RunActivity } from '../contracts/exercise.js';
+import type { ProfileView } from '../contracts/profile.js';
+
+type DocumentType = ProfileView['profile']['sources'][number]['kind'];
+const documentTypeLabels: Record<DocumentType, string> = {
+  network: 'Network diagram',
+  bcp: 'BCP',
+  bia: 'BIA',
+  drp: 'DRP',
+  setup: 'Guided context',
+};
+
+export function documentTypeLabel(value: DocumentType): string {
+  return documentTypeLabels[value];
+}
 
 const sourceTitles: Record<string, string> = {
   'Synthetic organisation brief': 'Organisation brief',

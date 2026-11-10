@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { test, expect, login, fits } from './exercise-fixture.js';
+import type { Route } from '@playwright/test';
+import { test, expect, login, fits, prepare } from './exercise-fixture.js';
 import { Store } from '../../src/server/storage.js';
 import { GenerationService, packagePlayers } from '../../src/server/generation-service.js';
 import { ExerciseService } from '../../src/server/exercise-service.js';
@@ -9,6 +10,64 @@ import type { PackageDraftView } from '../../src/contracts/generation.js';
 import { generationTarget, generationPlan } from '../generation-fixture.js';
 
 test.use({ generationEnabled: true });
+test('participant keeps an unsaved response after a failed exercise refresh', async ({
+  page,
+  browser,
+  baseURL,
+}) => {
+  await prepare(page, baseURL!);
+  await page.getByRole('button', { name: 'Release to inbox', exact: true }).click();
+  const context = await browser.newContext({ baseURL });
+  try {
+    const participant = await context.newPage();
+    await login(participant, 'participant');
+    const actions = participant.getByLabel('Agreed actions', { exact: true });
+    await actions.fill('Keep this unsaved response while the connection recovers.');
+    await participant.route('**/briefing', (route) =>
+      route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: { message: 'Temporary briefing failure' } }),
+      }),
+    );
+    await participant.getByRole('button', { name: 'Refresh exercises', exact: true }).click();
+    await expect(participant.getByRole('alert')).toContainText('Temporary briefing failure');
+    await expect(actions).toHaveValue('Keep this unsaved response while the connection recovers.');
+    await participant.unroute('**/briefing');
+    await participant.getByRole('button', { name: 'Refresh exercises', exact: true }).click();
+    await expect(participant.getByRole('alert')).toHaveCount(0);
+    await expect(actions).toHaveValue('Keep this unsaved response while the connection recovers.');
+
+    await participant.route('**/briefing', (route) =>
+      route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: { message: 'Exercise access removed' } }),
+      }),
+    );
+    await participant.getByRole('button', { name: 'Refresh exercises', exact: true }).click();
+    await expect(participant.getByRole('alert')).toContainText('Exercise access removed');
+    await expect(participant.locator('.participant-run')).toHaveCount(0);
+    await participant.unroute('**/briefing');
+    let heldRefresh: Route | undefined;
+    await participant.route('**/briefing', (route) => {
+      heldRefresh = route;
+    });
+    await participant.getByRole('button', { name: 'Refresh exercises', exact: true }).click();
+    await expect.poll(() => !!heldRefresh).toBe(true);
+    await expect(participant.getByText('Loading exercise...', { exact: true })).toBeVisible();
+    await expect(participant.locator('.participant-run')).toHaveCount(0);
+    await heldRefresh!.fulfill({
+      status: 403,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: { message: 'Exercise access removed' } }),
+    });
+    await expect(participant.getByRole('alert')).toContainText('Exercise access removed');
+  } finally {
+    await context.close();
+  }
+});
+
 test('participant reads one inject per tab beside the team response and keeps drafts', async ({
   page,
   browser,

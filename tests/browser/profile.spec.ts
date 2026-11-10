@@ -75,6 +75,16 @@ test('facilitator reviews evidence, filters, confirms, reloads and sees durable 
     await expect(register.getByRole('button', { name: new RegExp(`^${title}`) })).toBeVisible();
   }
   const organisationSource = register.getByRole('button', { name: /^Organisation brief/ });
+  await expect(organisationSource).toContainText('Document type: Guided context');
+  await expect(register.getByRole('button', { name: /^Network inventory/ })).toContainText(
+    'Document type: Network diagram',
+  );
+  await expect(register.getByRole('button', { name: /^Continuity notes/ })).toContainText(
+    'Document type: BCP',
+  );
+  await expect(register.getByRole('button', { name: /^Recovery notes/ })).toContainText(
+    'Document type: DRP',
+  );
   await organisationSource.click();
   await expect(organisationSource).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.filter-state')).toContainText('All statuses / Organisation brief');

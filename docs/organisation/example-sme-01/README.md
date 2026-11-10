@@ -8,7 +8,7 @@ Source-folder update, 6 November 2026: the existing network diagram and continui
 
 All paths below are relative to this folder, `docs/organisation/example-sme-01`.
 
-| File | Purpose | Intake source type |
+| File | Purpose | Intake document type |
 | --- | --- | --- |
 | [Network diagram](network-diagram.drawio.svg) | Viewable SVG with its editable draw.io model retained; formerly `Untitled Diagram.drawio.svg` on the Desktop | Network diagram |
 | [Business continuity plan](business-continuity-plan.md) | Draft BCP, including the four-service BIA/target table, practical fallbacks and recovery checklist; not separate BIA/DRP manuals | BCP |

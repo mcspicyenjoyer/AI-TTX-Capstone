@@ -28,7 +28,7 @@ import {
   type UploadSource,
 } from '../contracts/intake.js';
 import { ApiError, request } from './api.js';
-import { optionLabel, sourceTitle } from './exercise-format.js';
+import { documentTypeLabel, optionLabel, sourceTitle } from './exercise-format.js';
 
 type Guard = 'dirty' | 'pending' | null;
 type Command = { path: string; body: unknown; confirmation?: boolean };
@@ -520,20 +520,20 @@ export function IntakeWorkspace({
                           <input name="version" required maxLength={30} defaultValue="draft-1" />
                         </label>
                         <label>
-                          Source type
+                          Document type
                           <select
                             name="kind"
-                            aria-label="Source type"
+                            aria-label="Document type"
                             value={sourceKind}
                             onChange={(event) =>
                               setSourceKind(event.target.value as UploadSource['kind'])
                             }
                           >
-                            <option value="network">Network diagram</option>
-                            <option value="bcp">BCP</option>
-                            <option value="bia">BIA</option>
-                            <option value="drp">DRP</option>
-                            <option value="setup">Guided context</option>
+                            {(['network', 'bcp', 'bia', 'drp', 'setup'] as const).map((kind) => (
+                              <option key={kind} value={kind}>
+                                {documentTypeLabel(kind)}
+                              </option>
+                            ))}
                           </select>
                         </label>
                       </div>
@@ -570,6 +570,7 @@ export function IntakeWorkspace({
                   {edit.sources.map((item) => (
                     <div className="intake-source-row" key={item.id}>
                       <strong>{sourceTitle(item.title)}</strong>
+                      <span>Document type: {documentTypeLabel(item.kind)}</span>
                       <span>
                         {item.version} / {item.format} / {item.units.length} passages
                       </span>

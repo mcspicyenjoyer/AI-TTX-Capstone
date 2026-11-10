@@ -17,7 +17,7 @@ async function createDraft(page: Page) {
 }
 async function upload(page: Page, kind: string, name: string, buffer: Buffer) {
   await page.getByLabel('Source title', { exact: true }).fill(name);
-  await page.getByLabel('Source type', { exact: true }).selectOption(kind);
+  await page.getByLabel('Document type', { exact: true }).selectOption(kind);
   await page
     .getByLabel('Source file', { exact: true })
     .setInputFiles({ name, buffer, mimeType: 'application/octet-stream' });
@@ -39,11 +39,35 @@ test('network and DOCX evidence become a reviewed typed snapshot, export and sur
 }, info) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await createDraft(page);
+  await expect(page.getByLabel('Source type', { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel('Document type', { exact: true }).locator('option')).toHaveText([
+    'Network diagram',
+    'BCP',
+    'BIA',
+    'DRP',
+    'Guided context',
+  ]);
+  await page.getByRole('tab', { name: 'Guided evidence', exact: true }).click();
+  await expect(page.getByLabel('Document type', { exact: true })).toHaveValue('setup');
+  await page.getByRole('tab', { name: 'Document', exact: true }).click();
   const imported = await upload(page, 'network', 'Network.drawio', Buffer.from(diagram));
   expect(imported.draft.entities).toHaveLength(2);
   expect(imported.draft.claims[0]!.status).toBe('proposal');
   await expect(page.getByRole('button', { name: 'Extract candidates' })).toBeDisabled();
   await upload(page, 'bcp', 'BCP.docx', Buffer.from(docxBase64, 'base64'));
+  await expect(
+    page.locator('.intake-source-row').filter({ hasText: 'Network.drawio' }),
+  ).toContainText('Document type: Network diagram');
+  await expect(page.locator('.intake-source-row').filter({ hasText: 'BCP.docx' })).toContainText(
+    'Document type: BCP',
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await fits(page);
+  await page.screenshot({
+    path: info.outputPath('intake-document-types-mobile.png'),
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole('tab', { name: 'Entities (2)', exact: true }).click();
   for (let n = 1; n <= 2; n++) {
     await page.getByLabel(`Entity kind ${n}`, { exact: true }).selectOption('system');

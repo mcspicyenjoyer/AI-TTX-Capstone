@@ -62,8 +62,12 @@ export function useExerciseWorkspace(actor: Actor, onSessionExpired: () => void)
       setError('');
       setRefreshError('');
       if (!keepDraft) setReview(null);
-      setBriefing(null);
-      setInbox([]);
+      // Keep same-run participant forms mounted through transient refresh failures.
+      // Run changes and terminal access failures still clear their private context.
+      if (choice !== selected) {
+        setBriefing(null);
+        setInbox([]);
+      }
       setEvents([]);
       setAcknowledged(false);
     }
@@ -85,6 +89,10 @@ export function useExerciseWorkspace(actor: Actor, onSessionExpired: () => void)
       }
       const run = matchingRun ?? all[0];
       const next = run ? `${run.track}/${run.id}` : '';
+      if (next !== selected) {
+        setBriefing(null);
+        setInbox([]);
+      }
       setSelected(next);
       if (!run) {
         setReview(null);

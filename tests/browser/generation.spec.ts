@@ -11,6 +11,9 @@ test('generated package review edit reject freeze at desktop and mobile widths',
 }, testInfo) => {
   await login(page, 'facilitator');
   await page.getByRole('button', { name: 'Package generation', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Package generation', exact: true, level: 1 }),
+  ).toBeVisible();
   await expect(page.getByText(generationTarget.profileHash, { exact: true })).toBeVisible();
   // The controlled library states whether its family fits the confirmed profile (ADR-037).
   const family = page.getByLabel('Threat library family', { exact: true });

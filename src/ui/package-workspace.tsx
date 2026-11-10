@@ -207,7 +207,7 @@ export function PackageWorkspace({
     <>
       <div className="page-heading">
         <div>
-          <h1>Generated package</h1>
+          <h1>Package generation</h1>
           <p className="muted">
             {context?.profile?.organisationName ?? 'Confirmed profile'} / Five positions / Three
             player roles

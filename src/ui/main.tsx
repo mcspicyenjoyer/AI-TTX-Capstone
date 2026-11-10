@@ -38,7 +38,7 @@ import './style.css';
 import { ExerciseWorkspace } from './exercise-workspace.js';
 import { IntakeWorkspace } from './intake-workspace.js';
 import { PackageWorkspace } from './package-workspace.js';
-import { optionLabel, sourceTitle } from './exercise-format.js';
+import { documentTypeLabel, optionLabel, sourceTitle } from './exercise-format.js';
 import { GuardProvider, useGuardRegistry, type GuardState } from './unsaved-guard.js';
 
 type Status = ProfileView['profile']['statements'][number]['status'];
@@ -706,6 +706,7 @@ function App() {
                                 <FileText size={18} />
                                 <span>
                                   <strong>{sourceTitle(item.title)}</strong>
+                                  <small>Document type: {documentTypeLabel(item.kind)}</small>
                                   <small>Version {item.version}</small>
                                 </span>
                                 <ChevronRight size={15} />

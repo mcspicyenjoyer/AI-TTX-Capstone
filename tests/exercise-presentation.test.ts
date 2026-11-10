@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  documentTypeLabel,
   exerciseText,
   optionLabel,
   parseExerciseText,
@@ -9,6 +10,19 @@ import {
 } from '../src/ui/exercise-format.js';
 import { artefactKinds } from '../src/contracts/generation.js';
 import { artefactText } from '../src/server/generation-content.js';
+
+test('document types share display labels while preserving stored kind values', () => {
+  const kinds = ['network', 'bcp', 'bia', 'drp', 'setup'] as const;
+  const original = JSON.stringify(kinds);
+  assert.deepEqual(kinds.map(documentTypeLabel), [
+    'Network diagram',
+    'BCP',
+    'BIA',
+    'DRP',
+    'Guided context',
+  ]);
+  assert.equal(JSON.stringify(kinds), original);
+});
 
 test('source-title aliases remove only the four fixture labels without changing source identity', () => {
   const sources = [

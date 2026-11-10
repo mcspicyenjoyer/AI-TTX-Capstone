@@ -234,7 +234,7 @@ function AarReview({
   }
   return (
     <article className="aar-review" aria-label="After-action review draft">
-      <h3>After-Action Review</h3>
+      <h3>After-action review</h3>
       <p>
         <strong>
           {record.review ? 'Facilitator-reviewed: ' + record.review.decision : 'Unreviewed draft'}
@@ -340,7 +340,7 @@ function AarReview({
           </section>
         ))}
         <section aria-label="Proposed improvement actions">
-          <h3>Proposed Improvement Actions</h3>
+          <h3>Proposed improvement actions</h3>
           <div className="aar-table-wrap">
             <table className="aar-table">
               <thead>
@@ -631,7 +631,7 @@ export function AarWorkspace({
   const view = records.find((v) => v.record.id === selected) ?? records.at(-1);
   return (
     <section className="aar-workspace" aria-label="AAR workspace">
-      <h2>After-Action Review</h2>
+      <h2>After-action review</h2>
       <p className="report-hash">
         Snapshot {snapshot.report.id} / SHA-256 {snapshot.hash}
       </p>
