@@ -36,7 +36,7 @@ On the same browser-test fixture at 1440 x 900, the longest package-review view 
 
 At the start of this review, remote main was `e6dfce7`. Six local commits on `participant-inject-tabs` were pending publication: `19c4d71`, `ab3fedb`, `d9e2b4e`, `e396f09`, `68d09d4` and `a74358c`. The earlier November image integration and user guide were already on remote main. The current review adds corrections and the requested consistent **Document type** terminology. [WORK](../WORK.md) records the checkpoint scope; Git history identifies the resulting commit, and the publication handover records its verified remote ID.
 
-**Publication blocked:** the implementation/report checkpoint is local commit **`8d8a663`**. The authorised feature-branch push was attempted on 10 November but GitHub rejected the saved credentials with "Invalid username or token". A subsequent remote-ref check confirms main remains `e6dfce7` and `participant-inject-tabs` has not been created remotely. GitHub re-authentication and a successful retry with remote-equality verification are still required. Do not report these local commits as published.
+**Published after re-authentication:** implementation/report checkpoint **`8d8a663`** and the preceding reviewed commits are now published. The first 10 November push failed with "Invalid username or token" and documentation checkpoint `3fb88a1` recorded that failure. After the user completed browser authentication and explicitly authorised main integration, the feature-branch push succeeded and main advanced by fast-forward only from `e6dfce7`. Both remote branches were verified at **`3fb88a17e1ff56a29b8831a3b8ceedde2ee8f1cc`** before this documentation-only status update. The publication handover records the final updated tip. No application/test file changed after the passing checks, and no additional software-test run is claimed for publication.
 
 A source push does not rebuild or update an existing demonstration container. The latest facilitator-page checkpoint records the demonstration containers as stopped on earlier builds. No present runtime health or worker availability is inferred from the 6 November observations.
 
@@ -61,7 +61,7 @@ The current profile-to-generation binding still requires an operator setup step,
 
 ## Priorities before month end
 
-1. Resolve the open story-attribution presentation issue before relying on arbitrary new multiline story content. Publish the reviewed checkpoint with its limitations and record the remote result. Update the demonstration build and external presentation materials only within the relevant authority.
+1. Resolve the open story-attribution presentation issue before relying on arbitrary new multiline story content. The reviewed checkpoint is published with that limitation. Update the demonstration build and external presentation materials only within the relevant authority.
 2. Resolve the reviewed follow-up content and branch contract, then implement and test the next usable Form B workflow rather than adding unrelated interface or infrastructure features.
 3. Expand that workflow to ten positions and run the full generated exercise-to-report verification, preserving failures and manual corrections as evidence.
 4. Arrange independent human evaluation and AAR review, and consolidate the final report and handover against all Form B objectives. Update this month-to-date report with actual later results, outstanding issues and final test counts before submitting it at month end.
