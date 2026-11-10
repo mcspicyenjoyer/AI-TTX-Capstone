@@ -20,11 +20,14 @@ import { ApiError, request } from './api.js';
 import { FamilyAssessmentView, ThreatPathwayView } from './threat-pathway.js';
 import { ArtefactImageEditor, EvidenceImages } from './artefact-images.js';
 import { RoleMessages } from './exercise-blocks.js';
-import { exerciseText, optionLabel as label, sourceTitle } from './exercise-format.js';
+import {
+  coverageText,
+  exerciseText,
+  optionLabel as label,
+  sourceTitle,
+} from './exercise-format.js';
 
 type Pending = { url: string; body: object };
-// Display alias only: the server's coverage messages number injects as positions.
-const coverageText = (problem: string) => problem.replace(/\bPosition (\d+)\b/g, 'Inject $1');
 type Step = 'profile' | 'scenario' | 'pathway' | 'preparation' | 'injects';
 type PreparationEdit = Pick<ReviewPreparation, 'preparation' | 'roles' | 'storyline'>;
 function preparationEdit(view: PackageDraftView): PreparationEdit {

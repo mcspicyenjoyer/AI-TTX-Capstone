@@ -92,8 +92,8 @@ export function Step0Form({ vm }: { vm: ExerciseWorkspaceModel }) {
                 </p>
               ) : !['draft', 'paused'].includes(review.run.state) ? (
                 <p className="run-notice" role="status">
-                  The run is {review.run.state}. The draft is retained but cannot be recorded in
-                  this state.
+                  The exercise is {review.run.state}. The draft is retained but cannot be recorded
+                  in this state.
                 </p>
               ) : draftContext === 'stale' ? (
                 <p className="run-notice" role="status">

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  coverageText,
   documentTypeLabel,
   exerciseText,
   optionLabel,
@@ -9,7 +10,42 @@ import {
   type ExerciseBlock,
 } from '../src/ui/exercise-format.js';
 import { artefactKinds } from '../src/contracts/generation.js';
-import { artefactText } from '../src/server/generation-content.js';
+import { artefactText, objectiveCoverageProblems } from '../src/server/generation-content.js';
+import { generationPlan } from './generation-fixture.js';
+
+test('objective-coverage labels cover singular, range and missing coverage without changing inputs', () => {
+  const plan = generationPlan();
+  for (const position of plan.positions) position.evaluationCriteria = [];
+  const originalPlan = JSON.stringify(plan);
+  const problems = objectiveCoverageProblems(plan);
+  const originalProblems = JSON.stringify(problems);
+  const display = problems.map(coverageText);
+  assert(
+    display.includes('Inject 1 (containment decision) must evaluate obtain-isolation-authority.'),
+  );
+  assert(
+    display.includes(
+      'Inject 1 must evaluate establish-scope or preserve-evidence for the containment objective.',
+    ),
+  );
+  assert(
+    display.includes(
+      'Injects 2-3 must evaluate check-dependencies or distinguish-target-and-estimate for the minimum-continuity objective.',
+    ),
+  );
+  assert(display.includes('No inject evaluates establish-scope.'));
+  assert(display.every((message) => !/\bpositions?\b/i.test(message)));
+  assert.equal(JSON.stringify(plan), originalPlan);
+  assert.equal(JSON.stringify(problems), originalProblems);
+  for (const message of [
+    'Quoted source: Position 2 must evaluate recovery.',
+    'Position 2 is described in the source.',
+    'Positions are recorded in the source.',
+    'No position was supplied in the source.',
+  ]) {
+    assert.equal(coverageText(message), message);
+  }
+});
 
 test('document types share display labels while preserving stored kind values', () => {
   const kinds = ['network', 'bcp', 'bia', 'drp', 'setup'] as const;

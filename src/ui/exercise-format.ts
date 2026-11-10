@@ -26,6 +26,14 @@ export function sourceTitle(value: string): string {
   return Object.hasOwn(sourceTitles, value) ? sourceTitles[value]! : value;
 }
 
+// Display alias only: objective-coverage messages retain their server-owned wording.
+export function coverageText(problem: string): string {
+  return problem
+    .replace(/^Position (\d+)(?= (?:\([a-z-]+ decision\) )?must evaluate )/, 'Inject $1')
+    .replace(/^Positions (\d+-\d+)(?= must evaluate )/, 'Injects $1')
+    .replace(/^No position evaluates /, 'No inject evaluates ');
+}
+
 export function optionLabel(value: string): string {
   const label = value
     .replaceAll('-', ' ')

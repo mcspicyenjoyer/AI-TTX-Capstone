@@ -31,7 +31,7 @@ For preparation, involve someone who understands the example's systems and someo
 | Prepare a different example organisation from documents           | [Step 1](#step-1-open-the-platform-and-sign-in), then follow every step, including the operator handoff in Step 3.                                                                  |
 | Join as a participant                                             | Read [Participant Instructions](#participant-instructions). You do not need the preparation screens.                                                                                |
 
-For the currently prepared demonstration, the address is [http://127.0.0.1:3031/](http://127.0.0.1:3031/). Merging code into `main` does not change this address. On a different installation, use the address supplied by its operator. A `127.0.0.1` address works only on the computer running the service; it is not a link colleagues can use from their own laptops.
+The historical demonstration used [http://127.0.0.1:3031/](http://127.0.0.1:3031/). On 10 November, [WORK](WORK.md) records removal of the 3031, 3020 and 3030 demo runtime copies while retaining their data volumes and private archives. Ask the operator to recreate and verify the intended copy from its matching retained data before following a prepared-demo route. Merging code does not restore it, and a fresh default setup does not contain the saved rehearsal. Use the address supplied by the operator; this guide is not a current health check. A `127.0.0.1` address works only on the computer running the service, not a colleague's laptop.
 
 ### A Few Terms You Will See
 
@@ -73,7 +73,7 @@ For role-only instructions, see [Participants](#participant-instructions). For b
 
 **Check before continuing:** you are signed in as the intended person, on the intended instance. Codes and records from port 3030 are not interchangeable with those on port 3031.
 
-The **Organisation profile** landing page currently opens the first authorised fixture. It is not a selector for every uploaded organisation. To inspect your prepared organisation, use **Source intake > Preparation draft > Review** instead.
+The **Organisation profile** landing page currently opens the first authorised fixture. It is not a selector for every uploaded organisation. To inspect your prepared organisation, use **Source intake > Intake draft > Review** instead.
 
 ## Step 2: Prepare and Review the Organisation
 
@@ -141,7 +141,7 @@ Enter a clear **Review rationale**, such as "Compared the diagram and continuity
 3. Sign in again. Open **Package generation** and check **Confirmed profile binding**: the organisation name and reviewed version should be the intended ones.
 4. Check that the threat-library assessment is **Applicable**. If not, review the stated missing context with the operator rather than changing facts simply to pass the check.
 
-The existing 3031 demonstration profile is already configured. You do not need this handoff merely to inspect it or generate another package from that same confirmed version. There is currently no in-app industry picker or general-purpose profile-switch button.
+The historical 3031 dataset already had a configured demonstration profile. After recreating that copy, the operator must verify the matching database and profile binding before you inspect it or generate another package. A fresh default setup is not a substitute. There is currently no in-app industry picker or general-purpose profile-switch button.
 
 **Expected result:** the intended profile is shown and **Generate draft** is available when AI and request capacity are available.
 
@@ -194,7 +194,7 @@ Images are optional. Text-only injects still work. A ransom-note image may make 
 
 Attaching an image resets that inject's acceptance. Later changes to its text, recipients or timing can detach it; preparation changes clear every attachment. Recheck attachments before freezing. Participants see an attached image only after its inject is released to their role.
 
-For the prepared 3031 example, the separate Review draft has a saved PowerShell message at inject 2, story message 2. Use that draft for an image demonstration, not the frozen reference package.
+In the historical 3031 dataset, the separate Review draft had a saved PowerShell message at inject 2, story message 2. After the operator restores and verifies that dataset, use that draft for an image demonstration, not the frozen reference package.
 
 ## Step 7: Accept and Freeze the Package
 
@@ -327,6 +327,6 @@ Participants should not need terminal commands. Before inviting them, ask the op
 - No unexpected jobs are queued, and enough application/subscription capacity remains. Current application caps include ten extraction requests per intake, ten package drafts per facilitator, ten image requests per package, thirty started interpretations and three started AAR attempts per dataset. Failures can consume limits; there is no automatic retry or paid fallback.
 - The chosen role labels and supported ransomware pathway suit the example. This version is not a general industry-template catalogue, a ten-inject generated exercise or a branching scenario engine.
 
-Operator instructions: [setup](../README.md#setup), [package target configuration](../README.md#five-inject-generation), [image and full-demo workers](../README.md#story-image-generation), and [data transfer](../README.md#moving-laptops). The operator should use the existing 3031 instance for this demonstration, not run the default setup command and assume it contains the same saved records.
+Operator instructions: [setup](../README.md#setup), [package target configuration](../README.md#five-inject-generation), [image and full-demo workers](../README.md#story-image-generation), and [data transfer](../README.md#moving-laptops). To present the saved 3031 demonstration, deliberately recreate the intended copy from its matching retained volume or archive, verify the profile binding and access, then restart the required workers. Do not run the default fresh setup and assume it contains the same saved records. No recreation or runtime-health check is established by this guide.
 
 This guide was reviewed against the current interface source, browser workflows and demonstration state. It is a guide to the implemented prototype, not evidence that a first-time SME has independently completed a usability trial. [WORK](WORK.md) records the precise checks and remaining limitations.

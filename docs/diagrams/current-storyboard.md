@@ -2,6 +2,8 @@
 
 Updated 10 November 2026 at the user's request in the existing **TTX Platform - Screen Storyboard** file.
 
+Version boundary: the figure reflects parser checkpoint `cebebd5`. The later same-day ADR-047 wording changes (including Exercise record, Confirm profile and Intake draft) are not yet reflected in its labels. The workflow remains the same; the current operating guide and interface own the current control names. The wording-branch merge does not modify this external Figma file or its build source.
+
 - [Current figure](https://www.figma.com/design/4oCPzxBPHnEpsp4qRz2YV3?node-id=13-3): page `13:2`, **10 November 2026 - Implemented workflow**, root frame `13:3`.
 - [September archive](https://www.figma.com/design/4oCPzxBPHnEpsp4qRz2YV3?node-id=1-2): page `0:1`, **Archive - September 2026 concepts**. Original imported frame `1:2` is preserved.
 - File key: `4oCPzxBPHnEpsp4qRz2YV3`.

@@ -23,6 +23,10 @@ The remaining delivery gaps are approved response-dependent branching and recomm
 
 ## Verification
 
+Later 10 November, the `unify-wording` review aligned Inject, Participant, Exercise, Exercise record, Confirm profile, Intake draft, Interpretation and Knowledge status across the interface and operating guide. Pre-merge corrections cover accessible inject names, an external-state notice, all objective-coverage message forms and stale instructions for the removed demo copies. The saved evidence/server terminology remains unchanged. [WORK](../WORK.md) records this subsequent checkpoint's fresh checks and merge evidence; the historical counts below remain tied to their original milestones.
+
+This later checkpoint passes `npm run check` with **246 deterministic tests**, formatting, lint, types and build, plus all **39 browser cases in 4.1 minutes**. Desktop/mobile screenshots were inspected. One new browser assertion initially ran before the outcome data loaded; its loaded-state prerequisite was corrected and the complete suite rerun. No live AI or runtime recreation was performed.
+
 The following are recorded milestone results, not a fresh execution of every historical live check:
 
 | Checkpoint                                       | Recorded result                                                                                                                                                                                                 | What it establishes                                                                                                                                                                                                                                            |
@@ -41,9 +45,9 @@ At the start of the earlier commit review, remote main was `e6dfce7`. Six local 
 
 **Prior publication:** implementation/report checkpoint **`8d8a663`** and the preceding reviewed commits were published after re-authentication. The first 10 November push failed with "Invalid username or token" and documentation checkpoint `3fb88a1` recorded that failure. After the user completed browser authentication and explicitly authorised main integration, main advanced by fast-forward only from `e6dfce7`. Publication status checkpoint **`2a152d7`** was subsequently present on both remote branches. Its 243-test/39-browser verification predates the story-attribution fix; it is not the current correction's checkpoint.
 
-**Current correction:** the literal-rendering fix and updated storyboard/report are a subsequent milestone, with fresh verification recorded above. The authorised main push and its exact final commit/remote-equality result are recorded in the current publication handover. This work makes no new live AI request, exercise-data mutation or deployment.
+**Parser correction:** the literal-rendering fix and updated storyboard/report were published to main at `cebebd5`, with the verification recorded above. The subsequent `unify-wording` milestone starts from that tip and includes `42c3fbe`, `c128af9` and the pre-merge review corrections. WORK and the publication handover record its checks and exact final remote-equality result. Neither correction makes a new live AI request, exercise-data mutation or deployment.
 
-A source push does not rebuild or update an existing demonstration container. The latest facilitator-page checkpoint records the demonstration containers as stopped on earlier builds. No present runtime health or worker availability is inferred from the 6 November observations.
+A source push does not rebuild or restore demonstration containers. WORK now records the user's removal of the 3031, 3020 and 3030 runtime copies, with their volumes and private archives retained. The operator must recreate and verify the intended copy before a saved-results demonstration; no present runtime health or worker availability is inferred from the 6 November observations. The refreshed Figma figure remains at the parser checkpoint and has not yet received the later wording-only changes.
 
 ## Commit review findings
 

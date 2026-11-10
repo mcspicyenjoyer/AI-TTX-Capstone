@@ -102,7 +102,7 @@ export function OutcomeWorkspace({
             <section
               key={position.releaseId}
               className="run-section"
-              aria-label={`Position ${position.position}`}
+              aria-label={`Inject ${position.position}`}
             >
               <div className="section-heading">
                 <h3>Inject {position.position}</h3>

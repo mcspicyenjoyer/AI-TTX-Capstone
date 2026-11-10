@@ -300,7 +300,7 @@ test('changed bindings and external resume retain Step 0 draft recovery', async 
   );
   expect(externalResume.status()).toBe(200);
   await refreshDraft.click();
-  await expect(page.getByText('The run is active.', { exact: false })).toBeVisible();
+  await expect(page.getByText('The exercise is active.', { exact: false })).toBeVisible();
   await expect(recordCheck).toBeDisabled();
   await expect(page.getByLabel('Facilitator decision', { exact: true })).toHaveValue('hold');
   await expect(discardDraft).toBeEnabled();

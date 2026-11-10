@@ -76,6 +76,11 @@ test('team response, exact retry, revision, private facilitator review and expli
         .getByText('Compare scope and preserve the reported details for the team.', { exact: true })
         .first(),
     ).toBeVisible({ timeout: 12000 });
+    await expect(
+      page
+        .getByRole('region', { name: 'Inject 1', exact: true })
+        .getByRole('heading', { name: 'Inject 1', exact: true }),
+    ).toBeVisible();
     await participant.getByRole('button', { name: 'Refresh outcomes', exact: true }).click();
     await participant.setViewportSize({ width: 1440, height: 1080 });
     await fits(participant);

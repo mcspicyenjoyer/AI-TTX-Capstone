@@ -23,6 +23,8 @@ This is display only. The interface layer and current operating instructions cha
 
 Alternatives: rename the server messages and stored keys as well (changes frozen content, prompt versions and many deterministic tests for wording alone), or keep the developer's position/inject and package/run distinctions on screen (accurate, but the cause of the confusion). Both are rejected. Maintenance: keep new labels to the glossary in PROJECT, and update the browser tests and user guide with any label change.
 
+Pre-merge review correction: accessible outcome-region names also use Inject, and the UI-owned Step 0 external-state notice uses Exercise. The coverage presenter handles the server's singular, range and missing-coverage prefixes (`Position N`, `Positions N-M`, `No position evaluates`) without changing their stored/server strings or applying a general replacement to source text. WORK records regression results and guide corrections after the recorded demo removal.
+
 ## ADR-046 - Literal presentation for flattened story bodies
 
 10 November 2026: the user requests the remaining parser fix before publication to main. Generated role bodies flatten arbitrary story text and genuine facts/questions using identical paragraph separators. A quoted `FACT / ...`, `Discussion:` or story heading can therefore look exactly like an application section. Another heading regex cannot reliably recover the original attribution from the released string.
