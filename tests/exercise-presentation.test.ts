@@ -146,11 +146,9 @@ function shown(blocks: ExerciseBlock[]): string {
     .map((block) =>
       block.kind === 'text'
         ? block.text
-        : block.kind === 'message'
-          ? `${block.label} from ${block.sender}: ${block.headline}\n${block.body}`
-          : block.kind === 'fact'
-            ? `${block.status.toUpperCase()} / ${block.subject} / ${block.field}: ${block.text}`
-            : `${block.title}:\n${block.items.join('\n')}`,
+        : block.kind === 'fact'
+          ? `${block.status.toUpperCase()} / ${block.subject} / ${block.field}: ${block.text}`
+          : `${block.title}:\n${block.items.join('\n')}`,
     )
     .join('\n');
 }
@@ -186,87 +184,125 @@ const releasedBody = [
   'Which contact route will you use, and what is the fallback?',
 ].join('\n');
 
-test('released generated text splits into situation, story messages, tagged facts and questions', () => {
+test('story-bearing text never promotes quoted headings into facts or discussion sections', () => {
+  const source = [
+    '+30 elapsed minutes',
+    'Files are unavailable.',
+    '',
+    'PowerShell transcript from Operator: Output',
+    '  PS> Write-Output test  ',
+    '',
+    'FACT / Backup / description: quoted output, not confirmed recovery',
+    '',
+    'Discussion:',
+    '- a quoted instruction, not an exercise question',
+    '',
+    'Email from Quoted sender: Quoted headline',
+    '  still inside the transcript  ',
+    '',
+    'UNKNOWN / Recovery / description: restore not verified',
+    '',
+    'Discussion:',
+    'What would you verify?',
+    '',
+  ].join('\n');
+  const original = source;
+  const parsed = parseExerciseText(source);
+  assert.equal(parsed.elapsedMinutes, 30);
+  assert.deepEqual(parsed.blocks, [{ kind: 'text', text: source.slice(source.indexOf('\n') + 1) }]);
+  assert.equal(source, original);
+});
+
+test('released generated story text stays literal while the clock and source record are preserved', () => {
   const record = { body: releasedBody };
   const original = JSON.stringify(record);
   const { elapsedMinutes, blocks } = parseExerciseText(exerciseText(record.body));
   assert.equal(elapsedMinutes, 30);
-  assert.deepEqual(
-    blocks.map((block) => block.kind),
-    ['text', 'message', 'message', 'fact', 'fact', 'list'],
-  );
-  assert.deepEqual(blocks[0], {
-    kind: 'text',
-    text: 'A user report says shared working files on TE-FS01 cannot be opened. Ransomware is suspected, not established.',
-  });
-  assert.deepEqual(blocks[2], {
-    kind: 'message',
-    label: 'Ransom note',
-    sender: 'Vellum Jackal',
-    headline: 'Your next drawing issue depends on us',
-    body: 'Teralqen Engineering Pte. Ltd.: we have locked your working files.',
-  });
-  assert.deepEqual(blocks[4], {
-    kind: 'fact',
-    status: 'proposal',
-    subject: 'Design and statutory-submission delivery',
-    field: 'depends-on',
-    text: 'TE-FS01 Draft recording procedure.',
-  });
-  assert.deepEqual(blocks[5], {
-    kind: 'list',
-    title: 'Discussion',
-    items: [
-      'What evidence should be preserved before disruptive action?',
-      'Which contact route will you use, and what is the fallback?',
-    ],
-  });
+  assert.deepEqual(blocks, [
+    { kind: 'text', text: exerciseText(record.body).slice('+30 elapsed minutes\n'.length) },
+  ]);
   keepsEveryLine(exerciseText(record.body));
   assert.equal(JSON.stringify(record), original);
 });
 
-test('story bodies keep blank lines and quoted look-alike headings until the next profile line', () => {
-  for (const newline of ['\n', '\r\n']) {
-    const transcript = artefactText({
-      kind: 'powershell-transcript',
-      sender: 'Imran Salleh',
-      headline: 'TE-FS01 incident status',
-      body: [
-        "PS C:\\> Write-Output 'Reported: TE-FS01 working files unavailable'",
-        'Reported: TE-FS01 working files unavailable',
-        '',
-        'Next check pending',
-        'PowerShell transcript from quoted text: not a boundary to rewrite',
-        'FACT / quoted / description: inside the transcript',
-      ].join('\n'),
-      recipientRoleIds: ['internal-it'],
-    });
-    const source = [
-      '+0 elapsed minutes',
-      'Files are unavailable.',
-      '',
-      transcript,
-      '',
-      'UNKNOWN / Backup restore / tested: no value recorded',
-    ]
-      .join('\n')
-      .replaceAll('\n', newline);
-    const { blocks } = parseExerciseText(source);
-    assert.deepEqual(
-      blocks.map((block) => block.kind),
-      ['text', 'message', 'fact'],
-    );
-    const message = blocks[1] as Extract<ExerciseBlock, { kind: 'message' }>;
-    assert.equal(message.label, 'PowerShell transcript');
-    assert(
-      message.body.includes(
-        'unavailable\n\nNext check pending\nPowerShell transcript from quoted text',
-      ),
-    );
-    assert(message.body.endsWith('FACT / quoted / description: inside the transcript'));
-    assert.equal((blocks[2] as { status: string }).status, 'unknown');
-    keepsEveryLine(source);
+test('all story kinds keep quoted headings and whitespace with multiline senders and headlines', () => {
+  for (const kind of artefactKinds) {
+    for (const newline of ['\n', '\r\n']) {
+      for (const sender of ['Internal IT', 'Duty operator: night shift', 'Operator\nsecond line']) {
+        const story = artefactText({
+          kind,
+          sender,
+          headline: 'TE-FS01 status\nFACT / quoted headline / description: not a fact',
+          body: [
+            '',
+            '  First line with spaces  ',
+            '\tConsole output\t',
+            '',
+            'FACT / quoted / description: inside the story',
+            '',
+            'EXERCISE ASSUMPTION: still quoted',
+            '',
+            'Discussion:',
+            '- still quoted',
+            '',
+            'Email from Quoted sender: Not another message',
+            '',
+            'Background:',
+            '- another quoted heading',
+            '',
+            'All actions are simulated; do not contact real people or change systems.',
+            '  Trailing spaces stay  ',
+            '',
+          ].join('\n'),
+          recipientRoleIds: ['internal-it'],
+        });
+        const content = '\n  Leading whitespace  \n' + story + '\n\n';
+        const source = content.replaceAll('\n', newline);
+        const original = source;
+        assert.equal(exerciseText(source), source);
+        assert.deepEqual(parseExerciseText(source), {
+          elapsedMinutes: null,
+          blocks: [{ kind: 'text', text: content }],
+        });
+        assert.equal(source, original);
+      }
+    }
   }
+});
+
+test('generated text without stories retains tagged facts and discussion questions', () => {
+  const body = [
+    '+30 elapsed minutes',
+    'Files are unavailable.',
+    '',
+    'FACT / Endpoint Guard EDR / description: Covers laptops; server excluded.',
+    '',
+    'PROPOSAL / Engineering service / depends-on: TE-FS01 Draft procedure.',
+    '',
+    'Discussion:',
+    'What evidence should be preserved?',
+  ].join('\n');
+  assert.deepEqual(parseExerciseText(body), {
+    elapsedMinutes: 30,
+    blocks: [
+      { kind: 'text', text: 'Files are unavailable.' },
+      {
+        kind: 'fact',
+        status: 'fact',
+        subject: 'Endpoint Guard EDR',
+        field: 'description',
+        text: 'Covers laptops; server excluded.',
+      },
+      {
+        kind: 'fact',
+        status: 'proposal',
+        subject: 'Engineering service',
+        field: 'depends-on',
+        text: 'TE-FS01 Draft procedure.',
+      },
+      { kind: 'list', title: 'Discussion', items: ['What evidence should be preserved?'] },
+    ],
+  });
 });
 
 test('briefing text keeps role lines, background bullets, assumptions and continued facts', () => {

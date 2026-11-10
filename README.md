@@ -23,7 +23,7 @@ Reuse the [synthetic organisation package](docs/organisation/example-sme-01/READ
 
 Historical design references: the [five-inject workflow](docs/diagrams/ttx-five-inject-workflow.svg), [editable scene](docs/diagrams/ttx-five-inject-workflow.excalidraw) and [PNG](docs/diagrams/ttx-five-inject-workflow.png) include deferred coaching/readiness features. The [nine-screen storyboard](docs/diagrams/ttx-screen-concepts.svg), [editable scene](docs/diagrams/ttx-screen-concepts.excalidraw) and [PNG](docs/diagrams/ttx-screen-concepts.png) also predate current scope. They are layout/design references, not baseline acceptance or implemented behaviour; use PROJECT and WORK for current direction.
 
-An [editable Figma copy](https://www.figma.com/design/4oCPzxBPHnEpsp4qRz2YV3?node-id=1-2) is available in the existing design workspace. It is an imported storyboard with text/vector layers, not an interactive prototype or an automatically synchronised copy of the repository.
+The [current editable Figma storyboard](https://www.figma.com/design/4oCPzxBPHnEpsp4qRz2YV3?node-id=13-3), refreshed on 10 November, covers the implemented five-position intake-to-AAR workflow with current labels, participant tabs, facilitator review/report sections and literal story presentation. The September page is preserved as an archive. The new page uses native editable text/frame layers, not screenshots or an interactive prototype; the historical local exports above are not synchronised. See [maintenance notes](docs/diagrams/current-storyboard.md).
 
 The Figma copy and HTML component illustration retain the older design. Follow PROJECT for baseline scope; neither is automatically updated when repository plans change.
 

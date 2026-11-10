@@ -122,13 +122,10 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   const roleMessage = page.locator('.role-message');
   await expect(roleMessage.locator('.story-message')).toHaveCount(0);
   await page.getByRole('tab', { name: 'Engineering/project operations', exact: true }).click();
-  const story = roleMessage.locator('.story-message.chat-message');
-  await expect(story.locator('.story-kind')).toHaveText('Chat message');
-  await expect(story.locator('.story-meta')).toContainText('Project team chat');
-  await expect(story.getByRole('heading', { name: 'Story update 1', exact: true })).toBeVisible();
-  await expect(story.locator('.story-body')).toHaveText(
-    'EDITED_STORY: the drawings folder will not open for anyone.',
-  );
+  const story = roleMessage.locator('.exercise-text');
+  await expect(story).toContainText('Chat message from Project team chat: Story update 1');
+  await expect(story).toContainText('EDITED_STORY: the drawings folder will not open for anyone.');
+  await expect(roleMessage.locator('.story-message, .fact-section, .discussion')).toHaveCount(0);
   await page.getByRole('tab', { name: 'Business leadership', exact: true }).click();
   await expect(
     page

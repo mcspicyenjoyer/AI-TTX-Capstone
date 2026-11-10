@@ -103,7 +103,7 @@ ADR-043 adds the `powershell-transcript` kind to the same story-message contract
 
 ADR-042 removes repeated labels only in UI presentation. The shared `exerciseText` presenter replaces known stock warning/clock phrases for facilitator and participant views; it never writes back into a package, release, source, response or report. Original source review and report evidence remain exact. Server-side renderers, hashes, clock extraction, prompts, data restrictions and approval acknowledgements are unchanged. Do not use this display helper for evidence processing or strip arbitrary words from user-authored content.
 
-ADR-044 arranges the [participant view](../src/ui/participant-exercise.tsx) as a Briefing tab plus one tab per released inject, with that inject's team-response panel beside it. `parseExerciseText` reads the generator's existing role-body layout into display blocks for this view only; unrecognised text stays plain. Server projections, hashes, access checks, response rules and the facilitator view are unchanged.
+ADR-044 arranges the [participant view](../src/ui/participant-exercise.tsx) as a Briefing tab plus one tab per released inject, with that inject's team-response panel beside it. ADR-046 corrects the parser's ambiguous story attribution: `parseExerciseText` displays any story-bearing flattened body as one whitespace-preserved text block, after line-ending normalisation and separate leading-clock extraction. It does not infer where arbitrary quoted prose ends and genuine facts/questions begin; those genuine sections also remain literal in story-bearing bodies. Non-story briefing/profile content retains tagged facts and lists. Images are separately titled thumbnails with enlargement/download, never matched to inferred messages by headline. Stored bodies, server projections, hashes, access checks and response rules are unchanged.
 
 ADR-045 shortens the facilitator's pages the same way, again in presentation only. [Package review](../src/ui/package-workspace.tsx) is split into mounted steps with approval below them; the [Record report tab](../src/ui/record-report-workspace.tsx) has Debrief, Records and After-action review sections, with each record collapsed to one line and its identifiers behind a toggle; the shared [citation link](../src/ui/record-citation.tsx) keeps the full record ID on every cited line while showing a short form; and [role messages](../src/ui/exercise-blocks.tsx) reuse the participant rendering for the facilitator's preview. Snapshots, hashes, approval and access rules are untouched.
 
@@ -239,7 +239,13 @@ Standards checked on 4 October 2026 against CSA's current linked publications: [
 
 The authored pack's current SOC contact record and stale printed duty card are distinct facts. Preserve them and missing/rehearsal evidence until reviewed for the selected scenario; do not relabel the fixture as having passed lower tiers. The engineering briefing explicitly uses a controller to represent the incident lead, cover and suppliers for a delivery check only. It neither imports `org-draft-0.3` nor resolves the historical profile's uncertain facts. Reviewed scenario-specific starting arrangements remain work for the five-inject baseline.
 
-### Screen storyboard - 20 September 2026
+### Current screen storyboard - 10 November 2026
+
+The [current editable Figma storyboard](https://www.figma.com/design/4oCPzxBPHnEpsp4qRz2YV3?node-id=13-3) presents nine simplified states from the implemented five-position workflow: source intake with Document type, reconciliation and confirmation, operator-bound generation, package review/freeze, Step 0/start, released participant tabs, interpretation and closure, completed-run records/debrief, and AAR review. It reflects ADR-044 to ADR-046 without restoring deferred coaching or implying response-dependent branches. Captions distinguish manual operator setup, synthetic examples and remaining Form B gaps from application controls.
+
+The figure uses native editable text and auto-layout frames based on current UI typography/colours. It is a storyboard, not screenshots, a runnable prototype or acceptance evidence. [Maintenance notes](diagrams/current-storyboard.md) identify the file/page/screens and API-only build source. The September page is preserved in the same file; the older local SVG/PNG/Excalidraw exports below remain historical and are not synchronised with the new Figma page.
+
+### Archived screen storyboard - 20 September 2026
 
 Historical screen concepts: ADR-016 superseded this storyboard's intake-before-track preparation order; ADR-021 now gates both designs to Form B. The [five-inject workflow](diagrams/ttx-five-inject-workflow.svg) includes deferred coaching/readiness features and has not been reconciled with the new milestone sequence. Use PROJECT for the current five-then-ten baseline. These screens and their Figma copy are layout references, not the current navigation specification or an extra readiness-specification prerequisite. No Figma update is implied by a local planning change.
 
@@ -412,7 +418,7 @@ Implementation map (all additions below remain planned):
 
 At the time of this historical planning update, the next checkpoint was TASK-001C. Current implementation and next work are recorded in WORK. Full AI profiling and document ingestion remain dependent baseline work; the additional readiness engine is now deferred under ADR-021. This historical methodology section is not runtime evidence.
 
-Diagram maintenance: `node docs/diagrams/generate-five-inject-workflow.cjs` regenerates the dated 24 September scene/SVG; its PNG is a rendered preview. It does not yet encode the complete ADR-021 reconciliation. Follow PROJECT and this document for current requirements/design. The screen storyboard/Figma copy and HTML illustration are also historical views; regenerating an old layout does not bring it into alignment automatically.
+Diagram maintenance: `node docs/diagrams/generate-five-inject-workflow.cjs` regenerates the dated 24 September scene/SVG; its PNG is a rendered preview. It does not yet encode the complete ADR-021 reconciliation. Follow PROJECT and this document for current requirements/design. The September screen storyboard, its archived Figma page and HTML illustration remain historical; regenerating an old layout does not bring it into alignment automatically. The separate 10 November Figma page is the current screen storyboard.
 
 ---
 

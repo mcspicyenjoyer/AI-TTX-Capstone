@@ -218,10 +218,10 @@ test('participant reads one inject per tab beside the team response and keeps dr
     const second = release(1);
     await expect(tab(2)).toHaveAttribute('aria-selected', 'true', { timeout: 15000 });
     await expect(panel.getByRole('heading', { name: second.title, exact: true })).toBeVisible();
-    const story = panel.getByRole('region', { name: 'Chat message from Project team chat' });
-    await expect(story.locator('.story-kind')).toHaveText('Chat message');
-    await expect(story.getByRole('heading', { name: 'Story update 2' })).toBeVisible();
-    await expect(story.locator('.story-body')).toHaveText('STORY_2: test in-story message.');
+    const story = panel.locator('.exercise-text');
+    await expect(story).toContainText('Chat message from Project team chat: Story update 2');
+    await expect(story).toContainText('STORY_2: test in-story message.');
+    await expect(panel.locator('.story-message, .fact-section, .discussion')).toHaveCount(0);
     const actions = panel.getByLabel('Agreed actions', { exact: true });
     await actions.fill('Draft kept across tabs.');
     await tab(1).click();

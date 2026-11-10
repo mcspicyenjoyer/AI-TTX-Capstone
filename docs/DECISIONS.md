@@ -2,6 +2,16 @@
 
 Accepted means a direction for the user's authorised baseline, not organisation deployment or data approval.
 
+## ADR-046 - Literal presentation for flattened story bodies
+
+10 November 2026: the user requests the remaining parser fix before publication to main. Generated role bodies flatten arbitrary story text and genuine facts/questions using identical paragraph separators. A quoted `FACT / ...`, `Discussion:` or story heading can therefore look exactly like an application section. Another heading regex cannot reliably recover the original attribution from the released string.
+
+Use one whitespace-preserved text block whenever the body contains a supported story-kind prefix, including multiline sender/headline variants. Normalise line endings and display an existing leading elapsed-time line separately; do not infer story boundaries or promote quoted text into facts or questions. Keep all remaining text, including genuine evidence and discussion questions, literal. Non-story briefing/profile formatting, participant tabs, response placement and page-local drafts remain unchanged. Package and run role previews use the same renderer.
+
+Show delivered images as separately titled thumbnails with enlargement and download, not attached to a guessed message by headline. Duplicate headlines cannot establish an image-to-message relationship. This supersedes ADR-044's story-card and headline-matching presentation only. Stored bodies, package/release hashes, server projections, access, approval and response rules are unchanged.
+
+Alternatives: more separator heuristics still misattribute valid quoted content; explicit structured presentation fields would require a wider contract, projection and compatibility change. The literal fallback fixes the demonstrated defect without that expansion. Its deliberate cost is less rich formatting for genuine facts/questions within story-bearing bodies. No dependency or migration is added. Maintain the story-prefix labels alongside the application story-kind contract and regression tests; revisit structured delivery only when separately needed. WORK records the red/green and full-suite evidence.
+
 ## ADR-045 - Shorter facilitator pages: review steps, one-line records and compact citations
 
 10 November 2026: after the participant tabs, the user asked whether the remaining long pages could be improved and approved the first three recommendations on the same branch. Measured from the 6 November full-page screenshots of the 3031 rehearsal data at 1440 px wide, the Package generation page was 10,195 px tall and a completed run's Record report tab 54,721 px. Most of the report's length was the same record ID printed beside every label and line, record plumbing shown as content, and four jobs stacked on one tab.
@@ -18,6 +28,8 @@ This is display only. No contract, stored record, hash, server route, approval r
 Alternatives: drop per-line citations (contradicts the recorded per-line check and weakens traceability), paginate or virtualise the records (hides them from find-in-page and needs a dependency), or give each step its own route (unmounts unsaved edits and needs a router). All are rejected for this request. Not addressed here: the Run tab still stacks Step 0, inject review, activity, clarifications and all positions, and the inject editor's form column is still long.
 
 ## ADR-044 - One released inject per participant tab
+
+Current refinement: ADR-046 supersedes the inferred story-card formatting and headline-based image placement below. The participant tabs and response layout remain implemented; story-bearing bodies now stay literal, with separately labelled images.
 
 6 November 2026: the user asked for a participant workspace that needs less scrolling and looks clearer, and approved this layout on a separate branch. Measured on the 3031 rehearsal data at 1440×900, the participant page was 9,471 px tall: the full briefing, then every released inject with full-width images, then every response, so inject 1's response form started about 4,000 px below inject 1.
 

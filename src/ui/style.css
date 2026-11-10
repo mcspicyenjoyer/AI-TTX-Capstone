@@ -1921,74 +1921,6 @@ input[type='checkbox'] {
   font-size: 15px;
   line-height: 1.65;
 }
-.story-message {
-  display: grid;
-  gap: 14px;
-  min-width: 0;
-  padding: 14px 18px;
-  background: #fbfcfc;
-  border: 1px solid #dce2e1;
-  border-left: 4px solid #3f6f9a;
-  border-radius: 0 6px 6px 0;
-}
-.story-message.has-image {
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 300px);
-  align-items: start;
-}
-.story-message.ransom-note,
-.story-message.leak-site-post {
-  border-left-color: #a43c2f;
-}
-.story-message.news-item {
-  border-left-color: #8a6a1f;
-}
-.story-message.powershell-transcript {
-  border-left-color: #1f3a5f;
-}
-.story-text {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-.story-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-  margin: 0;
-  color: #526764;
-  font-size: 12px;
-}
-.story-kind {
-  color: #2c4a45;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.ransom-note .story-kind,
-.leak-site-post .story-kind {
-  color: #8a3326;
-}
-.story-message h4 {
-  margin: 0;
-  font-size: 15px;
-}
-.story-body {
-  margin: 0;
-  max-width: 78ch;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-.powershell-transcript .story-body {
-  max-width: none;
-  padding: 12px 14px;
-  border-radius: 4px;
-  background: #102a43;
-  color: #e6eef5;
-  font-family: Consolas, 'Cascadia Mono', 'Courier New', monospace;
-  font-size: 13px;
-}
 .image-thumb {
   display: grid;
   gap: 8px;
@@ -2008,9 +1940,16 @@ input[type='checkbox'] {
 }
 .image-thumb figcaption {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+.image-thumb-title {
+  flex-basis: 100%;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 600;
 }
 .image-thumb figcaption .secondary {
   min-height: 34px;
@@ -2164,11 +2103,6 @@ input[type='checkbox'] {
     position: static;
     max-height: none;
     overflow: visible;
-  }
-}
-@media (max-width: 800px) {
-  .story-message.has-image {
-    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (max-width: 600px) {

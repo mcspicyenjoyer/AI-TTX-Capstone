@@ -37,6 +37,7 @@ export function ImageThumbnail({ image }: { image: DeliveredImage }) {
         height={image.height}
       />
       <figcaption>
+        <span className="image-thumb-title">{image.title}</span>
         <button className="secondary" onClick={() => setOpen(true)}>
           <Maximize2 size={16} />
           Enlarge image

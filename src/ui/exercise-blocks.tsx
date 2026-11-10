@@ -1,40 +1,15 @@
 import { useState, type ReactNode } from 'react';
-import {
-  Clock,
-  FileWarning,
-  Globe,
-  Mail,
-  MessageSquare,
-  Newspaper,
-  Phone,
-  SquareTerminal,
-  Ticket,
-  Voicemail,
-} from 'lucide-react';
+import { Clock } from 'lucide-react';
 import type { DeliveredImage } from '../contracts/artefact-images.js';
 import {
   exerciseText,
   optionLabel,
   parseExerciseText,
   type ExerciseBlock,
-  type StoryLabel,
 } from './exercise-format.js';
 import { ImageThumbnail } from './artefact-images.js';
 
 type Fact = Extract<ExerciseBlock, { kind: 'fact' }>;
-type Message = Extract<ExerciseBlock, { kind: 'message' }>;
-
-const storyIcons: Record<StoryLabel, typeof Mail> = {
-  Email: Mail,
-  'Chat message': MessageSquare,
-  'Phone call': Phone,
-  Voicemail: Voicemail,
-  'Helpdesk ticket': Ticket,
-  'Ransom note': FileWarning,
-  'Leak-site post': Globe,
-  'News item': Newspaper,
-  'PowerShell transcript': SquareTerminal,
-};
 
 function FactList({ title, facts }: { title?: string; facts: Fact[] }) {
   return (
@@ -62,28 +37,6 @@ function FactList({ title, facts }: { title?: string; facts: Fact[] }) {
   );
 }
 
-function StoryMessage({ message, image }: { message: Message; image?: DeliveredImage }) {
-  const Icon = storyIcons[message.label];
-  const kind = message.label.toLowerCase().replaceAll(' ', '-');
-  return (
-    <section
-      className={`story-message ${kind}${image ? ' has-image' : ''}`}
-      aria-label={`${message.label} from ${message.sender}`}
-    >
-      <div className="story-text">
-        <p className="story-meta">
-          <Icon size={16} />
-          <span className="story-kind">{message.label}</span>
-          <span>{message.sender}</span>
-        </p>
-        <h4>{message.headline}</h4>
-        <p className="story-body">{message.body}</p>
-      </div>
-      {image && <ImageThumbnail image={image} />}
-    </section>
-  );
-}
-
 // Renders parsed blocks in order; consecutive profile lines share one tagged list.
 export function Blocks({
   blocks,
@@ -94,7 +47,6 @@ export function Blocks({
   images?: DeliveredImage[];
   factTitle?: string;
 }) {
-  const used = new Set<string>();
   const out: ReactNode[] = [];
   let facts: Fact[] = [];
   const flushFacts = (key: number) => {
@@ -113,11 +65,6 @@ export function Blocks({
           {block.text}
         </p>,
       );
-    } else if (block.kind === 'message') {
-      // Images are delivered with their story message's headline as the title.
-      const image = images.find((item) => item.title === block.headline && !used.has(item.id));
-      if (image) used.add(image.id);
-      out.push(<StoryMessage key={index} message={block} image={image} />);
     } else {
       const discussion = block.title === 'Discussion';
       out.push(
@@ -137,10 +84,9 @@ export function Blocks({
     }
   });
   flushFacts(blocks.length);
-  const unmatched = images.filter((image) => !used.has(image.id));
   return (
     <>
-      {unmatched.map((image) => (
+      {images.map((image) => (
         <ImageThumbnail key={image.id} image={image} />
       ))}
       {out}

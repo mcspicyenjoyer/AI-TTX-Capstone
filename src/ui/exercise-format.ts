@@ -81,15 +81,14 @@ export const storyLabels = [
   'News item',
   'PowerShell transcript',
 ] as const;
-export type StoryLabel = (typeof storyLabels)[number];
-const storyHeading = new RegExp(`^(${storyLabels.join('|')}) from (.+?): (.+)$`);
+const storyPrefix = new RegExp(`^(?:${storyLabels.join('|')}) from `, 'm');
 
 // Display stock exercise copy without repeated labels. Never use this for source quotes,
 // stored records, hashes, prompts or report evidence; those retain their exact wording.
 export function exerciseText(value: string): string {
   // Flat released bodies have no separate story metadata. Preserve everything from the first
   // rendered story heading, including its quoted evidence, rather than guess where prose ends.
-  const storyStart = value.search(new RegExp(`^(?:${storyLabels.join('|')}) from `, 'm'));
+  const storyStart = value.search(storyPrefix);
   const wrapper = storyStart === -1 ? value : value.slice(0, storyStart);
   let display = wrapper.replace(/^SIMULATED SCENARIO: /, '').replace(/^SIMULATION(?:\. | \/ )/, '');
   if (value.startsWith('SIMULATED SCENARIO: '))
@@ -101,7 +100,6 @@ export function exerciseText(value: string): string {
 export type FactStatus = 'fact' | 'proposal' | 'assumption' | 'unknown' | 'conflict';
 export type ExerciseBlock =
   | { kind: 'text'; text: string }
-  | { kind: 'message'; label: StoryLabel; sender: string; headline: string; body: string }
   | { kind: 'fact'; status: FactStatus; subject: string; field: string; text: string }
   | { kind: 'list'; title: string; items: string[] };
 
@@ -110,10 +108,9 @@ const factLine =
 const assumptionLine = /^EXERCISE ASSUMPTION: ?(.*)$/;
 const listHeading = /^(Background|Discussion):$/;
 
-// Display-only reading of released and briefing text (ADR-044). It recognises the layout the
-// generator writes: an elapsed-time line, story messages, status-tagged profile lines and
-// headed lists. Every non-blank line lands in exactly one block, so nothing is dropped; text in
-// any other layout stays one plain text block. Stored records keep their exact wording.
+// Flattened stories and application sections have identical separators. Keep any story-bearing
+// body literal rather than infer attribution; only line endings and the leading clock are handled.
+// Non-story briefing/profile text retains its existing tagged-fact and list presentation.
 export function parseExerciseText(value: string): {
   elapsedMinutes: number | null;
   blocks: ExerciseBlock[];
@@ -121,42 +118,27 @@ export function parseExerciseText(value: string): {
   const lines = value.replace(/\r\n?/g, '\n').split('\n');
   const clock = /^\+(\d+) elapsed minutes$/.exec(lines[0] ?? '');
   if (clock) lines.shift();
+  const elapsedMinutes = clock ? Number(clock[1]) : null;
+  const body = lines.join('\n');
+  if (storyPrefix.test(body)) return { elapsedMinutes, blocks: [{ kind: 'text', text: body }] };
   const blocks: ExerciseBlock[] = [];
   let current: ExerciseBlock | null = null;
   let blank = true;
-  let gap = 0;
   const flush = () => {
-    if (current?.kind === 'message') current.body = current.body.trim();
     if (current) blocks.push(current);
     current = null;
   };
   for (const raw of lines) {
     const line = raw.trimEnd();
     if (!line.trim()) {
-      // Message bodies may hold blank lines (transcripts); a fact ends at the next line itself.
-      if (current?.kind === 'message') gap++;
-      else if (current?.kind !== 'fact') flush();
+      if (current?.kind !== 'fact') flush();
       blank = true;
       continue;
     }
-    const inMessage: boolean = (current as ExerciseBlock | null)?.kind === 'message';
-    const header: boolean = !inMessage || blank;
-    // The generator always starts a story message on a new paragraph.
-    const story: RegExpExecArray | null = blank ? storyHeading.exec(line) : null;
-    const fact: RegExpExecArray | null = header ? factLine.exec(line) : null;
-    const assumption: RegExpExecArray | null = header ? assumptionLine.exec(line) : null;
-    const heading: RegExpExecArray | null = header ? listHeading.exec(line) : null;
-    if (story) {
-      flush();
-      current = {
-        kind: 'message',
-        label: story[1] as StoryLabel,
-        sender: story[2]!,
-        headline: story[3]!,
-        body: '',
-      };
-      gap = 0;
-    } else if (fact) {
+    const fact = factLine.exec(line);
+    const assumption = assumptionLine.exec(line);
+    const heading = listHeading.exec(line);
+    if (fact) {
       flush();
       current = {
         kind: 'fact',
@@ -177,9 +159,6 @@ export function parseExerciseText(value: string): {
     } else if (heading) {
       flush();
       current = { kind: 'list', title: heading[1]!, items: [] };
-    } else if (current?.kind === 'message') {
-      current.body += (current.body ? '\n'.repeat(gap + 1) : '') + line;
-      gap = 0;
     } else if (current?.kind === 'list') {
       current.items.push(line.replace(/^- /, ''));
     } else if (current?.kind === 'fact' && !blank) {
@@ -193,7 +172,7 @@ export function parseExerciseText(value: string): {
     blank = false;
   }
   flush();
-  return { elapsedMinutes: clock ? Number(clock[1]) : null, blocks };
+  return { elapsedMinutes, blocks };
 }
 
 export const date = (value: string) =>

@@ -7,6 +7,7 @@ import { ArtefactImageService } from '../../src/server/artefact-image-service.js
 import { ExerciseService } from '../../src/server/exercise-service.js';
 import { generationTarget, generationPlan } from '../generation-fixture.js';
 import { fakeImage } from '../artefact-image-fixture.js';
+import { exerciseText } from '../../src/ui/exercise-format.js';
 
 test.use({ subscriptionEnabled: true, generationEnabled: true });
 test('generate review attach freeze and release a PowerShell image with reload and responsive rendering', async ({
@@ -29,7 +30,20 @@ test('generate review attach freeze and release a PowerShell image with reload a
     outputTokens: 1,
   });
   const errors: string[] = [];
-  const transcript = "PS C:\\> Write-Output 'fictional reference'\nfictional reference\n\nPS C:\\>";
+  const transcript = [
+    "PS C:\\> Write-Output 'fictional reference'",
+    'fictional reference',
+    '',
+    'FACT / Backup / description: quoted output only, not verified recovery',
+    '',
+    'Discussion:',
+    '- quoted command output, not an exercise question',
+    '',
+    'Email from Quoted sender: not another story message',
+    '  indented output with trailing spaces  ',
+    '',
+    'PS C:\\>',
+  ].join('\n');
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('dialog', (dialog) => dialog.accept());
   try {
@@ -55,9 +69,15 @@ test('generate review attach freeze and release a PowerShell image with reload a
     await expect(kind).toHaveValue('powershell-transcript');
     await expect(page.getByLabel('Story message 1 text', { exact: true })).toHaveValue(transcript);
     await page.getByRole('tab', { name: 'Engineering/project operations', exact: true }).click();
-    const saved = page.locator('.role-message .story-message.powershell-transcript');
-    await expect(saved.locator('.story-kind')).toHaveText('PowerShell transcript');
-    await expect(saved.locator('.story-body')).toContainText(transcript);
+    const saved = page.locator('.role-message');
+    const savedBody = generator
+      .get(actor, view.draft.id)
+      .preview!.injects[0]!.roleBodies!.find(
+        (body) => body.roleId === 'engineering-projects',
+      )!.body;
+    const literalBody = exerciseText(savedBody).replace(/^\+0 elapsed minutes\n/, '');
+    await expect(saved.locator('.exercise-text')).toHaveJSProperty('textContent', literalBody);
+    await expect(saved.locator('.story-message, .fact-section, .discussion')).toHaveCount(0);
     await panel.getByRole('button', { name: 'Generate image', exact: true }).click();
     await expect(panel).toContainText('Queued for image worker.');
     const job = images.claim()!;
@@ -161,6 +181,12 @@ test('generate review attach freeze and release a PowerShell image with reload a
       acknowledgeGaps: true,
       acknowledgeSimulation: true,
     });
+    await page.getByRole('button', { name: 'Exercises', exact: true }).click();
+    await page.getByLabel('Exercise', { exact: true }).selectOption(`technical/${runId}`);
+    await page.getByRole('tab', { name: 'Engineering/project operations', exact: true }).click();
+    const runPreview = page.locator('.role-message');
+    await expect(runPreview.locator('.exercise-text')).toHaveJSProperty('textContent', literalBody);
+    await expect(runPreview.locator('.story-message, .fact-section, .discussion')).toHaveCount(0);
     const current = exercises.review(actor, 'technical', runId),
       inject = current.package.injects[0]!;
     const approval = exercises.approve(actor, 'technical', runId, {
@@ -181,23 +207,26 @@ test('generate review attach freeze and release a PowerShell image with reload a
           .getByRole('combobox', { name: 'Exercise', exact: true })
           .selectOption(`technical/${runId}`);
         const inbox = participant.getByRole('region', { name: 'Released inbox', exact: true });
-        const story = inbox.locator('.story-message.powershell-transcript');
+        const literal = inbox.locator('.exercise-text');
         await expect(inbox.getByRole('img')).toHaveCount(username === 'player-engineering' ? 1 : 0);
         if (username === 'player-engineering') {
-          await expect(story.locator('.story-kind')).toHaveText('PowerShell transcript');
-          await expect(story.locator('.story-body')).toContainText(transcript);
-          await expect(story.getByRole('img')).toHaveCount(1);
-          await story.getByRole('button', { name: 'Enlarge image', exact: true }).click();
+          await expect(literal).toHaveJSProperty('textContent', literalBody);
+          await expect(inbox.locator('.story-message, .fact-section, .discussion')).toHaveCount(0);
+          await expect(inbox.locator('.image-thumb').getByRole('img')).toHaveCount(1);
+          await inbox.getByRole('button', { name: 'Enlarge image', exact: true }).click();
           const dialog = participant.getByRole('dialog');
           await expect(dialog.getByRole('img')).toBeVisible();
           await dialog.getByRole('button', { name: 'Close', exact: true }).click();
           await expect(participant.getByRole('dialog')).toHaveCount(0);
         } else {
-          await expect(story).toHaveCount(0);
+          await expect(inbox.locator('.story-message')).toHaveCount(0);
           await expect(inbox).not.toContainText(transcript);
         }
         await expect(inbox).not.toContainText('SIMULATION');
         const stored = store.exercises.releases(runId)[0]!;
+        expect(stored.deliveries!.find((delivery) => delivery.body === savedBody)?.body).toBe(
+          savedBody,
+        );
         expect(
           stored.deliveries!.some((delivery) => delivery.body.startsWith('SIMULATION /')),
         ).toBe(true);
