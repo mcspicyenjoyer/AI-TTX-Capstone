@@ -109,8 +109,8 @@ test('network and DOCX evidence become a reviewed typed snapshot, export and sur
       exact: true,
     })
     .check();
-  await page.getByRole('button', { name: 'Confirm profile snapshot', exact: true }).click();
-  await expect(page.getByText('Confirmed snapshot', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Confirm profile', exact: true }).click();
+  await expect(page.getByText('Confirmed profile', { exact: true })).toBeVisible();
   const draft = (await (
     await page.request.get(`/api/intakes/${imported.draft.id}`)
   ).json()) as IntakeView;
@@ -130,8 +130,8 @@ test('network and DOCX evidence become a reviewed typed snapshot, export and sur
   expect((await download).suggestedFilename()).toBe(`${imported.draft.id}.json`);
   await page.reload();
   await page.getByRole('button', { name: 'Source intake', exact: true }).click();
-  await page.getByLabel('Preparation draft', { exact: true }).selectOption(imported.draft.id);
-  await expect(page.getByText('Confirmed snapshot', { exact: true })).toBeVisible();
+  await page.getByLabel('Intake draft', { exact: true }).selectOption(imported.draft.id);
+  await expect(page.getByText('Confirmed profile', { exact: true })).toBeVisible();
   await page.getByRole('tab', { name: 'Review', exact: true }).click();
   await fits(page);
   await page.screenshot({ path: info.outputPath('intake-review-desktop.png'), fullPage: true });

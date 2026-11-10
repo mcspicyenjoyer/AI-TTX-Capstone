@@ -79,8 +79,8 @@ export function DebriefWorkspace({
     <section className="aar-workspace" aria-label="Debrief">
       <h2>Debrief</h2>
       <p className="muted">
-        Record after the run ends and before capturing a snapshot. Entries are append-only: record a
-        correction as a new entry, and capture a new snapshot to include it.
+        Record after the exercise ends and before capturing a snapshot. Entries are append-only:
+        record a correction as a new entry, and capture a new snapshot to include it.
       </p>
       {error && (
         <p className="error" role="alert">

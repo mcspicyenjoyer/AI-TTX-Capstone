@@ -100,20 +100,22 @@ test('team response, exact retry, revision, private facilitator review and expli
     await page
       .getByLabel('Closure rationale', { exact: true })
       .fill('Close the discussion and carry the scope gap.');
-    await page.getByRole('button', { name: 'Close position', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Complete run', exact: true })).toBeDisabled();
+    await page.getByRole('button', { name: 'Close inject', exact: true }).click();
+    await expect(
+      page.getByRole('button', { name: 'Complete exercise', exact: true }),
+    ).toBeDisabled();
     await page
       .getByLabel('Completion rationale', { exact: true })
       .fill('One engineering position completed with a recorded gap, not a recovery verdict.');
-    await page.getByRole('button', { name: 'Complete run', exact: true }).click();
-    await expect(page.locator('.outcomes')).toContainText('Run completed:');
+    await page.getByRole('button', { name: 'Complete exercise', exact: true }).click();
+    await expect(page.locator('.outcomes')).toContainText('Exercise completed:');
     await page.reload();
     await page.getByRole('button', { name: 'Exercises', exact: true }).click();
     await expect(page.locator('.outcomes')).toContainText(
       'Close the discussion and carry the scope gap.',
     );
-    await expect(page.locator('.outcomes')).toContainText('Run completed:');
-    await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toHaveCount(0);
+    await expect(page.locator('.outcomes')).toContainText('Exercise completed:');
+    await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toHaveCount(0);
     for (const target of [participant, observer]) {
       await target.getByRole('button', { name: 'Refresh outcomes', exact: true }).click();
       await expect(target.getByLabel('Agreed actions', { exact: true })).toHaveCount(0);
@@ -203,7 +205,7 @@ test('pause retains participant drafts and an obsolete mutation cannot sign out 
     await participant
       .getByLabel('Team rationale', { exact: true })
       .fill('Await explicit facilitator resume.');
-    await page.getByRole('button', { name: 'Pause run', exact: true }).click();
+    await page.getByRole('button', { name: 'Pause exercise', exact: true }).click();
     await expect(participant.locator('.participant-run')).toContainText('Paused. Submissions', {
       timeout: 12000,
     });
@@ -213,7 +215,7 @@ test('pause retains participant drafts and an obsolete mutation cannot sign out 
     await expect(
       participant.getByRole('button', { name: 'Submit team response', exact: true }),
     ).toBeDisabled();
-    await page.getByRole('button', { name: 'Resume run', exact: true }).click();
+    await page.getByRole('button', { name: 'Resume exercise', exact: true }).click();
     await expect(participant.locator('.participant-run')).not.toContainText('Paused. Submissions', {
       timeout: 12000,
     });
@@ -237,7 +239,7 @@ test('pause retains participant drafts and an obsolete mutation cannot sign out 
       await held;
       await route.fulfill({ status: 401, json: { error: { message: 'Old session expired.' } } });
     });
-    await page.getByRole('button', { name: 'Pause run', exact: true }).click();
+    await page.getByRole('button', { name: 'Pause exercise', exact: true }).click();
     await requested;
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await page.getByLabel('Username', { exact: true }).fill('facilitator');

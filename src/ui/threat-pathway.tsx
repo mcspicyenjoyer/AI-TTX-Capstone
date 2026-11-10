@@ -1,4 +1,5 @@
 import type { FamilyAssessment, PathwayClaim, ThreatPathway } from '../contracts/threat.js';
+import { optionLabel } from './exercise-format.js';
 
 function ClaimLines({ claims }: { claims: PathwayClaim[] }) {
   if (!claims.length) return <p className="muted">None recorded in the confirmed profile.</p>;
@@ -7,7 +8,7 @@ function ClaimLines({ claims }: { claims: PathwayClaim[] }) {
       {claims.map((claim) => (
         <li key={claim.claimId}>
           <span className={claim.status === 'fact' ? 'badge' : 'badge pending'}>
-            {claim.status.toUpperCase()}
+            {optionLabel(claim.status)}
           </span>{' '}
           {claim.text} <code>{claim.claimId}</code>
         </li>
@@ -105,8 +106,8 @@ export function ThreatPathwayView({ pathway }: { pathway: ThreatPathway }) {
       )}
       <h3>Gaps on the pathway</h3>
       <p className="muted">
-        These claims are not confirmed facts. They keep their recorded state; players discuss them
-        rather than the package resolving them.
+        These claims are not confirmed facts. They keep their recorded state; participants discuss
+        them rather than the package resolving them.
       </p>
       <ClaimLines claims={pathway.gaps} />
       <h3>Supporting claims</h3>

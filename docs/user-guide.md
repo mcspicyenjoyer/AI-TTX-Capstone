@@ -79,11 +79,11 @@ The **Organisation profile** landing page currently opens the first authorised f
 
 **Who:** facilitator, supported by the people who understand the example organisation. Do this before the participant session, not while everyone is waiting for the first inject.
 
-If the intended preparation already says **Confirmed snapshot**, inspect its sources and outstanding context, then go to Step 3. Otherwise:
+If the intended preparation already says **Confirmed profile**, inspect its sources and outstanding context, then go to Step 3. Otherwise:
 
 ### Import the Sources
 
-1. Open **Source intake**, expand **New preparation**, enter **Organisation name**, read and tick the data-requirements acknowledgement, then select **Create draft**.
+1. Open **Source intake**, expand **New intake draft**, enter **Organisation name**, read and tick the data-requirements acknowledgement, then select **Create draft**.
 2. In **Sources**, choose **Document**. Enter **Source title**, **Version** and **Document type**, select the **Source file**, acknowledge its data requirements and select **Import source**.
 3. Repeat for the supporting documents. Select the appropriate document type: **Network diagram**, **BCP**, **BIA**, **DRP** or **Guided context**. The imported source list and organisation profile's **Source register** use these same document-type labels.
 4. For an explicitly supplied statement rather than a file, choose **Guided evidence**. Complete **Source title**, **Version**, **Document type** and **Attributed source statement**, identifying where the statement came from. Tick the acknowledgement and select **Import source**. Do not present an assumption as independently verified evidence.
@@ -112,10 +112,10 @@ Work through **Entities** first, then **Claims**:
 
 There are two different decisions here:
 
-| Field                                                                            | Meaning                                                                                                    |
-| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| **Decision: Pending / Accepted / Rejected**                                      | Whether you have reviewed the candidate and want to keep it in the profile.                                |
-| **Knowledge status: Sourced claim / Proposal / Assumption / Unknown / Conflict** | What kind of information you are keeping, and how certain it is. Accepting it does not change this status. |
+| Field                                                                   | Meaning                                                                                                    |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Decision: Pending / Accepted / Rejected**                             | Whether you have reviewed the candidate and want to keep it in the profile.                                |
+| **Knowledge status: Fact / Proposal / Assumption / Unknown / Conflict** | What kind of information you are keeping, and how certain it is. Accepting it does not change this status. |
 
 For example, a plan might propose restoring a service within four hours. You can accept that statement with **Knowledge status: Proposal**, **Property: RTO hours** and **Value: 4**. That records a target, not proof that the team can restore the service in four hours. RTO is the target recovery time; RPO is the target amount of data loss measured in time.
 
@@ -128,9 +128,9 @@ Enter a clear **Review rationale**, such as "Compared the diagram and continuity
 1. Open **Review** and read **Outstanding context**. Resolve contradictions or explicitly retain a supported unknown/conflict; do not invent answers to make a warning disappear.
 2. Decide every candidate: no entity or claim may remain **Pending**. Confirmation also needs a supported network diagram, accepted entities and claims, and valid evidence/relationships.
 3. Save any remaining edits. Tick **I reviewed the source evidence, proposals, assumptions and remaining gaps.**
-4. Select **Confirm profile snapshot**.
+4. Select **Confirm profile**.
 
-**Expected result:** **Confirmed snapshot** appears, with **Export confirmed profile** available. The export is structured JSON, not a presentation or PDF report. The confirmed preparation is read-only; changed input requires a new preparation draft.
+**Expected result:** **Confirmed profile** appears, with **Export confirmed profile** available. The export is structured JSON, not a presentation or PDF report. The confirmed preparation is read-only; changed input requires a new preparation draft.
 
 ## Step 3: Ask the Operator to Select the Confirmed Profile
 
@@ -151,7 +151,7 @@ The existing 3031 demonstration profile is already configured. You do not need t
 
 1. In **Package generation**, select **Generate draft** and confirm subscription use. Wait for the queued/generating state to finish; do not repeatedly request new drafts because generation is taking time.
 2. Alternatively, choose an existing unfrozen **Review** entry from **Package draft**. This is the quickest route for the prepared demonstration.
-3. The review is split into steps under the draft: **Profile**, **Scenario**, **Pathway**, **Preparation** and **Injects**. A new draft leaves you on **Profile**; an existing draft opens on **Injects**. Open **Scenario** and read **Scenario and objectives**, **Background shared with players** and **Player roles**. Then open **Pathway**: it shows the route, the open gaps and, on request, the supporting claims. Confirm that the incident, its impact and the decisions make sense for the reviewed organisation.
+3. The review is split into steps under the draft: **Profile**, **Scenario**, **Pathway**, **Preparation** and **Injects**. A new draft leaves you on **Profile**; an existing draft opens on **Injects**. Open **Scenario** and read **Scenario and objectives**, **Background shared with participants** and **Participant roles**. Then open **Pathway**: it shows the route, the open gaps and, on request, the supporting claims. Confirm that the incident, its impact and the decisions make sense for the reviewed organisation.
 
 **Expected result:** the package is available for **Facilitator review**. The **Injects** step shows `0/5` and holds five numbered inject tabs. A new draft initially has zero accepted injects. Nothing has been delivered to participants.
 
@@ -219,7 +219,7 @@ For the prepared 3031 example, the separate Review draft has a saved PowerShell 
 
 ## Step 9: Release, Discuss and Close Each Inject
 
-Repeat this sequence for all five positions. The facilitator controls the pace; the platform does not send the next update automatically.
+Repeat this sequence for all five injects. The facilitator controls the pace; the platform does not send the next update automatically.
 
 ### Release the Update
 
@@ -233,23 +233,23 @@ Participants read their own information, share relevant observations in the disc
 
 A useful response might say: "We would ask the incident lead to decide whether the affected service should be isolated. We would preserve the available evidence first and need the supplier to clarify the recovery position." This describes intended actions and missing information, not actions already performed.
 
-Questions entered in the form do not contact suppliers or send external messages. The facilitator answers during the discussion. To retain a clarification, use **Facilitator Clarifications > Current position answer**, enter the actual **Participant question**, and either record a supported answer with **Confirmed claim IDs** or select **Not known at this time**. Select **Record clarification** before closing the current position. This log is facilitator-only: recording an answer does not deliver it to participant inboxes. Communicate it to the team as well.
+Questions entered in the form do not contact suppliers or send external messages. The facilitator answers during the discussion. To retain a clarification, use **Facilitator clarifications > Answer for the current inject**, enter the actual **Participant question**, and either record a supported answer with **Confirmed claim IDs** or select **Not known at this time**. Select **Record clarification** before closing the current inject. This log is facilitator-only: recording an answer does not deliver it to participant inboxes. Communicate it to the team as well.
 
 ### Review and Close
 
-1. Read the latest saved response. Optionally select **Interpret response** to request AI assistance, then compare its action assessments and quoted evidence with what the team actually wrote. Enter **Review rationale**, then use **Accept interpretation**, **Save edited assessment**, **Reject interpretation** or **Record manual override** as appropriate. **New manual assessment** is available without AI. This interpretation review is separate from the disposition below.
+1. Read the latest saved response. Optionally select **Interpret response** to request AI assistance, then compare its action assessments and quoted evidence with what the team actually wrote. Enter **Review rationale**, then use **Accept interpretation**, **Save edited interpretation**, **Reject interpretation** or **Record manual override** as appropriate. **New manual interpretation** is available without AI. This interpretation review is separate from the disposition below.
 2. Record the facilitator's disposition separately, using **Record disposition**. Note unresolved gaps and the reason for the decision. A clarification-required or hold disposition prevents closure until reviewed.
-3. When ready to progress, ensure the current response has a **Reviewed** disposition, enter **Closure rationale** and select **Close position**.
+3. When ready to progress, ensure the current response has a **Reviewed** disposition, enter **Closure rationale** and select **Close inject**.
 4. If no response was received, record that fact in **Facilitator observations**, record the missing response in **Unresolved gaps**, save a **Reviewed** disposition and explain the unanswered closure in **Closure rationale**. Do not invent a team answer.
-5. Move to the next position and repeat approval, release, discussion, review and closure.
+5. Move to the next inject and repeat approval, release, discussion, review and closure.
 
-**Check before continuing:** the current position is closed. An AI interpretation does not close it, release another inject or choose a scenario branch. If the team revises its response, review the new version; older assessments may now be stale.
+**Check before continuing:** the current inject is closed. An AI interpretation does not close it, release another inject or choose a scenario branch. If the team revises its response, review the new version; older assessments may now be stale.
 
 ### Pause or Finish
 
-Use **Pause run** when discussion needs to stop. Participants can still read saved information, but new responses and progression are blocked. Keep unsaved work in the open page; it is not a durable backup. Select **Resume run** when ready, and reapprove any unreleased inject because an earlier approval is no longer valid.
+Use **Pause exercise** when discussion needs to stop. Participants can still read saved information, but new responses and progression are blocked. Keep unsaved work in the open page; it is not a durable backup. Select **Resume exercise** when ready, and reapprove any unreleased inject because an earlier approval is no longer valid.
 
-After all five positions are closed, enter **Completion rationale** and select **Complete run**. Completion means the discussion has ended, not that the organisation recovered successfully. A justified decision to hold restoration can remain the final outcome. A completed run cannot be reopened through the current interface.
+After all five injects are closed, enter **Completion rationale** and select **Complete exercise**. Completion means the discussion has ended, not that the organisation recovered successfully. A justified decision to hold restoration can remain the final outcome. A completed run cannot be reopened through the current interface.
 
 ## Step 10: Debrief, Capture the Record and Review the AAR
 
@@ -257,7 +257,7 @@ After all five positions are closed, enter **Completion rationale** and select *
 
 ### Record the Debrief Before Taking the Snapshot
 
-1. In the completed generated exercise, open **Record report**. It has three sections: **Debrief**, **Records** and **After-action review**. Capture and the snapshot picker stay above them.
+1. In the completed generated exercise, open **Exercise record**. It has three sections: **Debrief**, **Records** and **After-action review**. Capture and the snapshot picker stay above them.
 2. In **Debrief**, record **Participant feedback (your summary)**, **Facilitator observations** and **Exercise design limitations** as appropriate. Select the participants whose feedback you are summarising. Do not attribute feedback to people who did not give it.
 3. Select **Record debrief**.
 4. Review the saved exercise responses and any interpretations you intend to include, then select **Capture record snapshot**.
@@ -300,18 +300,18 @@ The facilitator's interpretations, private notes and AAR are not participant scr
 | The page will not open                            | Check the operator's address and that the service is started. `127.0.0.1` on another laptop points to that laptop, not to the demonstration computer. Do not change network exposure yourself.                                                                                            |
 | Sign-in stopped working after a restart           | Sign in again with the code for this instance. Saved records remain; sessions do not survive a restart.                                                                                                                                                                                   |
 | A review field is locked                          | Check whether you selected a confirmed intake, frozen package or completed run. Use the appropriate new draft for changes, not the retained reference record.                                                                                                                             |
-| **Confirm profile snapshot** is disabled          | Save edits, decide every Pending candidate and tick the review acknowledgement. Read validation errors for missing evidence, relationships or unresolved contradictions.                                                                                                                  |
+| **Confirm profile** is disabled                   | Save edits, decide every Pending candidate and tick the review acknowledgement. Read validation errors for missing evidence, relationships or unresolved contradictions.                                                                                                                  |
 | Generation shows the wrong organisation           | Stop. Ask the operator to configure the exact confirmed profile. Confirming a new intake does not switch the generator.                                                                                                                                                                   |
 | **Generate draft** is disabled                    | Check the profile binding, threat applicability, unsaved work, AI status and any displayed limit. Ask the operator to check the package worker.                                                                                                                                           |
 | An AI job remains queued                          | Ask the operator to check the worker for that specific mode. One working AI feature does not prove all five workers are running. Do not keep queuing replacement requests.                                                                                                                |
 | **Generate image** is disabled                    | Save the message/preparation, use an unfrozen draft, and check AI availability, any active image job and the package's image limit. Images are optional.                                                                                                                                  |
 | An image disappeared from the draft               | Text, recipient, clock or preparation edits may have invalidated its attachment. Review the saved version, attach a suitable image again and reaccept the affected inject.                                                                                                                |
 | **Approve and freeze package** is disabled        | Check all five acceptances, saved preparation and objective coverage. Image attachment or later edits may have reset acceptance.                                                                                                                                                          |
-| Start, release or close is blocked                | Check Step 0, briefing, run state, current approval/recipients, the latest response and its disposition. Close the current position before progressing.                                                                                                                                   |
+| Start, release or close is blocked                | Check Step 0, briefing, run state, current approval/recipients, the latest response and its disposition. Close the current inject before progressing.                                                                                                                                     |
 | The run or response changed while you were typing | Read the latest saved version, select **Review latest state**, compare your retained draft with the new information, then submit the intended revision. Do not overwrite another person's contribution without discussion.                                                                |
 | Step 0 says its context changed                   | Use **Refresh context and keep draft**, review the refreshed information and tick **I have reviewed this draft against the refreshed context.** If the package or assignments changed, use **Discard unsaved check** and record a new check against the new context instead.              |
 | A participant cannot see an image                 | Check that it was attached before freezing and its inject was released to that participant's role. Different role visibility is intentional.                                                                                                                                              |
-| "Request outcome not confirmed" appears           | Use the displayed exact-retry control, such as **Retry same request** or **Retry exact request**. Do not refresh and submit a new command just because the reply was lost. If already reloaded, check saved state with the operator before trying again.                                  |
+| "Request outcome not confirmed" appears           | Use the displayed exact-retry control, such as **Retry same request**. Do not refresh and submit a new command just because the reply was lost. If already reloaded, check saved state with the operator before trying again.                                                             |
 | AI fails or reaches its limit                     | Keep the recorded failure. Existing draft review, text-only injects, manual interpretation and manual AAR remain available where their prerequisites exist. A failed new package generation does not create a usable package; use a reviewed existing draft or ask the operator for help. |
 | A snapshot or AAR omits later feedback            | Record the feedback, capture a new snapshot and prepare/review an AAR against that snapshot. Earlier snapshots do not silently change.                                                                                                                                                    |
 

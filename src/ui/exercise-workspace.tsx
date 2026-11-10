@@ -68,7 +68,7 @@ export function ExerciseWorkspace({
       {pending && !busy && (
         <button className="secondary" onClick={() => void perform(pending)}>
           <RefreshCw size={16} />
-          Retry last request
+          Retry same request
         </button>
       )}
       {editing.current && (
@@ -140,7 +140,7 @@ export function ExerciseWorkspace({
               onClick={() => setTab('run')}
             >
               <List size={17} />
-              Run
+              Exercise
             </button>
             <button
               role="tab"
@@ -149,7 +149,7 @@ export function ExerciseWorkspace({
               onClick={() => setTab('report')}
             >
               <FileText size={17} />
-              Record report
+              Exercise record
             </button>
           </div>
         )}

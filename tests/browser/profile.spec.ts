@@ -97,7 +97,7 @@ test('facilitator reviews evidence, filters, confirms, reloads and sees durable 
     'The synthetic organisation has 42 staff working from one office.',
   );
   await page.getByRole('button', { name: 'Clear filters', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Confirm revision', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Confirm profile', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: /File service recovery target/ }).click();
   await expect(
     page.getByText('The target restoration time for the file service is four hours.', {
@@ -121,10 +121,10 @@ test('facilitator reviews evidence, filters, confirms, reloads and sees durable 
   await noOverflow(page);
   await page.screenshot({ path: testInfo.outputPath('profile-mobile.png'), fullPage: true });
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Confirm revision', exact: true }).click();
-  await expect(page.getByText('Revision confirmed', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Confirm profile', exact: true }).click();
+  await expect(page.getByText('Profile confirmed', { exact: true })).toBeVisible();
   await page.reload();
-  await expect(page.getByText('Revision confirmed', { exact: true })).toBeVisible();
+  await expect(page.getByText('Profile confirmed', { exact: true })).toBeVisible();
   const savedResponse = await page.request.get(profileUrl);
   expect(savedResponse.ok()).toBe(true);
   const saved = (await savedResponse.json()) as ProfileView;

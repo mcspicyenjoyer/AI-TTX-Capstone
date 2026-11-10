@@ -42,7 +42,7 @@ for (const action of ['draft', 'snapshot', 'manual', 'ai', 'capture', 'refresh']
       await login(page, 'facilitator');
       await page.getByRole('button', { name: 'Exercises', exact: true }).click();
       await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
-      await page.getByRole('tab', { name: 'Record report', exact: true }).click();
+      await page.getByRole('tab', { name: 'Exercise record', exact: true }).click();
       const workspace = page.getByRole('region', { name: 'AAR workspace', exact: true });
       const draft = workspace.locator(':scope > label > select');
       const snapshots = page.getByLabel('Snapshot', { exact: true });
@@ -212,7 +212,7 @@ test('uncertain AAR review keeps edits and exact retry while draft and snapshot 
     await login(page, 'facilitator');
     await page.getByRole('button', { name: 'Exercises', exact: true }).click();
     await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
-    await page.getByRole('tab', { name: 'Record report', exact: true }).click();
+    await page.getByRole('tab', { name: 'Exercise record', exact: true }).click();
     const workspace = page.getByRole('region', { name: 'AAR workspace', exact: true });
     await expect(
       workspace.getByRole('heading', { name: 'After-action review', exact: true, level: 2 }),
@@ -238,7 +238,7 @@ test('uncertain AAR review keeps edits and exact retry while draft and snapshot 
     // The local AAR guard explains the block; the page-wide banner must not repeat it.
     await expect(
       page
-        .getByRole('region', { name: 'Record report workspace', exact: true })
+        .getByRole('region', { name: 'Exercise record workspace', exact: true })
         .getByText('Resolve the pending request before leaving this view.'),
     ).toBeVisible();
     await expect(
@@ -279,7 +279,7 @@ test('AAR draft is bound to snapshot, quoted and facilitator-reviewed with unass
     await login(page, 'facilitator');
     await page.getByRole('button', { name: 'Exercises', exact: true }).click();
     await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
-    await page.getByRole('tab', { name: 'Record report', exact: true }).click();
+    await page.getByRole('tab', { name: 'Exercise record', exact: true }).click();
     const workspace = page.getByRole('region', { name: 'AAR workspace', exact: true });
     await expect(workspace).toContainText(snapshot.hash);
     await workspace.getByRole('button', { name: 'Draft AAR', exact: true }).click();
@@ -393,7 +393,7 @@ test('manual AAR adds a cited finding for an objective whose positions closed un
     await login(page, 'facilitator');
     await page.getByRole('button', { name: 'Exercises', exact: true }).click();
     await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
-    await page.getByRole('tab', { name: 'Record report', exact: true }).click();
+    await page.getByRole('tab', { name: 'Exercise record', exact: true }).click();
     const workspace = page.getByRole('region', { name: 'AAR workspace', exact: true });
     await workspace.getByRole('button', { name: 'New manual AAR', exact: true }).click();
     await expect(workspace).toContainText('Status: manual');
@@ -435,7 +435,7 @@ test('failed AAR leaves a manual draft and future clarification log never backfi
     await expect(page.getByRole('region', { name: 'Facilitator clarification log' })).toHaveCount(
       0,
     );
-    await page.getByRole('tab', { name: 'Record report', exact: true }).click();
+    await page.getByRole('tab', { name: 'Exercise record', exact: true }).click();
     const workspace = page.getByRole('region', { name: 'AAR workspace', exact: true });
     await workspace.getByRole('button', { name: 'Draft AAR', exact: true }).click();
     await expect(workspace).toContainText('Status: queued');

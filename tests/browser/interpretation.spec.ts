@@ -47,7 +47,7 @@ test('facilitator reviews interpretations on a completed run without changing it
     await panel
       .getByLabel('Interpretation review rationale', { exact: true })
       .fill('Facilitator edit for this software test.');
-    await panel.getByRole('button', { name: 'Save edited assessment', exact: true }).click();
+    await panel.getByRole('button', { name: 'Save edited interpretation', exact: true }).click();
     await expect(panel.locator('.badge')).toHaveText('edit');
     await expect(
       panel.getByRole('button', { name: 'Accept interpretation', exact: true }),
@@ -68,7 +68,7 @@ test('facilitator reviews interpretations on a completed run without changing it
     });
     await page.getByRole('button', { name: 'Refresh interpretations', exact: true }).click();
     await expect(panel.getByText(/Interpretation failed/)).toBeVisible();
-    await panel.getByRole('button', { name: 'New manual assessment', exact: true }).click();
+    await panel.getByRole('button', { name: 'New manual interpretation', exact: true }).click();
     await panel
       .getByLabel('Interpretation review rationale', { exact: true })
       .fill('Manual continuation despite provider failure.');

@@ -11,8 +11,8 @@ test('brief, approve, pause, reapprove and release with uncertain-response retry
   await page.setViewportSize({ width: 1440, height: 1080 });
   await login(page, 'facilitator');
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Confirm revision', exact: true }).click();
-  await expect(page.getByText('Revision confirmed', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Confirm profile', exact: true }).click();
+  await expect(page.getByText('Profile confirmed', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Exercises', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Step 0: Starting arrangements' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Approve inject', exact: true })).toBeDisabled();
@@ -46,7 +46,7 @@ test('brief, approve, pause, reapprove and release with uncertain-response retry
   finishPoll();
   await latePoll;
   await page.unroute('**/technical-check-01/review');
-  await expect(page.locator('.run-meta')).toContainText('Run revision 1');
+  await expect(page.locator('.run-meta')).toContainText('Exercise revision 1');
   await page
     .getByLabel('How would they contact them or find the details?', { exact: true })
     .fill('Consult the supplied synthetic contact card.');
@@ -124,13 +124,13 @@ test('brief, approve, pause, reapprove and release with uncertain-response retry
     });
     expect(pause.status()).toBe(200);
     // The facilitator learns about an external state change without pressing Refresh.
-    await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeVisible({
+    await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toBeVisible({
       timeout: 12000,
     });
     await expect(
       page.getByRole('button', { name: 'Release to inbox', exact: true }),
     ).toBeDisabled();
-    await page.getByRole('button', { name: 'Resume run', exact: true }).click();
+    await page.getByRole('button', { name: 'Resume exercise', exact: true }).click();
     await expect(
       page.getByRole('button', { name: 'Release to inbox', exact: true }),
     ).toBeDisabled();
@@ -157,7 +157,7 @@ test('brief, approve, pause, reapprove and release with uncertain-response retry
     });
     await page.getByRole('button', { name: 'Release to inbox', exact: true }).click();
     await expect(
-      page.getByRole('button', { name: 'Retry last request', exact: true }),
+      page.getByRole('button', { name: 'Retry same request', exact: true }),
     ).toBeVisible();
     await expect(
       page.getByRole('button', { name: 'Refresh exercises', exact: true }),
@@ -165,10 +165,10 @@ test('brief, approve, pause, reapprove and release with uncertain-response retry
     await page.waitForTimeout(5500);
     expect(releaseRequests).toBe(1);
     await expect(
-      page.getByRole('button', { name: 'Retry last request', exact: true }),
+      page.getByRole('button', { name: 'Retry same request', exact: true }),
     ).toBeVisible();
     await page.unroute('**/releases');
-    await page.getByRole('button', { name: 'Retry last request', exact: true }).click();
+    await page.getByRole('button', { name: 'Retry same request', exact: true }).click();
     await expect(
       page.getByText('Prepared release sequence exhausted.', { exact: true }),
     ).toBeVisible();

@@ -36,7 +36,7 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
         <strong>Track:</strong> {review.run.track === 'technical' ? 'Technical' : 'Operational'}
         <span className="separator">/</span>
         {review.package.revisionId}
-        <span className="separator">/</span>Run revision {review.run.revision}
+        <span className="separator">/</span>Exercise revision {review.run.revision}
         <span className="separator">/</span>
         {isSkeleton
           ? 'Development skeleton'
@@ -240,7 +240,7 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
                 <p className="run-notice" role="status">
                   {review.releases.length === review.package.injects.length
                     ? 'Prepared release sequence exhausted.'
-                    : 'Close the released position before the next inject.'}
+                    : 'Close the released inject before the next one.'}
                 </p>
               )}
             </section>
@@ -268,7 +268,7 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
                   onClick={() => submit(RunSchema, 'pause')}
                 >
                   <Pause size={17} />
-                  Pause run
+                  Pause exercise
                 </button>
               )}
               {review.run.state === 'paused' && (
@@ -278,7 +278,7 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
                   onClick={() => submit(RunSchema, 'resume')}
                 >
                   <Play size={17} />
-                  Resume run
+                  Resume exercise
                 </button>
               )}
             </div>
@@ -295,7 +295,7 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
                     <strong>{labels[event.kind]}</strong>
                     <time dateTime={event.occurredAt}>{date(event.occurredAt)}</time>
                     <span className="muted">
-                      #{event.sequence} / run revision {event.runRevision}
+                      #{event.sequence} / exercise revision {event.runRevision}
                     </span>
                   </div>
                 </li>

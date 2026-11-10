@@ -94,8 +94,8 @@ export async function command(
 export async function prepare(page: Page, baseURL: string, paused = false) {
   await login(page, 'facilitator');
   await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: 'Confirm revision', exact: true }).click();
-  await expect(page.getByText('Revision confirmed', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Confirm profile', exact: true }).click();
+  await expect(page.getByText('Profile confirmed', { exact: true })).toBeVisible();
   const review = await (await page.request.get(`${root}/review`)).json();
   await command(page, baseURL, 'step0', {
     packageHash: review.packageHash,

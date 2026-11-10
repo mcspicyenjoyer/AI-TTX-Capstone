@@ -2,6 +2,27 @@
 
 Accepted means a direction for the user's authorised baseline, not organisation deployment or data approval.
 
+## ADR-047 - One name per thing on screen
+
+10 November 2026: after the Document type correction, the user asked for the remaining wording to be unified so that one thing has one name on every page. A review of every visible label found eight things with two to four names each.
+
+| On screen now | Replaces | Where it changed |
+| --- | --- | --- |
+| Inject | Position | Response and outcome headings, Close inject, Inject closure, clarification form, activity labels, package subtitle and freeze prompt |
+| Participant | Player | Package review headings and labels, pathway note |
+| Exercise | Run | Exercise tab, Pause/Resume/Complete exercise, activity labels, revision and change notices |
+| Exercise record | Record report, App-record report | Tab, heading and region names; "No record snapshot captured." |
+| Confirm profile, Profile confirmed, Confirmed profile | Confirm revision, Confirm profile snapshot, Confirmed snapshot | Organisation profile page and Source intake |
+| Intake draft | Preparation draft, New preparation, Preparation history | Source intake only; Preparation now means the package step |
+| Interpretation | Assessment | Save edited interpretation, New manual interpretation, Interpretation review |
+| Fact, Proposal under Knowledge status | Sourced fact, Sourced claim, Proposed requirement, upper-case badges, Evidence status | Organisation profile, Source intake, pathway |
+
+Also: Retry same request replaces "exact" and "last"; Refresh replaces Reload; Facilitator clarifications is in sentence case. **Accept inject** (package review) and **Approve inject** (release during play) stay different because they are different actions. Step 0, Team contact-route check and Starting arrangements stay as they are: the first is the stage, the second the check inside it, the third the participant's briefing heading.
+
+This is display only. The interface layer and current operating instructions change; contracts, stored records, hashes, routes, server messages, generation and report text, and the threat library do not. Objective-coverage messages come from the server as "Position N ..."; the package page shows them as "Inject N ..." through a display alias, in the same way as ADR-042's source-title aliases. Remaining differences a user can still meet: server error messages say run, position and player; released inject text and captured record fields keep their stored wording, including upper-case `FACT /` lines and field names such as Run Revision.
+
+Alternatives: rename the server messages and stored keys as well (changes frozen content, prompt versions and many deterministic tests for wording alone), or keep the developer's position/inject and package/run distinctions on screen (accurate, but the cause of the confusion). Both are rejected. Maintenance: keep new labels to the glossary in PROJECT, and update the browser tests and user guide with any label change.
+
 ## ADR-046 - Literal presentation for flattened story bodies
 
 10 November 2026: the user requests the remaining parser fix before publication to main. Generated role bodies flatten arbitrary story text and genuine facts/questions using identical paragraph separators. A quoted `FACT / ...`, `Discussion:` or story heading can therefore look exactly like an application section. Another heading regex cannot reliably recover the original attribution from the released string.

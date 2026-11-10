@@ -89,14 +89,14 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   await expect(
     pathway.getByText('TE-FS01 / restore-tested: no value recorded', { exact: false }).first(),
   ).toBeVisible();
-  await expect(pathway).toContainText('UNKNOWN TE-FS01 / restore-tested: no value recorded');
+  await expect(pathway).toContainText('Unknown TE-FS01 / restore-tested: no value recorded');
   await step('Scenario');
   // ADR-038: the model-written attacker and background are shown for review.
   // It appears in the scenario and again in position 1's facilitator notes.
   await expect(page.getByText(/Threat actor: Quiet Ledger\./)).toHaveCount(2);
   await expect(page.getByText(/Threat actor: Quiet Ledger\./).first()).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Background shared with players', exact: true }),
+    page.getByRole('heading', { name: 'Background shared with participants', exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole('listitem').filter({ hasText: /^BACKGROUND_SHARED: a sector advisory/ }),
@@ -147,7 +147,7 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   ]);
   const coverage = page.getByRole('status', { name: 'Objective coverage', exact: true });
   await expect(coverage).toContainText(
-    'Position 1 (containment decision) must evaluate obtain-isolation-authority.',
+    'Inject 1 (containment decision) must evaluate obtain-isolation-authority.',
   );
   await criteria.selectOption(covered);
   await page.getByRole('button', { name: 'Save edit', exact: true }).click();

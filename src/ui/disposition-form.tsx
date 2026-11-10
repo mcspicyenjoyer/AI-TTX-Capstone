@@ -70,7 +70,7 @@ export function DispositionForm({
       />
       {stale && (
         <p className="run-notice" role="status">
-          The run or response changed. Review the latest state before recording.
+          The exercise or response changed. Review the latest state before recording.
         </p>
       )}
       <div className="run-actions">
@@ -128,7 +128,7 @@ export function DispositionForm({
             }
           >
             <CheckCircle2 size={16} />
-            Close position
+            Close inject
           </button>
         </>
       )}

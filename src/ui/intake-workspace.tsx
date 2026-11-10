@@ -166,7 +166,7 @@ export function IntakeWorkspace({
   }
   async function load(id: string) {
     if (pending || busy || reading) return;
-    if (dirty && !window.confirm('Discard unsaved preparation changes?')) return;
+    if (dirty && !window.confirm('Discard unsaved intake changes?')) return;
     setBusy(true);
     setError('');
     setPublished(null);
@@ -191,7 +191,7 @@ export function IntakeWorkspace({
         if (!alive.current) return;
         accept(result.intake);
         setPublished(result.profile);
-        setNotice('Profile snapshot confirmed.');
+        setNotice('Profile confirmed.');
       } else {
         const result = await request(IntakeViewSchema, command.path, command.body);
         if (!alive.current) return;
@@ -199,7 +199,7 @@ export function IntakeWorkspace({
         setNotice(
           result.extractionJob?.status === 'queued'
             ? 'Extraction queued. Nothing is accepted automatically.'
-            : 'Preparation saved.',
+            : 'Intake draft saved.',
         );
       }
       setPending(null);
@@ -389,9 +389,9 @@ export function IntakeWorkspace({
       )}
       <div className="intake-picker">
         <label>
-          Preparation draft
+          Intake draft
           <select
-            aria-label="Preparation draft"
+            aria-label="Intake draft"
             value={view?.draft.id ?? ''}
             disabled={busy || !!pending}
             onChange={(event) => void load(event.target.value)}
@@ -409,8 +409,8 @@ export function IntakeWorkspace({
         </label>
         <button
           className="icon-button"
-          title="Reload preparation"
-          aria-label="Reload preparation"
+          title="Refresh intake draft"
+          aria-label="Refresh intake draft"
           disabled={!view || busy || !!pending}
           onClick={() => void load(view!.draft.id)}
         >
@@ -418,7 +418,7 @@ export function IntakeWorkspace({
         </button>
       </div>
       <details className="intake-create" open={!view}>
-        <summary>New preparation</summary>
+        <summary>New intake draft</summary>
         <form
           className="intake-create-form"
           onSubmit={(event) => {
@@ -454,7 +454,7 @@ export function IntakeWorkspace({
           <div className="intake-heading">
             <h2>{edit.organisationName}</h2>
             <span className={`badge ${edit.confirmedProfile ? 'confirmed' : 'pending'}`}>
-              {edit.confirmedProfile ? 'Confirmed snapshot' : `Revision ${view.draft.revision}`}
+              {edit.confirmedProfile ? 'Confirmed profile' : `Revision ${view.draft.revision}`}
             </span>
             {dirty && <span className="badge pending">Unsaved review</span>}
           </div>
@@ -822,7 +822,7 @@ export function IntakeWorkspace({
                           >
                             {statuses.map((status) => (
                               <option key={status} value={status}>
-                                {status === 'fact' ? 'Sourced claim' : optionLabel(status)}
+                                {optionLabel(status)}
                               </option>
                             ))}
                           </select>
@@ -1014,7 +1014,7 @@ export function IntakeWorkspace({
                           }
                         >
                           <Check size={16} />
-                          Confirm profile snapshot
+                          Confirm profile
                         </button>
                       </div>
                     </>
@@ -1026,7 +1026,7 @@ export function IntakeWorkspace({
                       </button>
                     </div>
                   )}
-                  <h3>Preparation history</h3>
+                  <h3>Intake history</h3>
                   <ol className="intake-history">
                     {view.events.map((event) => (
                       <li key={event.revision}>

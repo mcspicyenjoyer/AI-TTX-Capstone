@@ -283,9 +283,9 @@ test('failed image generation permits manual review and uncertain requests retry
     });
     await page.getByRole('button', { name: 'Generate image', exact: true }).click();
     await expect(
-      page.getByRole('button', { name: 'Retry exact request', exact: true }),
+      page.getByRole('button', { name: 'Retry same request', exact: true }),
     ).toBeVisible();
-    await page.getByRole('button', { name: 'Retry exact request', exact: true }).click();
+    await page.getByRole('button', { name: 'Retry same request', exact: true }).click();
     await expect(page.getByText('Queued for image worker.', { exact: true })).toBeVisible();
     expect(store.artefactImages.list().length).toBe(1);
     const job = images.claim()!;

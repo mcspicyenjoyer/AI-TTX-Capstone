@@ -23,6 +23,8 @@ import { RoleMessages } from './exercise-blocks.js';
 import { exerciseText, optionLabel as label, sourceTitle } from './exercise-format.js';
 
 type Pending = { url: string; body: object };
+// Display alias only: the server's coverage messages number injects as positions.
+const coverageText = (problem: string) => problem.replace(/\bPosition (\d+)\b/g, 'Inject $1');
 type Step = 'profile' | 'scenario' | 'pathway' | 'preparation' | 'injects';
 type PreparationEdit = Pick<ReviewPreparation, 'preparation' | 'roles' | 'storyline'>;
 function preparationEdit(view: PackageDraftView): PreparationEdit {
@@ -209,8 +211,8 @@ export function PackageWorkspace({
         <div>
           <h1>Package generation</h1>
           <p className="muted">
-            {context?.profile?.organisationName ?? 'Confirmed profile'} / Five positions / Three
-            player roles
+            {context?.profile?.organisationName ?? 'Confirmed profile'} / Five injects / Three
+            participant roles
           </p>
         </div>
         <button
@@ -233,7 +235,7 @@ export function PackageWorkspace({
           <span>Save outcome not yet resolved.</span>
           <button className="secondary" disabled={busy} onClick={() => void send(pending)}>
             <RotateCcw size={16} />
-            Retry exact request
+            Retry same request
           </button>
         </div>
       )}
@@ -372,7 +374,7 @@ export function PackageWorkspace({
             </ol>
             {view.draft.plan?.storyline && (
               <>
-                <h3>Background shared with players</h3>
+                <h3>Background shared with participants</h3>
                 <ul>
                   {view.draft.plan.storyline.background.map((item, index) => (
                     <li key={`${index}-${item}`}>{item}</li>
@@ -380,7 +382,7 @@ export function PackageWorkspace({
                 </ul>
               </>
             )}
-            <h3>Player roles</h3>
+            <h3>Participant roles</h3>
             {view.preview.roles.map((role) => (
               <details key={role.id}>
                 <summary>
@@ -569,7 +571,7 @@ export function PackageWorkspace({
                     </label>
                     {preparation.storyline.background.map((item, index) => (
                       <label key={'background-' + index}>
-                        Background {index + 1} (shared with players)
+                        Background {index + 1} (shared with participants)
                         <textarea
                           aria-label={`Background ${index + 1}`}
                           rows={2}
@@ -652,7 +654,7 @@ export function PackageWorkspace({
             aria-labelledby="package-step-injects"
             hidden={shown !== 'injects'}
           >
-            <div className="package-position-tabs" role="tablist" aria-label="Inject positions">
+            <div className="package-position-tabs" role="tablist" aria-label="Injects in order">
               {view.preview.injects.map((item, index) => (
                 <button
                   role="tab"
@@ -1002,7 +1004,7 @@ export function PackageWorkspace({
                     <strong>Objective coverage must be resolved before freezing</strong>
                     <ul>
                       {view.coverage.map((problem) => (
-                        <li key={problem}>{problem}</li>
+                        <li key={problem}>{coverageText(problem)}</li>
                       ))}
                     </ul>
                   </div>
@@ -1018,7 +1020,7 @@ export function PackageWorkspace({
                   onClick={() => {
                     if (
                       window.confirm(
-                        'Approve and freeze this exact package? Further edits will not be permitted. Participants still require Step 0 and explicit per-position release.',
+                        'Approve and freeze this exact package? Further edits will not be permitted. Participants still require Step 0 and explicit per-inject release.',
                       )
                     )
                       void send({

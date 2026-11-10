@@ -24,7 +24,7 @@ test('stale Step 0 save retains answers and respondents through failed and revie
     .getByRole('group', { name: "Record the team's oral answers", exact: true })
     .getByLabel('Unaddressed participant', { exact: true });
   await observerRespondent.check();
-  await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toBeDisabled();
   const beforeCorrection = await (
     await page.request.get('/api/tracks/technical/runs/technical-check-01/review')
   ).json();
@@ -71,7 +71,9 @@ test('stale Step 0 save retains answers and respondents through failed and revie
   await refreshDraft.click();
   await expect(reviewedDraft).toBeVisible();
   await expect(
-    page.getByText('Original run revision: 5. Current run revision: 6.', { exact: false }),
+    page.getByText('Original exercise revision: 5. Current exercise revision: 6.', {
+      exact: false,
+    }),
   ).toBeVisible();
   await expect(recordCheck).toBeDisabled();
   await expect(observerRespondent).toBeChecked();
@@ -94,7 +96,7 @@ test('stale Step 0 save retains answers and respondents through failed and revie
   await reviewedDraft.check();
   await recordCheck.click();
   await expect(page.getByText('Team contact-route check recorded', { exact: true })).toHaveCount(3);
-  await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toBeDisabled();
 
   expect(errors).toEqual([]);
 });
@@ -140,7 +142,7 @@ test('uncertain Step 0 receipt preserves a newer Hold and terminal access recove
     await route.abort('failed');
   });
   await recordCheck.click();
-  await expect(page.getByRole('button', { name: 'Retry last request', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Retry same request', exact: true })).toBeVisible();
   await expect(refreshDraft).toBeDisabled();
   await expect(discardDraft).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Refresh exercises', exact: true })).toBeDisabled();
@@ -172,19 +174,19 @@ test('uncertain Step 0 receipt preserves a newer Hold and terminal access recove
       json: { error: { message: 'Synthetic post-retry read failure.' } },
     }),
   );
-  await page.getByRole('button', { name: 'Retry last request', exact: true }).click();
+  await page.getByRole('button', { name: 'Retry same request', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('Synthetic post-retry read failure.');
-  await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toHaveCount(0);
   await page.unroute('**/technical-check-01/review');
   await page.getByRole('button', { name: 'Refresh exercises', exact: true }).click();
   await expect(page.getByText('Team contact-route check recorded', { exact: true })).toHaveCount(5);
   await expect(
     page.getByText('A current Ready decision is required before play.', { exact: true }),
   ).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toBeDisabled();
   await answerStep0(page, 'ready', 'Clarification reviewed after the newer Hold.');
   await recordCheck.click();
-  await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toBeEnabled();
 
   // UI-only terminal-access fixtures: the outcome remains unknown, but retry cannot trap private state.
   for (const status of [403, 404]) {
@@ -196,7 +198,7 @@ test('uncertain Step 0 receipt preserves a newer Hold and terminal access recove
     });
     await recordCheck.click();
     await expect(
-      page.getByRole('button', { name: 'Retry last request', exact: true }),
+      page.getByRole('button', { name: 'Retry same request', exact: true }),
     ).toBeVisible();
     await page.unroute('**/step0');
     await page.route('**/step0', async (route) => {
@@ -206,9 +208,9 @@ test('uncertain Step 0 receipt preserves a newer Hold and terminal access recove
         json: { error: { message: 'Synthetic access unavailable.' } },
       });
     });
-    await page.getByRole('button', { name: 'Retry last request', exact: true }).click();
+    await page.getByRole('button', { name: 'Retry same request', exact: true }).click();
     await expect(page.getByRole('alert')).toContainText('Synthetic access unavailable.');
-    await expect(page.getByRole('button', { name: 'Retry last request', exact: true })).toHaveCount(
+    await expect(page.getByRole('button', { name: 'Retry same request', exact: true })).toHaveCount(
       0,
     );
     await expect(
@@ -223,7 +225,7 @@ test('uncertain Step 0 receipt preserves a newer Hold and terminal access recove
     await reviewedDraft.check();
     await expect(recordCheck).toBeDisabled();
     await discardDraft.click();
-    await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toBeEnabled();
   }
 
   expect(errors).toEqual([]);
@@ -268,7 +270,7 @@ test('changed bindings and external resume retain Step 0 draft recovery', async 
     await expect(discardDraft).toBeEnabled();
     await page.unroute('**/technical-check-01/review');
     await discardDraft.click();
-    await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toBeEnabled();
   }
 
   await answerStep0(page, 'hold', 'A removed assignment must leave recovery reachable.');
@@ -279,7 +281,7 @@ test('changed bindings and external resume retain Step 0 draft recovery', async 
   await expect(discardDraft).toBeEnabled();
   await page.unroute('**/api/tracks/technical/runs');
   await discardDraft.click();
-  await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toBeEnabled();
 
   // Another session can resume while this browser is editing; retain the draft and recovery controls.
   await answerStep0(page, 'hold', 'Retain this correction across an external resume.');
@@ -312,7 +314,7 @@ test('changed bindings and external resume retain Step 0 draft recovery', async 
   await fits(page);
   await page.screenshot({ path: testInfo.outputPath('active-draft-mobile.png'), fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1080 });
-  await page.getByRole('button', { name: 'Pause run', exact: true }).click();
+  await page.getByRole('button', { name: 'Pause exercise', exact: true }).click();
   await expect(reviewedDraft).toBeVisible();
   await expect(recordCheck).toBeDisabled();
   await expect(
@@ -320,7 +322,7 @@ test('changed bindings and external resume retain Step 0 draft recovery', async 
   ).toHaveValue('Retain this correction across an external resume.');
   await discardDraft.click();
 
-  await page.getByRole('button', { name: 'Resume run', exact: true }).click();
+  await page.getByRole('button', { name: 'Resume exercise', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Approve inject', exact: true })).toBeEnabled();
   expect(errors).toEqual([]);
 });

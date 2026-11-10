@@ -194,7 +194,7 @@ function AssessmentReview({
     });
   return (
     <fieldset className="interpretation-editor" disabled={disabled || view.stale}>
-      <legend>Facilitator assessment</legend>
+      <legend>Interpretation review</legend>
       {output.actions.map((action, index) => (
         <div className="interpretation-action" key={action.actionKey}>
           <label>
@@ -346,7 +346,7 @@ function AssessmentReview({
           onClick={() => finish('edit')}
         >
           <Save size={16} />
-          Save edited assessment
+          Save edited interpretation
         </button>
         <button className="secondary" disabled={!notes.trim()} onClick={() => finish('reject')}>
           <X size={16} />
@@ -434,7 +434,7 @@ export function InterpretationPanel({
           onClick={() => model.submit('', { releaseId, responseId, mode: 'manual' })}
         >
           <Pencil size={16} />
-          New manual assessment
+          New manual interpretation
         </button>
       </div>
       {current && (

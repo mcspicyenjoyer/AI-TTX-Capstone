@@ -97,7 +97,7 @@ export function OutcomeWorkspace({
               Paused. Submissions, review and closure are frozen; local drafts are retained.
             </p>
           )}
-          {!view.positions.length && <p className="muted">No released positions.</p>}
+          {!view.positions.length && <p className="muted">No released injects.</p>}
           {view.positions.map((position) => (
             <section
               key={position.releaseId}
@@ -105,7 +105,7 @@ export function OutcomeWorkspace({
               aria-label={`Position ${position.position}`}
             >
               <div className="section-heading">
-                <h3>Position {position.position}</h3>
+                <h3>Inject {position.position}</h3>
                 <span className={`badge ${position.closed ? 'confirmed' : 'pending'}`}>
                   {position.closed ? 'Closed' : 'Open'}
                 </span>
@@ -171,12 +171,12 @@ export function OutcomeWorkspace({
           ))}
           {'completion' in view && view.completion && (
             <p className="run-notice" role="status">
-              Run completed: {date(view.completion.recordedAt)}. {view.completion.rationale}
+              Exercise completed: {date(view.completion.recordedAt)}. {view.completion.rationale}
             </p>
           )}
           {'canComplete' in view && view.canComplete && (
             <fieldset className="step0-form" disabled={disabled}>
-              <legend>Complete run</legend>
+              <legend>Complete exercise</legend>
               <OutcomeText label="Completion rationale" value={rationale} onChange={setRationale} />
               <button
                 className="primary"
@@ -189,7 +189,7 @@ export function OutcomeWorkspace({
                 }
               >
                 <CheckCircle2 size={16} />
-                Complete run
+                Complete exercise
               </button>
             </fieldset>
           )}

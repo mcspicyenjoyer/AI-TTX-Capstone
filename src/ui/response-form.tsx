@@ -101,7 +101,7 @@ export function ResponseForm({
       />
       {stale && (
         <p className="run-notice" role="status">
-          The run or team response changed. Your local draft is retained.
+          The exercise or team response changed. Your local draft is retained.
         </p>
       )}
       <div className="run-actions">

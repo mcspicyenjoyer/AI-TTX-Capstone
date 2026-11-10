@@ -55,8 +55,8 @@ test('real server restart returns to sign-in without reload and requires manual 
     await page.goto('/');
     await signIn(page);
     await page.getByRole('checkbox').check();
-    await page.getByRole('button', { name: 'Confirm revision', exact: true }).click();
-    await expect(page.getByText('Revision confirmed', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Confirm profile', exact: true }).click();
+    await expect(page.getByText('Profile confirmed', { exact: true })).toBeVisible();
     async function review() {
       return (await page.request.get(`${root}/review`)).json();
     }
@@ -111,15 +111,17 @@ test('real server restart returns to sign-in without reload and requires manual 
     }
     await signIn(page);
     await signIn(participant, 'participant');
-    await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toBeEnabled();
     await expect(
       page.getByRole('button', { name: 'Release to inbox', exact: true }),
     ).toBeDisabled();
-    await expect(page.getByText('Restart detected; run paused', { exact: true })).toBeVisible();
+    await expect(
+      page.getByText('Restart detected; exercise paused', { exact: true }),
+    ).toBeVisible();
     await expect(page.getByText('Team contact-route check recorded', { exact: true })).toHaveCount(
       1,
     );
-    await page.getByRole('button', { name: 'Resume run', exact: true }).click();
+    await page.getByRole('button', { name: 'Resume exercise', exact: true }).click();
     await expect(
       page.getByRole('button', { name: 'Release to inbox', exact: true }),
     ).toBeDisabled();
@@ -154,7 +156,7 @@ test('real server restart returns to sign-in without reload and requires manual 
       });
     await signIn(page);
     await signIn(participant, 'participant');
-    await expect(page.getByRole('button', { name: 'Resume run', exact: true })).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Resume exercise', exact: true })).toBeEnabled();
     await expect(participant.locator('.saved-response')).toContainText('Proposed scope review');
     await expect(
       participant.getByRole('button', { name: 'Submit team response', exact: true }),

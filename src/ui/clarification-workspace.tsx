@@ -66,7 +66,7 @@ export function ClarificationWorkspace({
   if (!editable && !records.length && !error) return null;
   return (
     <section className="aar-workspace" aria-label="Facilitator clarification log">
-      <h3>Facilitator Clarifications</h3>
+      <h3>Facilitator clarifications</h3>
       {error && (
         <p className="error" role="alert">
           {error}
@@ -91,7 +91,7 @@ export function ClarificationWorkspace({
       ))}
       {editable && (
         <fieldset className="clarification-form" disabled={busy || !!pending}>
-          <legend>Current position answer</legend>
+          <legend>Answer for the current inject</legend>
           <label>
             Participant question
             <textarea

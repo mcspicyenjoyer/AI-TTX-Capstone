@@ -88,7 +88,7 @@ test('queued subscription request survives lost response, completion polling, re
     await page.reload();
     await page.getByRole('button', { name: 'Source intake', exact: true }).click();
     await page
-      .getByLabel('Preparation draft', { exact: true })
+      .getByLabel('Intake draft', { exact: true })
       .selectOption({ label: 'Subscription fixture / revision 3' });
     await expect(page.getByText('Extraction succeeded', { exact: true })).toBeVisible();
     await page.setViewportSize({ width: 390, height: 844 });

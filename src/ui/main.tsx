@@ -43,9 +43,9 @@ import { GuardProvider, useGuardRegistry, type GuardState } from './unsaved-guar
 
 type Status = ProfileView['profile']['statements'][number]['status'];
 const statusLabels: Record<Status, string> = {
-  fact: 'Sourced fact',
+  fact: 'Fact',
   assumption: 'Assumption',
-  proposal: 'Proposed requirement',
+  proposal: 'Proposal',
   unknown: 'Unknown',
   conflict: 'Conflict',
 };
@@ -357,8 +357,8 @@ function App() {
                 <span>{error}</span>
                 <button
                   className="icon-button"
-                  title="Reload workspace"
-                  aria-label="Reload workspace"
+                  title="Refresh workspace"
+                  aria-label="Refresh workspace"
                   onClick={() => void restoreSession()}
                 >
                   <RefreshCw size={17} />
@@ -445,7 +445,7 @@ function App() {
                           <li key={event.sequence}>
                             <CheckCircle2 size={20} />
                             <div>
-                              <strong>Revision confirmed</strong>
+                              <strong>Profile confirmed</strong>
                               <p>
                                 {event.actorName} confirmed {event.revisionId}.
                               </p>
@@ -544,7 +544,7 @@ function App() {
                         <div className="entry-header">
                           <span>Profile entry</span>
                           <span>Recorded value</span>
-                          <span>Evidence status</span>
+                          <span>Knowledge status</span>
                           <span />
                         </div>
                         {filtered.length === 0 ? (
@@ -630,10 +630,10 @@ function App() {
                         )}
                       </div>
                     </section>
-                    <aside className="review-sidebar" aria-label="Revision review">
+                    <aside className="review-sidebar" aria-label="Profile review">
                       <section className="confirmation-section">
                         <div className="section-heading">
-                          <h2>Revision review</h2>
+                          <h2>Profile review</h2>
                           <ShieldCheck size={20} />
                         </div>
                         <dl className="revision-details">
@@ -653,7 +653,7 @@ function App() {
                         {view.confirmation ? (
                           <div className="confirmation-receipt" role="status">
                             <CheckCircle2 size={24} />
-                            <strong>Revision confirmed</strong>
+                            <strong>Profile confirmed</strong>
                             <span>{view.confirmation.confirmedBy.displayName}</span>
                             <time dateTime={view.confirmation.confirmedAt}>
                               {date(view.confirmation.confirmedAt)}
@@ -683,7 +683,7 @@ function App() {
                               ) : (
                                 <Check size={17} />
                               )}
-                              {saving ? 'Saving...' : 'Confirm revision'}
+                              {saving ? 'Saving...' : 'Confirm profile'}
                             </button>
                           </>
                         )}

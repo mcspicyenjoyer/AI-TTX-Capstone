@@ -26,13 +26,13 @@ import { Citation, RevealRecord } from './record-citation.js';
 
 const titles: Record<ReportRecord['kind'], string> = {
   boundary: 'Snapshot boundaries',
-  run: 'Run',
+  run: 'Exercise',
   package: 'Frozen package',
   step0: 'Step 0',
   release: 'Release',
   response: 'Team response',
   disposition: 'Facilitator disposition',
-  closure: 'Position closure',
+  closure: 'Inject closure',
   completion: 'Completion',
   activity: 'Activity',
   interpretation: 'Reviewed interpretation',
@@ -168,9 +168,9 @@ function Report({ view }: { view: RecordReportView }) {
       ?.querySelectorAll<HTMLDetailsElement>('details.report-record')
       .forEach((item) => (item.open = open));
   return (
-    <article className="record-report" aria-label="Fixed app-record report" ref={article}>
+    <article className="record-report" aria-label="Exercise record" ref={article}>
       <h2>
-        App-record report <Citation id={report.id} self />
+        Exercise record <Citation id={report.id} self />
       </h2>
       <p>
         Captured {date(report.createdAt)} <Citation id={report.id} self />
@@ -235,7 +235,7 @@ function Report({ view }: { view: RecordReportView }) {
         </section>
       ) : (
         <>
-          <section aria-label="Preparation record">
+          <section aria-label="Step 0 record">
             <h3>
               Step 0 <Citation id={report.id} self />
             </h3>
@@ -374,7 +374,7 @@ export function RecordReportWorkspace({
   }, []);
 
   return (
-    <section className="record-report-workspace" aria-label="Record report workspace">
+    <section className="record-report-workspace" aria-label="Exercise record workspace">
       <div className="run-actions">
         <button
           className="primary"
@@ -412,7 +412,7 @@ export function RecordReportWorkspace({
         </p>
       )}
       {busy && <p role="status">Loading snapshot...</p>}
-      {!busy && !list.length && !error && <p className="muted">No captured report.</p>}
+      {!busy && !list.length && !error && <p className="muted">No record snapshot captured.</p>}
       {!!list.length && (
         <label className="exercise-picker">
           Snapshot

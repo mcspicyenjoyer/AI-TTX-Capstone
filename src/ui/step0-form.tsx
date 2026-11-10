@@ -81,7 +81,7 @@ export function Step0Form({ vm }: { vm: ExerciseWorkspaceModel }) {
                     : pending?.path.endsWith('/step0')
                       ? 'Step 0 request awaiting confirmation.'
                       : 'Unsaved contact-route check. It has not changed the recorded decision.'}{' '}
-                  Original run revision: {draftRevision.current}. Current run revision:{' '}
+                  Original exercise revision: {draftRevision.current}. Current exercise revision:{' '}
                   {review.run.revision}.
                 </p>
               )}

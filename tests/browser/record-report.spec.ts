@@ -46,8 +46,8 @@ test('facilitator captures immutable cited reports after review; participant can
     await assessment
       .getByLabel('Interpretation review rationale', { exact: true })
       .fill('Unsaved review draft.');
-    await page.getByRole('tab', { name: 'Record report', exact: true }).click();
-    await expect(page.getByText('No captured report.', { exact: true })).toBeVisible();
+    await page.getByRole('tab', { name: 'Exercise record', exact: true }).click();
+    await expect(page.getByText('No record snapshot captured.', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Capture record snapshot', exact: true }).click();
     // Nothing was captured when the tab opened, so it starts on the debrief (ADR-045).
     await expect(page.getByRole('tab', { name: 'Debrief', exact: true })).toHaveAttribute(
@@ -55,18 +55,18 @@ test('facilitator captures immutable cited reports after review; participant can
       'true',
     );
     await page.getByRole('tab', { name: 'Records', exact: true }).click();
-    const report = page.getByRole('article', { name: 'Fixed app-record report' });
+    const report = page.getByRole('article', { name: 'Exercise record', exact: true });
     await expect(report).toBeVisible();
     await expect(
       report.getByText(/clarification answers are outside the app record/),
     ).toBeVisible();
     await expect(report.locator('[data-record-id="' + draft.record.id + '"]')).toHaveCount(0);
     const firstId = await page.getByLabel('Snapshot', { exact: true }).inputValue();
-    await page.getByRole('tab', { name: 'Run', exact: true }).click();
+    await page.getByRole('tab', { name: 'Exercise', exact: true }).click();
     await expect(
       assessment.getByLabel('Interpretation review rationale', { exact: true }),
     ).toHaveValue('Unsaved review draft.');
-    await page.getByRole('tab', { name: 'Record report', exact: true }).click();
+    await page.getByRole('tab', { name: 'Exercise record', exact: true }).click();
     interpreter.review(context.actor, context.runId, draft.record.id, {
       commandId: randomUUID(),
       expectedRevision: draft.record.revision,
@@ -153,7 +153,7 @@ test('facilitator captures immutable cited reports after review; participant can
     await page.reload();
     await page.getByRole('button', { name: 'Exercises', exact: true }).click();
     await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
-    await page.getByRole('tab', { name: 'Record report', exact: true }).click();
+    await page.getByRole('tab', { name: 'Exercise record', exact: true }).click();
     await expect(page.getByLabel('Snapshot', { exact: true })).toHaveValue(secondId);
     expect(context.outcomes.review(context.actor, 'technical', context.runId)).toEqual(before);
     expect(store.interpretations.list().filter((r) => r.startedAt)).toHaveLength(0);
@@ -165,7 +165,7 @@ test('facilitator captures immutable cited reports after review; participant can
         participant.getByRole('heading', { name: 'Participant workspace', exact: true }),
       ).toBeVisible();
       await expect(
-        participant.getByRole('tab', { name: 'Record report', exact: true }),
+        participant.getByRole('tab', { name: 'Exercise record', exact: true }),
       ).toHaveCount(0);
       const base = '/api/tracks/technical/runs/' + context.runId + '/record-reports';
       expect((await participant.request.get(base + '/' + secondId)).status()).toBe(403);
@@ -187,11 +187,11 @@ test('facilitator records a debrief that only a later snapshot includes', async 
     await login(page, 'facilitator');
     await page.getByRole('button', { name: 'Exercises', exact: true }).click();
     await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
-    await page.getByRole('tab', { name: 'Record report', exact: true }).click();
+    await page.getByRole('tab', { name: 'Exercise record', exact: true }).click();
     await page.getByRole('button', { name: 'Capture record snapshot', exact: true }).click();
     const section = (name: string) => page.getByRole('tab', { name, exact: true }).click();
     await section('Records');
-    const report = page.getByRole('article', { name: 'Fixed app-record report' });
+    const report = page.getByRole('article', { name: 'Exercise record', exact: true });
     await expect(report).toBeVisible();
     await section('Debrief');
     const debrief = page.getByRole('region', { name: 'Debrief', exact: true });
@@ -242,8 +242,8 @@ test('lost snapshot response retries the exact capture without creating a duplic
     await login(page, 'facilitator');
     await page.getByRole('button', { name: 'Exercises', exact: true }).click();
     await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
-    await page.getByRole('tab', { name: 'Record report', exact: true }).click();
-    await expect(page.getByText('No captured report.', { exact: true })).toBeVisible();
+    await page.getByRole('tab', { name: 'Exercise record', exact: true }).click();
+    await expect(page.getByText('No record snapshot captured.', { exact: true })).toBeVisible();
     let first = true;
     const commands: string[] = [];
     await page.route('**/record-reports', async (route) => {
@@ -262,7 +262,7 @@ test('lost snapshot response retries the exact capture without creating a duplic
     ).toBeDisabled();
     await page.getByRole('button', { name: 'Retry snapshot request', exact: true }).click();
     await page.getByRole('tab', { name: 'Records', exact: true }).click();
-    await expect(page.getByRole('article', { name: 'Fixed app-record report' })).toBeVisible();
+    await expect(page.getByRole('article', { name: 'Exercise record', exact: true })).toBeVisible();
     expect(commands).toHaveLength(2);
     expect(commands[0]).toBe(commands[1]);
     expect(store.recordReports.list(context.runId, context.actor.id)).toHaveLength(1);
@@ -278,7 +278,7 @@ test('a hidden record report still loading does not block leaving the exercise v
   const store = new Store(join(exerciseServer, 'ttx.sqlite'));
   try {
     const context = prepareInterpretationRun(store, true);
-    // Hold the hidden Record report view's snapshot read open while the facilitator leaves.
+    // Hold the hidden Exercise record view's snapshot read open while the facilitator leaves.
     let finish!: () => void;
     const held = new Promise<void>((resolve) => (finish = resolve));
     await page.route('**/record-reports', async (route) => {
