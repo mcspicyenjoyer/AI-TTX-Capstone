@@ -36,6 +36,8 @@ On the same browser-test fixture at 1440 x 900, the longest package-review view 
 
 At the start of this review, remote main was `e6dfce7`. Six local commits on `participant-inject-tabs` were pending publication: `19c4d71`, `ab3fedb`, `d9e2b4e`, `e396f09`, `68d09d4` and `a74358c`. The earlier November image integration and user guide were already on remote main. The current review adds corrections and the requested consistent **Document type** terminology. [WORK](../WORK.md) records the checkpoint scope; Git history identifies the resulting commit, and the publication handover records its verified remote ID.
 
+**Publication blocked:** the implementation/report checkpoint is local commit **`8d8a663`**. The authorised feature-branch push was attempted on 10 November but GitHub rejected the saved credentials with "Invalid username or token". A subsequent remote-ref check confirms main remains `e6dfce7` and `participant-inject-tabs` has not been created remotely. GitHub re-authentication and a successful retry with remote-equality verification are still required. Do not report these local commits as published.
+
 A source push does not rebuild or update an existing demonstration container. The latest facilitator-page checkpoint records the demonstration containers as stopped on earlier builds. No present runtime health or worker availability is inferred from the 6 November observations.
 
 ## Commit review findings
