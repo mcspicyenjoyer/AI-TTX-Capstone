@@ -2185,3 +2185,181 @@ input[type='checkbox'] {
     gap: 4px;
   }
 }
+
+/* Shorter facilitator pages (ADR-045): compact citations, one-line records, role previews
+   and package review steps. Display only. */
+.record-citation {
+  white-space: nowrap;
+}
+.record-citation.self {
+  margin-left: 2px;
+  opacity: 0.45;
+  text-decoration: none;
+}
+.record-citation.self:hover,
+.record-citation.self:focus-visible {
+  opacity: 1;
+  text-decoration: underline;
+}
+.report-sections {
+  margin-top: 16px;
+}
+.report-expand {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: -8px 0 12px;
+}
+details.report-record {
+  padding-block: 0;
+}
+details.report-record > summary {
+  display: grid;
+  grid-template-columns: 14px max-content minmax(0, 1fr) max-content;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 0;
+  cursor: pointer;
+  list-style: none;
+}
+details.report-record > summary::-webkit-details-marker {
+  display: none;
+}
+details.report-record > summary::before {
+  content: '\25B8';
+  color: #526862;
+}
+details.report-record[open] > summary::before {
+  content: '\25BE';
+}
+details.report-record > summary:hover {
+  background: #eef3f2;
+}
+details.report-record > summary h4 {
+  margin: 0;
+}
+.record-preview {
+  min-width: 0;
+  overflow: hidden;
+  color: #526862;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+details.report-record[open] > summary .record-preview {
+  visibility: hidden;
+}
+.record-when {
+  color: #526862;
+  font-size: 12px;
+  white-space: nowrap;
+}
+details.report-record > :not(summary) {
+  margin-left: 24px;
+}
+details.report-record[open] {
+  padding-bottom: 14px;
+}
+.record-identifiers > summary {
+  color: #526862;
+  font-size: 13px;
+  cursor: pointer;
+}
+.record-identifiers dl {
+  margin-top: 10px;
+}
+.package-steps {
+  margin-top: 4px;
+}
+.package-steps .tab-count {
+  margin-left: 0;
+  font-size: 11px;
+  font-weight: 400;
+}
+.role-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 12px;
+}
+.role-switch button {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid #c8d2d4;
+  border-radius: 999px;
+  background: #fff;
+  color: #202b2d;
+}
+.role-switch button[aria-selected='true'] {
+  border-color: #256b50;
+  background: #256b50;
+  color: #fff;
+  font-weight: 600;
+}
+.role-message {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px 20px;
+  border: 1px solid #dce2e1;
+  border-radius: 8px;
+  background: #fff;
+}
+.role-message .inject-meta {
+  margin: 0;
+}
+.pathway-route {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 4px;
+  padding: 0;
+  list-style: none;
+}
+.pathway-route li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid #dce2e1;
+  border-radius: 8px;
+  background: #fff;
+  font-weight: 600;
+}
+.pathway-route li span {
+  color: #526862;
+  font-size: 12px;
+  font-weight: 400;
+}
+.threat-pathway > details {
+  padding: 10px 0;
+  border-bottom: 1px solid #d5dcdf;
+}
+.threat-pathway > details > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.threat-pathway > details > summary .muted {
+  font-size: 12px;
+  font-weight: 400;
+}
+.pathway-claims code {
+  color: #526862;
+  font-size: 11px;
+}
+@media (max-width: 700px) {
+  details.report-record > summary {
+    grid-template-columns: 14px minmax(0, 1fr);
+  }
+  details.report-record > summary .record-preview,
+  details.report-record > summary .record-when {
+    grid-column: 2;
+  }
+  details.report-record[open] > summary .record-preview {
+    display: none;
+  }
+  .role-message {
+    padding: 14px;
+  }
+}

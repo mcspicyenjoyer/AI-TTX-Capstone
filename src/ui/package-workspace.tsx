@@ -19,9 +19,11 @@ import {
 import { ApiError, request } from './api.js';
 import { FamilyAssessmentView, ThreatPathwayView } from './threat-pathway.js';
 import { ArtefactImageEditor, EvidenceImages } from './artefact-images.js';
+import { RoleMessages } from './exercise-blocks.js';
 import { exerciseText, optionLabel as label, sourceTitle } from './exercise-format.js';
 
 type Pending = { url: string; body: object };
+type Step = 'profile' | 'scenario' | 'pathway' | 'preparation' | 'injects';
 type PreparationEdit = Pick<ReviewPreparation, 'preparation' | 'roles' | 'storyline'>;
 function preparationEdit(view: PackageDraftView): PreparationEdit {
   const { storyline } = view.draft.plan!;
@@ -56,6 +58,10 @@ export function PackageWorkspace({
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
   const [error, setError] = useState('');
+  // One review step on screen at a time (ADR-045). Every step stays mounted, so unsaved
+  // edits and their guards behave exactly as they did on the single long page.
+  const [step, setStep] = useState<Step>('profile');
+  const first = useRef(true);
   const imagePending = view?.imageRequests?.some((job) =>
     ['queued', 'running'].includes(job.status),
   );
@@ -81,6 +87,10 @@ export function PackageWorkspace({
         value.drafts.find((item) => item.draft.id === current.current.selected) ??
         value.drafts.at(-1);
       if (chosen && !current.current.dirty && !current.current.pending) adopt(chosen);
+      // A draft that is already reviewable opens on its injects; nothing moves the
+      // facilitator between steps after that.
+      if (first.current && chosen?.preview) setStep('injects');
+      first.current = false;
     } catch (error) {
       failure(error);
     }
@@ -181,6 +191,18 @@ export function PackageWorkspace({
       ? `${label(claim.status)} / ${entities.find((item) => item.id === claim.subjectId)?.name} / ${label(claim.predicate)} / ${claim.value ?? claim.explanation}`
       : id;
   };
+  const steps: { id: Step; name: string; note: string }[] = [
+    { id: 'profile', name: 'Profile', note: '' },
+    { id: 'scenario', name: 'Scenario', note: '' },
+  ];
+  if (view?.pathway)
+    steps.push({ id: 'pathway', name: 'Pathway', note: `${view.pathway.gaps.length} gaps` });
+  if (preparation)
+    steps.push({ id: 'preparation', name: 'Preparation', note: preparationDirty ? 'Unsaved' : '' });
+  const accepted = view?.draft.reviews.filter((item) => item === 'accepted').length ?? 0;
+  steps.push({ id: 'injects', name: 'Injects', note: dirty ? 'Unsaved' : `${accepted}/5` });
+  // An older draft may lack a step the last one had.
+  const shown = steps.some((item) => item.id === step) ? step : 'profile';
   return (
     <>
       <div className="page-heading">
@@ -215,64 +237,6 @@ export function PackageWorkspace({
           </button>
         </div>
       )}
-      <section className="run-section package-binding">
-        <h2>Confirmed profile binding</h2>
-        {context?.target && !context.ready && <p className="muted">{context.reason}</p>}
-        {context?.target ? (
-          <>
-            <p>
-              {context.profile?.organisationName} / Reviewed content revision{' '}
-              {context.target.reviewRevision}
-            </p>
-            <dl>
-              <dt>Profile</dt>
-              <dd>
-                <code>{context.target.profileId}</code>
-              </dd>
-              <dt>Immutable revision</dt>
-              <dd>
-                <code>{context.target.profileRevisionId}</code>
-              </dd>
-              <dt>SHA-256</dt>
-              <dd>
-                <code>{context.target.profileHash}</code>
-              </dd>
-            </dl>
-            {context.families.map((family) => (
-              <FamilyAssessmentView key={family.familyId} family={family} />
-            ))}
-          </>
-        ) : (
-          <p className="muted">{context?.reason ?? 'Loading confirmed profile...'}</p>
-        )}
-        <button
-          className="primary"
-          disabled={
-            !context?.ready ||
-            !context.families.some((family) => family.applicable) ||
-            disabled ||
-            unsaved ||
-            (!!view && ['queued', 'running'].includes(view.draft.status))
-          }
-          onClick={() => {
-            if (
-              !context?.target ||
-              !window.confirm(
-                'Generate one package using the pinned confirmed profile and your local ChatGPT subscription? No full source documents will be sent.',
-              )
-            )
-              return;
-            const { profileId, profileRevisionId, profileHash } = context.target;
-            void send({
-              url: '/api/packages',
-              body: { commandId: crypto.randomUUID(), profileId, profileRevisionId, profileHash },
-            });
-          }}
-        >
-          <Sparkles size={17} />
-          Generate draft
-        </button>
-      </section>
       {!!context?.drafts.length && (
         <label className="package-picker">
           Package draft
@@ -305,8 +269,100 @@ export function PackageWorkspace({
         </p>
       )}
       {view?.preview && (
+        <div
+          className="workspace-tabs package-steps"
+          role="tablist"
+          aria-label="Package review steps"
+        >
+          {steps.map(({ id, name, note }) => (
+            <button
+              key={id}
+              role="tab"
+              id={'package-step-' + id}
+              aria-selected={shown === id}
+              aria-controls={'package-panel-' + id}
+              onClick={() => setStep(id)}
+            >
+              {name}
+              {note && <span className="tab-count">{note}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+      <div
+        id="package-panel-profile"
+        role={view?.preview ? 'tabpanel' : undefined}
+        aria-labelledby={view?.preview ? 'package-step-profile' : undefined}
+        hidden={!!view?.preview && shown !== 'profile'}
+      >
+        <section className="run-section package-binding">
+          <h2>Confirmed profile binding</h2>
+          {context?.target && !context.ready && <p className="muted">{context.reason}</p>}
+          {context?.target ? (
+            <>
+              <p>
+                {context.profile?.organisationName} / Reviewed content revision{' '}
+                {context.target.reviewRevision}
+              </p>
+              <dl>
+                <dt>Profile</dt>
+                <dd>
+                  <code>{context.target.profileId}</code>
+                </dd>
+                <dt>Immutable revision</dt>
+                <dd>
+                  <code>{context.target.profileRevisionId}</code>
+                </dd>
+                <dt>SHA-256</dt>
+                <dd>
+                  <code>{context.target.profileHash}</code>
+                </dd>
+              </dl>
+              {context.families.map((family) => (
+                <FamilyAssessmentView key={family.familyId} family={family} />
+              ))}
+            </>
+          ) : (
+            <p className="muted">{context?.reason ?? 'Loading confirmed profile...'}</p>
+          )}
+          <button
+            className="primary"
+            disabled={
+              !context?.ready ||
+              !context.families.some((family) => family.applicable) ||
+              disabled ||
+              unsaved ||
+              (!!view && ['queued', 'running'].includes(view.draft.status))
+            }
+            onClick={() => {
+              if (
+                !context?.target ||
+                !window.confirm(
+                  'Generate one package using the pinned confirmed profile and your local ChatGPT subscription? No full source documents will be sent.',
+                )
+              )
+                return;
+              const { profileId, profileRevisionId, profileHash } = context.target;
+              void send({
+                url: '/api/packages',
+                body: { commandId: crypto.randomUUID(), profileId, profileRevisionId, profileHash },
+              });
+            }}
+          >
+            <Sparkles size={17} />
+            Generate draft
+          </button>
+        </section>
+      </div>
+      {view?.preview && (
         <>
-          <section className="run-section">
+          <section
+            className="run-section"
+            id="package-panel-scenario"
+            role="tabpanel"
+            aria-labelledby="package-step-scenario"
+            hidden={shown !== 'scenario'}
+          >
             <h2>Scenario and objectives</h2>
             <p className="preserve-lines">{exerciseText(view.preview.scenario!)}</p>
             <ol>
@@ -342,9 +398,24 @@ export function PackageWorkspace({
                 .join('; ')}
             </p>
           </section>
-          {view.pathway && <ThreatPathwayView pathway={view.pathway} />}
+          {view.pathway && (
+            <div
+              id="package-panel-pathway"
+              role="tabpanel"
+              aria-labelledby="package-step-pathway"
+              hidden={shown !== 'pathway'}
+            >
+              <ThreatPathwayView pathway={view.pathway} />
+            </div>
+          )}
           {preparation && (
-            <section className="run-section package-preparation">
+            <section
+              className="run-section package-preparation"
+              id="package-panel-preparation"
+              role="tabpanel"
+              aria-labelledby="package-step-preparation"
+              hidden={shown !== 'preparation'}
+            >
               <h2>Preparation</h2>
               <fieldset disabled={!editable || disabled || dirty}>
                 <legend>Baseline references and role knowledge</legend>
@@ -575,348 +646,348 @@ export function PackageWorkspace({
               </ul>
             </section>
           )}
-          <div className="package-position-tabs" role="tablist" aria-label="Inject positions">
-            {view.preview.injects.map((item, index) => (
-              <button
-                role="tab"
-                aria-selected={index === positionIndex}
-                key={item.id}
-                disabled={disabled || unsaved}
-                onClick={() => setPositionIndex(index)}
-              >
-                {index + 1}. {item.title}
-                <span>{label(view.draft.reviews[index] ?? '')}</span>
-              </button>
-            ))}
-          </div>
-          {edit && inject && (
-            <section className="run-section">
-              <h2>{inject.title}</h2>
-              <div className="package-editor-grid">
-                <fieldset disabled={!editable || disabled || preparationDirty}>
-                  <legend>Inject specification</legend>
-                  <label>
-                    Elapsed minutes
-                    <input
-                      aria-label="Elapsed minutes"
-                      type="number"
-                      min="0"
-                      max="240"
-                      value={edit.elapsedMinutes}
-                      onChange={(event) => change({ elapsedMinutes: Number(event.target.value) })}
-                    />
-                  </label>
-                  <label>
-                    Scenario event
-                    <select
-                      aria-label="Scenario event"
-                      value={edit.event}
-                      onChange={(event) =>
-                        change({ event: event.target.value as GeneratedPosition['event'] })
-                      }
-                    >
-                      {eventKinds.map((key) => (
-                        <option key={key} value={key}>
-                          {label(key)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Decision point
-                    <select
-                      aria-label="Decision point"
-                      value={edit.decision ?? ''}
-                      onChange={(event) =>
-                        change({
-                          decision: event.target.value
-                            ? (event.target.value as NonNullable<GeneratedPosition['decision']>)
-                            : null,
-                        })
-                      }
-                    >
-                      <option value="">Information update</option>
-                      {decisions.map((key) => (
-                        <option key={key} value={key}>
-                          {label(key)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  {edit.messages.map((message, index) => (
-                    <div className="package-role-edit" key={message.roleId}>
-                      <h3>
-                        {view.preview!.roles.find((role) => role.id === message.roleId)!.name}
-                      </h3>
-                      <label>
-                        Profile evidence
-                        <select
-                          multiple
-                          size={5}
-                          aria-label={`${message.roleId} evidence`}
-                          value={message.evidence.map((item) => item.claimId)}
-                          onChange={(event) => {
-                            const ids = Array.from(
-                              event.target.selectedOptions,
-                              (option) => option.value,
-                            );
-                            change({
-                              messages: edit.messages.map((m, i) =>
-                                i !== index
-                                  ? m
-                                  : {
-                                      ...m,
-                                      evidence: ids.map((claimId) => ({
-                                        claimId,
-                                        status: claims.find((claim) => claim.id === claimId)!
-                                          .status,
-                                      })),
-                                    },
-                              ),
-                            });
-                          }}
-                        >
-                          {claims.map((claim) => (
-                            <option key={claim.id} value={claim.id}>
-                              {claimLabel(claim.id)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Questions
-                        <select
-                          multiple
-                          size={4}
-                          aria-label={`${message.roleId} questions`}
-                          value={message.questions}
-                          onChange={(event) =>
-                            change({
-                              messages: edit.messages.map((m, i) =>
-                                i !== index
-                                  ? m
-                                  : {
-                                      ...m,
-                                      questions: Array.from(
-                                        event.target.selectedOptions,
-                                        (option) =>
-                                          option.value as (typeof message.questions)[number],
-                                      ),
-                                    },
-                              ),
-                            })
-                          }
-                        >
-                          {actionKinds.map((key) => (
-                            <option key={key} value={key}>
-                              {label(key)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-                  ))}
-                  {edit.artefacts?.map((artefact, index) => (
-                    <div className="package-artefact-edit" key={'artefact-' + index}>
-                      <h3>Story message {index + 1}</h3>
-                      {editable && (
-                        <ArtefactImageEditor
-                          view={view}
-                          position={positionIndex + 1}
-                          index={index}
-                          disabled={disabled || unsaved}
-                          enabled={!!context?.ready}
-                          send={send}
-                        />
-                      )}
-                      <label>
-                        Kind
-                        <select
-                          aria-label={`Story message ${index + 1} kind`}
-                          value={artefact.kind}
-                          onChange={(event) =>
-                            changeArtefact(index, {
-                              kind: event.target.value as StorylineArtefact['kind'],
-                            })
-                          }
-                        >
-                          {artefactKinds.map((key) => (
-                            <option key={key} value={key}>
-                              {label(key)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        From
-                        <input
-                          aria-label={`Story message ${index + 1} sender`}
-                          maxLength={120}
-                          value={artefact.sender}
-                          onChange={(event) =>
-                            changeArtefact(index, { sender: event.target.value })
-                          }
-                        />
-                      </label>
-                      <label>
-                        Headline
-                        <input
-                          aria-label={`Story message ${index + 1} headline`}
-                          maxLength={160}
-                          value={artefact.headline}
-                          onChange={(event) =>
-                            changeArtefact(index, { headline: event.target.value })
-                          }
-                        />
-                      </label>
-                      <label>
-                        Message
-                        <textarea
-                          aria-label={`Story message ${index + 1} text`}
-                          rows={5}
-                          maxLength={900}
-                          value={artefact.body}
-                          onChange={(event) => changeArtefact(index, { body: event.target.value })}
-                        />
-                      </label>
-                      <label>
-                        Received by
-                        <select
-                          multiple
-                          size={3}
-                          aria-label={`Story message ${index + 1} recipients`}
-                          value={artefact.recipientRoleIds}
-                          onChange={(event) =>
-                            changeArtefact(index, {
-                              recipientRoleIds: Array.from(
-                                event.target.selectedOptions,
-                                (option) => option.value as (typeof playerRoles)[number],
-                              ),
-                            })
-                          }
-                        >
-                          {playerRoles.map((roleId) => (
-                            <option key={roleId} value={roleId}>
-                              {view.preview!.roles.find((role) => role.id === roleId)!.name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <button
-                        type="button"
-                        className="secondary"
-                        onClick={() => changeArtefact(index, null)}
+          <div
+            id="package-panel-injects"
+            role="tabpanel"
+            aria-labelledby="package-step-injects"
+            hidden={shown !== 'injects'}
+          >
+            <div className="package-position-tabs" role="tablist" aria-label="Inject positions">
+              {view.preview.injects.map((item, index) => (
+                <button
+                  role="tab"
+                  aria-selected={index === positionIndex}
+                  key={item.id}
+                  disabled={disabled || unsaved}
+                  onClick={() => setPositionIndex(index)}
+                >
+                  {index + 1}. {item.title}
+                  <span>{label(view.draft.reviews[index] ?? '')}</span>
+                </button>
+              ))}
+            </div>
+            {edit && inject && (
+              <section className="run-section">
+                <h2>{inject.title}</h2>
+                <div className="package-editor-grid">
+                  <fieldset disabled={!editable || disabled || preparationDirty}>
+                    <legend>Inject specification</legend>
+                    <label>
+                      Elapsed minutes
+                      <input
+                        aria-label="Elapsed minutes"
+                        type="number"
+                        min="0"
+                        max="240"
+                        value={edit.elapsedMinutes}
+                        onChange={(event) => change({ elapsedMinutes: Number(event.target.value) })}
+                      />
+                    </label>
+                    <label>
+                      Scenario event
+                      <select
+                        aria-label="Scenario event"
+                        value={edit.event}
+                        onChange={(event) =>
+                          change({ event: event.target.value as GeneratedPosition['event'] })
+                        }
                       >
-                        <X size={16} />
-                        Remove story message
-                      </button>
-                    </div>
-                  ))}
-                  {(['expectedActions', 'evaluationCriteria', 'facilitatorNotes'] as const).map(
-                    (field) => (
-                      <label key={field}>
-                        {field === 'expectedActions'
-                          ? 'Expected actions'
-                          : field === 'evaluationCriteria'
-                            ? 'Evaluation criteria'
-                            : 'Facilitator notes'}
-                        <select
-                          multiple
-                          size={5}
-                          aria-label={field}
-                          value={edit[field]}
-                          onChange={(event) =>
-                            change({
-                              [field]: Array.from(
+                        {eventKinds.map((key) => (
+                          <option key={key} value={key}>
+                            {label(key)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Decision point
+                      <select
+                        aria-label="Decision point"
+                        value={edit.decision ?? ''}
+                        onChange={(event) =>
+                          change({
+                            decision: event.target.value
+                              ? (event.target.value as NonNullable<GeneratedPosition['decision']>)
+                              : null,
+                          })
+                        }
+                      >
+                        <option value="">Information update</option>
+                        {decisions.map((key) => (
+                          <option key={key} value={key}>
+                            {label(key)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {edit.messages.map((message, index) => (
+                      <div className="package-role-edit" key={message.roleId}>
+                        <h3>
+                          {view.preview!.roles.find((role) => role.id === message.roleId)!.name}
+                        </h3>
+                        <label>
+                          Profile evidence
+                          <select
+                            multiple
+                            size={5}
+                            aria-label={`${message.roleId} evidence`}
+                            value={message.evidence.map((item) => item.claimId)}
+                            onChange={(event) => {
+                              const ids = Array.from(
                                 event.target.selectedOptions,
                                 (option) => option.value,
-                              ),
-                            })
-                          }
+                              );
+                              change({
+                                messages: edit.messages.map((m, i) =>
+                                  i !== index
+                                    ? m
+                                    : {
+                                        ...m,
+                                        evidence: ids.map((claimId) => ({
+                                          claimId,
+                                          status: claims.find((claim) => claim.id === claimId)!
+                                            .status,
+                                        })),
+                                      },
+                                ),
+                              });
+                            }}
+                          >
+                            {claims.map((claim) => (
+                              <option key={claim.id} value={claim.id}>
+                                {claimLabel(claim.id)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          Questions
+                          <select
+                            multiple
+                            size={4}
+                            aria-label={`${message.roleId} questions`}
+                            value={message.questions}
+                            onChange={(event) =>
+                              change({
+                                messages: edit.messages.map((m, i) =>
+                                  i !== index
+                                    ? m
+                                    : {
+                                        ...m,
+                                        questions: Array.from(
+                                          event.target.selectedOptions,
+                                          (option) =>
+                                            option.value as (typeof message.questions)[number],
+                                        ),
+                                      },
+                                ),
+                              })
+                            }
+                          >
+                            {actionKinds.map((key) => (
+                              <option key={key} value={key}>
+                                {label(key)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                    ))}
+                    {edit.artefacts?.map((artefact, index) => (
+                      <div className="package-artefact-edit" key={'artefact-' + index}>
+                        <h3>Story message {index + 1}</h3>
+                        {editable && (
+                          <ArtefactImageEditor
+                            view={view}
+                            position={positionIndex + 1}
+                            index={index}
+                            disabled={disabled || unsaved}
+                            enabled={!!context?.ready}
+                            send={send}
+                          />
+                        )}
+                        <label>
+                          Kind
+                          <select
+                            aria-label={`Story message ${index + 1} kind`}
+                            value={artefact.kind}
+                            onChange={(event) =>
+                              changeArtefact(index, {
+                                kind: event.target.value as StorylineArtefact['kind'],
+                              })
+                            }
+                          >
+                            {artefactKinds.map((key) => (
+                              <option key={key} value={key}>
+                                {label(key)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          From
+                          <input
+                            aria-label={`Story message ${index + 1} sender`}
+                            maxLength={120}
+                            value={artefact.sender}
+                            onChange={(event) =>
+                              changeArtefact(index, { sender: event.target.value })
+                            }
+                          />
+                        </label>
+                        <label>
+                          Headline
+                          <input
+                            aria-label={`Story message ${index + 1} headline`}
+                            maxLength={160}
+                            value={artefact.headline}
+                            onChange={(event) =>
+                              changeArtefact(index, { headline: event.target.value })
+                            }
+                          />
+                        </label>
+                        <label>
+                          Message
+                          <textarea
+                            aria-label={`Story message ${index + 1} text`}
+                            rows={5}
+                            maxLength={900}
+                            value={artefact.body}
+                            onChange={(event) =>
+                              changeArtefact(index, { body: event.target.value })
+                            }
+                          />
+                        </label>
+                        <label>
+                          Received by
+                          <select
+                            multiple
+                            size={3}
+                            aria-label={`Story message ${index + 1} recipients`}
+                            value={artefact.recipientRoleIds}
+                            onChange={(event) =>
+                              changeArtefact(index, {
+                                recipientRoleIds: Array.from(
+                                  event.target.selectedOptions,
+                                  (option) => option.value as (typeof playerRoles)[number],
+                                ),
+                              })
+                            }
+                          >
+                            {playerRoles.map((roleId) => (
+                              <option key={roleId} value={roleId}>
+                                {view.preview!.roles.find((role) => role.id === roleId)!.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => changeArtefact(index, null)}
                         >
-                          {(field === 'facilitatorNotes' ? noteKinds : actionKinds).map((key) => (
-                            <option key={key} value={key}>
-                              {key === 'simulation-only' ? 'Exercise boundaries' : label(key)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    ),
-                  )}
-                </fieldset>
-                <div>
-                  <h3>Saved role-specific messages</h3>
-                  <EvidenceImages images={inject.images} />
-                  {inject.roleBodies!.map((message) => (
-                    <details key={message.roleId} open>
-                      <summary>
-                        <strong>
-                          {view.preview!.roles.find((role) => role.id === message.roleId)!.name}
-                        </strong>
-                      </summary>
-                      <p className="preserve-lines">{exerciseText(message.body)}</p>
-                    </details>
-                  ))}
-                  <h3>Expected actions</h3>
-                  <ul>
-                    {inject.expectedActions!.map((item) => (
-                      <li key={item}>{exerciseText(item)}</li>
+                          <X size={16} />
+                          Remove story message
+                        </button>
+                      </div>
                     ))}
-                  </ul>
-                  <h3>Evaluation criteria</h3>
-                  <ul>
-                    {inject.evaluationCriteria!.map((item) => (
-                      <li key={item}>{exerciseText(item)}</li>
-                    ))}
-                  </ul>
-                  <h3>Facilitator notes</h3>
-                  <p className="preserve-lines">{exerciseText(inject.facilitatorNotes)}</p>
+                    {(['expectedActions', 'evaluationCriteria', 'facilitatorNotes'] as const).map(
+                      (field) => (
+                        <label key={field}>
+                          {field === 'expectedActions'
+                            ? 'Expected actions'
+                            : field === 'evaluationCriteria'
+                              ? 'Evaluation criteria'
+                              : 'Facilitator notes'}
+                          <select
+                            multiple
+                            size={5}
+                            aria-label={field}
+                            value={edit[field]}
+                            onChange={(event) =>
+                              change({
+                                [field]: Array.from(
+                                  event.target.selectedOptions,
+                                  (option) => option.value,
+                                ),
+                              })
+                            }
+                          >
+                            {(field === 'facilitatorNotes' ? noteKinds : actionKinds).map((key) => (
+                              <option key={key} value={key}>
+                                {key === 'simulation-only' ? 'Exercise boundaries' : label(key)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      ),
+                    )}
+                  </fieldset>
+                  <div>
+                    <h3>Saved role-specific messages</h3>
+                    <EvidenceImages images={inject.images} />
+                    <RoleMessages roles={view.preview.roles} bodies={inject.roleBodies!} />
+                    <h3>Expected actions</h3>
+                    <ul>
+                      {inject.expectedActions!.map((item) => (
+                        <li key={item}>{exerciseText(item)}</li>
+                      ))}
+                    </ul>
+                    <h3>Evaluation criteria</h3>
+                    <ul>
+                      {inject.evaluationCriteria!.map((item) => (
+                        <li key={item}>{exerciseText(item)}</li>
+                      ))}
+                    </ul>
+                    <h3>Facilitator notes</h3>
+                    <p className="preserve-lines">{exerciseText(inject.facilitatorNotes)}</p>
+                  </div>
                 </div>
-              </div>
-              {editable && (
-                <div className="package-review-actions">
-                  <button
-                    className="secondary"
-                    disabled={disabled || preparationDirty || !dirty}
-                    onClick={() => review('pending')}
-                  >
-                    <Save size={17} />
-                    Save edit
-                  </button>
-                  <button
-                    className="primary"
-                    disabled={disabled || unsaved}
-                    onClick={() => review('accepted')}
-                  >
-                    <Check size={17} />
-                    Accept inject
-                  </button>
-                  <button
-                    className="secondary"
-                    disabled={disabled || preparationDirty}
-                    onClick={() => review('rejected')}
-                  >
-                    <X size={17} />
-                    Reject inject
-                  </button>
-                  {dirty && (
+                {editable && (
+                  <div className="package-review-actions">
                     <button
-                      className="icon-button"
-                      aria-label="Discard inject edits"
-                      title="Discard inject edits"
-                      disabled={disabled}
-                      onClick={() => {
-                        setEdit(structuredClone(view.draft.plan!.positions[positionIndex]!));
-                        setDirty(false);
-                      }}
+                      className="secondary"
+                      disabled={disabled || preparationDirty || !dirty}
+                      onClick={() => review('pending')}
                     >
-                      <RotateCcw size={17} />
+                      <Save size={17} />
+                      Save edit
                     </button>
-                  )}
-                </div>
-              )}
-            </section>
-          )}
+                    <button
+                      className="primary"
+                      disabled={disabled || unsaved}
+                      onClick={() => review('accepted')}
+                    >
+                      <Check size={17} />
+                      Accept inject
+                    </button>
+                    <button
+                      className="secondary"
+                      disabled={disabled || preparationDirty}
+                      onClick={() => review('rejected')}
+                    >
+                      <X size={17} />
+                      Reject inject
+                    </button>
+                    {dirty && (
+                      <button
+                        className="icon-button"
+                        aria-label="Discard inject edits"
+                        title="Discard inject edits"
+                        disabled={disabled}
+                        onClick={() => {
+                          setEdit(structuredClone(view.draft.plan!.positions[positionIndex]!));
+                          setDirty(false);
+                        }}
+                      >
+                        <RotateCcw size={17} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </section>
+            )}
+          </div>
           <section className="run-section">
             <h2>Package approval</h2>
             {view.draft.status === 'frozen' ? (

@@ -15,6 +15,7 @@ import { findingDefault } from './aar-draft.js';
 import { ApiError, request } from './api.js';
 import { date } from './exercise-format.js';
 import { useCanLeave, useUnsavedGuard } from './unsaved-guard.js';
+import { Citation } from './record-citation.js';
 
 const categoryLabels: Record<AarFinding['category'], string> = {
   'team-decision': 'Team decisions',
@@ -149,10 +150,7 @@ function Finding({
               <>
                 <blockquote className="aar-quote">{evidence.quote}</blockquote>
                 <p className="muted">
-                  {evidence.field}{' '}
-                  <a className="record-citation" href={'#record-' + evidence.recordId}>
-                    [{evidence.recordId}]
-                  </a>
+                  {evidence.field} <Citation id={evidence.recordId} />
                 </p>
               </>
             )}
@@ -252,15 +250,12 @@ function AarReview({
             .find((r) => r.kind === 'boundary')
             ?.fields.find((f) => f.label === 'clarificationLimit')?.value
         }{' '}
-        <a className="record-citation" href={'#record-' + snapshot.report.id}>
-          [{snapshot.report.id}]
-        </a>
+        <Citation id={snapshot.report.id} />
       </p>
       {record.review && <p>Review note: {record.review.notes}</p>}
       <p>
         Quoted team statements, facilitator observations and reviewed analysis are not evidence of
-        executed actions or successful recovery.{' '}
-        <a href={'#record-' + snapshot.report.id}>[{snapshot.report.id}]</a>
+        executed actions or successful recovery. <Citation id={snapshot.report.id} />
       </p>
       <fieldset className="aar-editor" disabled={disabled}>
         <legend>Objective review</legend>
@@ -273,10 +268,7 @@ function AarReview({
         {output.objectives.map((objective, oi) => (
           <section key={objective.objectiveId} aria-label={'AAR ' + objective.objectiveId}>
             <h3>
-              {snapshot.report.objectives[oi]!.text}{' '}
-              <a className="record-citation" href={'#record-' + snapshot.report.packageId}>
-                [{snapshot.report.packageId}]
-              </a>
+              {snapshot.report.objectives[oi]!.text} <Citation id={snapshot.report.packageId} />
             </h3>
             {(['strengths', 'areasForImprovement'] as const).map((section) => (
               <section
@@ -419,11 +411,7 @@ function AarReview({
                                     ?.evidence.map((e) => e.recordId) ?? [],
                               ),
                             ),
-                          ].map((id) => (
-                            <a key={id} className="record-citation" href={'#record-' + id}>
-                              [{id}]
-                            </a>
-                          ))}
+                          ].map((id) => <Citation key={id} id={id} />)}
                     </td>
                     {editing ? (
                       <>

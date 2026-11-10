@@ -57,13 +57,38 @@ export function FamilyAssessmentView({ family }: { family: FamilyAssessment }) {
 }
 
 // Facilitator-only map of the plan's pathway; hypotheses are never shown to players.
+// The route and its open gaps are on screen; the supporting claims open on request, so a gap
+// is not listed twice (ADR-045). All claims and their IDs remain on the page.
 export function ThreatPathwayView({ pathway }: { pathway: ThreatPathway }) {
+  const scenarioServices = pathway.services.filter((service) => service.selected);
+  const count = (claims: PathwayClaim[]) =>
+    `${claims.length} ${claims.length === 1 ? 'claim' : 'claims'}`;
   return (
     <section className="run-section threat-pathway" aria-label="Threat pathway">
       <h2>Threat pathway</h2>
       <p className="muted">
         {pathway.title} / {pathway.libraryVersion} / Facilitator only
       </p>
+      <ol className="pathway-route" aria-label="Pathway route">
+        <li>
+          <span>Entry</span>
+          {pathway.entryHypotheses.length
+            ? `${pathway.entryHypotheses.length} ${pathway.entryHypotheses.length === 1 ? 'hypothesis' : 'hypotheses'}`
+            : 'No access link recorded'}
+        </li>
+        <li>
+          <span>Target</span>
+          {pathway.target.name}
+        </li>
+        <li>
+          <span>Service</span>
+          {scenarioServices.map((service) => service.name).join('; ') || 'None selected'}
+        </li>
+        <li>
+          <span>Open gaps</span>
+          {pathway.gaps.length}
+        </li>
+      </ol>
       <h3>Entry point</h3>
       <p>{pathway.entryStatement}</p>
       {pathway.entryHypotheses.length ? (
@@ -78,35 +103,51 @@ export function ThreatPathwayView({ pathway }: { pathway: ThreatPathway }) {
       ) : (
         <p className="muted">No confirmed access link to the target is recorded.</p>
       )}
-      <h3>Target system: {pathway.target.name}</h3>
-      <ClaimLines claims={pathway.target.claims} />
-      <h3>Dependent services</h3>
-      {pathway.services.map((service) => (
-        <details key={service.entityId} open={service.selected}>
-          <summary>
-            {service.name}
-            {service.selected && ' (scenario service)'}
-          </summary>
-          <ClaimLines claims={service.claims} />
-        </details>
-      ))}
-      <h3>Recovery evidence</h3>
-      <ClaimLines claims={pathway.recovery} />
-      <h3>Authority</h3>
-      <ClaimLines claims={pathway.authority} />
-      <h3>Facilitator-played suppliers</h3>
-      {pathway.suppliers.map((supplier) => (
-        <details key={supplier.entityId}>
-          <summary>{supplier.name}</summary>
-          <ClaimLines claims={supplier.claims} />
-        </details>
-      ))}
       <h3>Gaps on the pathway</h3>
       <p className="muted">
         These claims are not confirmed facts. They keep their recorded state; players discuss them
         rather than the package resolving them.
       </p>
       <ClaimLines claims={pathway.gaps} />
+      <h3>Supporting claims</h3>
+      <details>
+        <summary>
+          Target system: {pathway.target.name}{' '}
+          <span className="muted">{count(pathway.target.claims)}</span>
+        </summary>
+        <ClaimLines claims={pathway.target.claims} />
+      </details>
+      {pathway.services.map((service) => (
+        <details key={service.entityId}>
+          <summary>
+            Dependent service: {service.name}
+            {service.selected && ' (scenario service)'}{' '}
+            <span className="muted">{count(service.claims)}</span>
+          </summary>
+          <ClaimLines claims={service.claims} />
+        </details>
+      ))}
+      <details>
+        <summary>
+          Recovery evidence <span className="muted">{count(pathway.recovery)}</span>
+        </summary>
+        <ClaimLines claims={pathway.recovery} />
+      </details>
+      <details>
+        <summary>
+          Authority <span className="muted">{count(pathway.authority)}</span>
+        </summary>
+        <ClaimLines claims={pathway.authority} />
+      </details>
+      {pathway.suppliers.map((supplier) => (
+        <details key={supplier.entityId}>
+          <summary>
+            Facilitator-played supplier: {supplier.name}{' '}
+            <span className="muted">{count(supplier.claims)}</span>
+          </summary>
+          <ClaimLines claims={supplier.claims} />
+        </details>
+      ))}
     </section>
   );
 }

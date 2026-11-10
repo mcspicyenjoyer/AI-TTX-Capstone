@@ -107,6 +107,8 @@ for (const action of ['draft', 'snapshot', 'manual', 'ai', 'capture', 'refresh']
       const debrief = page
         .getByRole('region', { name: 'Debrief', exact: true })
         .getByRole('textbox', { name: 'Facilitator observations', exact: true });
+      // Debrief and AAR are separate sections of the tab; both stay mounted (ADR-045).
+      const section = (name: string) => page.getByRole('tab', { name, exact: true }).click();
       if (action === 'draft') {
         message = '';
         page.once('dialog', (dialog) => {
@@ -116,7 +118,10 @@ for (const action of ['draft', 'snapshot', 'manual', 'ai', 'capture', 'refresh']
         await page.getByRole('button', { name: 'Organisation profile', exact: true }).click();
         expect(message).toBe('Discard unsaved changes in this view?');
         await expect(rationale).toHaveValue('Unsaved reviewer rationale.');
+        await section('Debrief');
         await debrief.fill('Unrelated unsaved debrief.');
+        await section('After-action review');
+        await expect(rationale).toHaveValue('Unsaved reviewer rationale.');
       }
       const captureCommands: string[] = [];
       if (action === 'capture')
@@ -160,6 +165,7 @@ for (const action of ['draft', 'snapshot', 'manual', 'ai', 'capture', 'refresh']
         else await expect(rationale).toHaveValue('');
       }
       if (action === 'draft') {
+        await section('Debrief');
         await expect(debrief).toHaveValue('Unrelated unsaved debrief.');
         message = '';
         page.once('dialog', (dialog) => {
@@ -291,6 +297,18 @@ test('AAR draft is bound to snapshot, quoted and facilitator-reviewed with unass
         .evaluateAll((nodes) => nodes.every((node) => node.querySelector('.record-citation'))),
     ).toBe(true);
     expect(await page.evaluate(() => 'aarInjected' in window)).toBe(false);
+    // A finding's citation opens the cited record in the Records section.
+    const citation = draft.locator('.aar-finding .record-citation').first();
+    const target = page.locator('[id="' + (await citation.getAttribute('href'))!.slice(1) + '"]');
+    await expect(citation).toHaveAttribute('title', (await target.getAttribute('data-record-id'))!);
+    await citation.click();
+    await expect(page.getByRole('tab', { name: 'Records', exact: true })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    await expect(target).toHaveJSProperty('open', true);
+    await expect(target).toBeInViewport();
+    await page.getByRole('tab', { name: 'After-action review', exact: true }).click();
     await expect(draft.getByRole('cell', { name: 'Unassigned owner', exact: true })).toHaveText('');
     await draft.getByRole('button', { name: 'Edit draft', exact: true }).click();
     await draft

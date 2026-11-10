@@ -38,7 +38,18 @@ test('generated package review edit reject freeze at desktop and mobile widths',
     store.close();
   }
   await page.getByRole('button', { name: 'Refresh packages', exact: true }).click();
+  // The review is split into steps; a new draft does not move the facilitator (ADR-045).
+  const step = (name: string) => page.getByRole('tab', { name: new RegExp('^' + name) }).click();
+  await expect(page.getByRole('tab', { name: /^Injects/ })).toContainText('0/5');
+  await expect(page.getByRole('tab', { name: /^Profile/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(page.getByRole('tab', { name: /1. Shared engineering files/ })).toBeHidden();
+  await step('Injects');
+  await expect(page.getByText(generationTarget.profileHash, { exact: true })).toBeHidden();
   await expect(page.getByRole('tab', { name: /1. Shared engineering files/ })).toBeVisible();
+  await step('Scenario');
   await expect(
     page.locator('.preserve-lines').filter({ hasText: /^Suspected ransomware/ }),
   ).toBeVisible();
@@ -61,13 +72,22 @@ test('generated package review edit reject freeze at desktop and mobile widths',
     page.getByLabel('facilitatorNotes', { exact: true }).locator('option[value="simulation-only"]'),
   ).toHaveText('Exercise boundaries');
   // The facilitator sees the mapped pathway, with access links marked as hypotheses.
+  await step('Pathway');
   const pathway = page.getByRole('region', { name: 'Threat pathway', exact: true });
+  await expect(pathway.getByRole('list', { name: 'Pathway route', exact: true })).toContainText(
+    'TargetTE-FS01',
+  );
   await expect(pathway).toContainText('Target system: TE-FS01');
   await expect(pathway).toContainText('Entry point not established.');
   await pathway.getByText('TE-VPN01', { exact: false }).first().click();
   await expect(pathway.getByText('Hypothesis', { exact: true })).toBeVisible();
   await expect(pathway).toContainText('TE-VPN01 / access-to: TE-FS01');
+  // Open gaps are on screen once; the supporting claims open on request.
+  await expect(
+    pathway.getByText('TE-FS01 / restore-tested: no value recorded', { exact: false }).first(),
+  ).toBeVisible();
   await expect(pathway).toContainText('UNKNOWN TE-FS01 / restore-tested: no value recorded');
+  await step('Scenario');
   // ADR-038: the model-written attacker and background are shown for review.
   // It appears in the scenario and again in position 1's facilitator notes.
   await expect(page.getByText(/Threat actor: Quiet Ledger\./)).toHaveCount(2);
@@ -80,6 +100,7 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   ).toBeVisible();
   const freeze = page.getByRole('button', { name: 'Approve and freeze package', exact: true });
   await expect(freeze).toBeDisabled();
+  await step('Injects');
   await page.getByRole('button', { name: 'Reject inject', exact: true }).click();
   await expect(page.getByRole('tab', { name: /1. Shared engineering files/ })).toContainText(
     'Rejected',
@@ -94,9 +115,18 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   await expect(page.getByRole('tab', { name: /1. Shared engineering files/ })).toContainText(
     'Pending',
   );
-  await expect(
-    page.getByText(/Chat message from Project team chat: Story update 1\nEDITED_STORY/),
-  ).toBeVisible();
+  // Saved role messages use the participant rendering, one role at a time.
+  const roleMessage = page.locator('.role-message');
+  await expect(roleMessage.locator('.story-message')).toHaveCount(0);
+  await page.getByRole('tab', { name: 'Engineering/project operations', exact: true }).click();
+  const story = roleMessage.locator('.story-message.chat-message');
+  await expect(story.locator('.story-kind')).toHaveText('Chat message');
+  await expect(story.locator('.story-meta')).toContainText('Project team chat');
+  await expect(story.getByRole('heading', { name: 'Story update 1', exact: true })).toBeVisible();
+  await expect(story.locator('.story-body')).toHaveText(
+    'EDITED_STORY: the drawings folder will not open for anyone.',
+  );
+  await page.getByRole('tab', { name: 'Business leadership', exact: true }).click();
   await expect(
     page
       .getByText('What evidence should be preserved before disruptive action?', { exact: false })
@@ -130,6 +160,7 @@ test('generated package review edit reject freeze at desktop and mobile widths',
     );
   }
   await expect(freeze).toBeEnabled();
+  await step('Preparation');
   await page.getByLabel('Plan being exercised', { exact: true }).selectOption('test-plan');
   await page.getByLabel('Shared Step 0 references', { exact: true }).selectOption('shared-route');
   await page.getByLabel('Internal IT briefing', { exact: true }).selectOption(['it', 'restore']);
@@ -139,7 +170,10 @@ test('generated package review edit reject freeze at desktop and mobile widths',
     .getByLabel('Background 1', { exact: true })
     .fill('EDITED_BACKGROUND: a client moved the review meeting forward.');
   await expect(freeze).toBeDisabled();
+  await expect(page.getByRole('tab', { name: /^Preparation/ })).toContainText('Unsaved');
+  await step('Injects');
   await expect(page.getByRole('button', { name: 'Accept inject', exact: true })).toBeDisabled();
+  await step('Preparation');
   await page.getByRole('button', { name: 'Save preparation', exact: true }).click();
   await expect(
     page.getByText('Facilitator review / 0 of 5 injects accepted', { exact: true }),
@@ -147,6 +181,11 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   await expect(page.getByText(/EXERCISE ASSUMPTION: Synthetic draft BCP/)).toBeVisible();
   await page.reload();
   await page.getByRole('button', { name: 'Package generation', exact: true }).click();
+  // A draft already under review opens on its injects.
+  await expect(page.getByRole('tab', { name: /^Injects/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
   await expect(page.getByLabel('Internal IT briefing', { exact: true })).toHaveValues([
     'it',
     'restore',
@@ -158,10 +197,12 @@ test('generated package review edit reject freeze at desktop and mobile widths',
   await expect(page.getByLabel('Background 1', { exact: true })).toHaveValue(
     'EDITED_BACKGROUND: a client moved the review meeting forward.',
   );
+  await step('Scenario');
   await expect(
     page.getByRole('listitem').filter({ hasText: /^EDITED_BACKGROUND: a client moved/ }),
   ).toBeVisible();
   await expect(page.getByText(/^Represent: Imran\./)).toBeAttached();
+  await step('Injects');
   for (let position = 0; position < 5; position++) {
     await page.getByRole('tab', { name: new RegExp(`^${position + 1}\\.`) }).click();
     await page.getByRole('button', { name: 'Accept inject', exact: true }).click();

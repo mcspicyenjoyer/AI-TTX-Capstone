@@ -1,5 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
-import { Camera, Clock3, List, RefreshCw } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Camera,
+  ChevronsDownUp,
+  ChevronsUpDown,
+  ClipboardCheck,
+  Clock3,
+  List,
+  MessageSquareText,
+  RefreshCw,
+  ScrollText,
+} from 'lucide-react';
 import type { Static } from '@sinclair/typebox';
 import {
   RecordReportListSchema,
@@ -12,6 +22,7 @@ import { date } from './exercise-format.js';
 import { AarWorkspace } from './aar-workspace.js';
 import { DebriefWorkspace } from './debrief-workspace.js';
 import { GuardProvider, useGuardRegistry, useUnsavedGuard } from './unsaved-guard.js';
+import { Citation, RevealRecord } from './record-citation.js';
 
 const titles: Record<ReportRecord['kind'], string> = {
   boundary: 'Snapshot boundaries',
@@ -29,69 +40,105 @@ const titles: Record<ReportRecord['kind'], string> = {
   debrief: 'Debrief',
 };
 
-function Citation({ id }: { id: string }) {
-  return (
-    <a className="record-citation" href={'#record-' + id}>
-      [{id}]
-    </a>
-  );
-}
-
 function fieldLabel(label: string) {
   const words = label.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[.-]/g, ' ');
   return words[0]!.toUpperCase() + words.slice(1);
 }
 
+type Field = ReportRecord['fields'][number];
+const annotations = ['fictionalExerciseClock', 'analysisPhase'];
+// Record plumbing (IDs, hashes, revision counters) sits behind an Identifiers toggle.
+const identifier = /(Ids?|Hash|[rR]evision|sequence)$/;
+const previewFields = [
+  'title',
+  'question',
+  'actions',
+  'decision',
+  'kind',
+  'state',
+  'participantFeedback',
+  'facilitatorObservations',
+  'exerciseDesignNotes',
+  'rationale',
+];
+
+function FieldList({ record, fields }: { record: ReportRecord; fields: Field[] }) {
+  return (
+    <dl>
+      {fields.map((field, index) => (
+        <div key={index}>
+          <dt>
+            {fieldLabel(field.label)} <Citation id={record.id} self />
+          </dt>
+          <dd>
+            {field.value.split(/\r?\n/).map((line, i) => (
+              <p key={i}>
+                {line || '[empty]'}{' '}
+                {field.citations.map((id) => (
+                  <Citation key={id} id={id} self={id === record.id} />
+                ))}
+              </p>
+            ))}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+// One line per record until opened (ADR-045). Every field stays in the page with its
+// citations; nothing from the snapshot is dropped or reworded.
 function RecordDetail({ record }: { record: ReportRecord }) {
   const clock = record.fields.find((field) => field.label === 'fictionalExerciseClock');
+  const fields = record.fields.filter((field) => !annotations.includes(field.label));
+  const content = fields.filter((field) => !identifier.test(field.label));
+  const identifiers = fields.filter((field) => identifier.test(field.label));
+  const lead =
+    previewFields.map((label) => content.find((field) => field.label === label)).find(Boolean) ??
+    content[0];
   return (
-    <section className="report-record" id={'record-' + record.id} data-record-id={record.id}>
-      <h4>
-        {titles[record.kind]} <Citation id={record.id} />
-      </h4>
+    <details
+      className="report-record"
+      id={'record-' + record.id}
+      data-record-id={record.id}
+      open={record.kind === 'boundary'}
+    >
+      <summary>
+        <h4>
+          {titles[record.kind]} <Citation id={record.id} self />
+        </h4>
+        <span className="record-preview">{lead?.value.split(/\r?\n/)[0]}</span>
+        {record.recordedAt && <span className="record-when">{date(record.recordedAt)}</span>}
+      </summary>
       {clock && (
         <p className="report-clock">
           <strong>Exercise clock:</strong> {clock.value}{' '}
           {clock.citations.map((id) => (
-            <Citation key={id} id={id} />
+            <Citation key={id} id={id} self={id === record.id} />
           ))}
         </p>
       )}
       {record.kind === 'interpretation' && (
         <p className="report-analysis">
           <strong>Post-exercise analysis</strong> / Not an exercise event.{' '}
-          <Citation id={record.id} />
+          <Citation id={record.id} self />
         </p>
       )}
       {(record.recordedAt || record.actorId || record.revision) && (
         <p className="muted">
           {record.recordedAt && 'Recorded ' + date(record.recordedAt)}
           {record.actorId && ' / ' + record.actorId}
-          {record.revision && ' / revision ' + record.revision} <Citation id={record.id} />
+          {record.revision && ' / revision ' + record.revision} <Citation id={record.id} self />
         </p>
       )}
-      <dl>
-        {record.fields
-          .filter((field) => !['fictionalExerciseClock', 'analysisPhase'].includes(field.label))
-          .map((field, index) => (
-            <div key={index}>
-              <dt>
-                {fieldLabel(field.label)} <Citation id={record.id} />
-              </dt>
-              <dd>
-                {field.value.split(/\r?\n/).map((line, i) => (
-                  <p key={i}>
-                    {line || '[empty]'}{' '}
-                    {field.citations.map((id) => (
-                      <Citation key={id} id={id} />
-                    ))}
-                  </p>
-                ))}
-              </dd>
-            </div>
-          ))}
-      </dl>
-    </section>
+      <FieldList record={record} fields={content} />
+      {identifiers.length > 0 && (
+        <details className="record-identifiers">
+          <summary>Identifiers ({identifiers.length})</summary>
+          <FieldList record={record} fields={identifiers} />
+        </details>
+      )}
+    </details>
   );
 }
 
@@ -102,7 +149,7 @@ function DebriefRecords({ report }: { report: RecordReportView['report'] }) {
   return (
     <section aria-label="Post-exercise debrief">
       <h3>
-        Post-exercise debrief <Citation id={report.id} />
+        Post-exercise debrief <Citation id={report.id} self />
       </h3>
       {records.map((r) => (
         <RecordDetail key={r.id} record={r} />
@@ -115,16 +162,21 @@ function Report({ view }: { view: RecordReportView }) {
   const { report } = view;
   const [tab, setTab] = useState<'objectives' | 'timeline'>('objectives');
   const byId = new Map(report.records.map((record) => [record.id, record]));
+  const article = useRef<HTMLElement>(null);
+  const setAll = (open: boolean) =>
+    article.current
+      ?.querySelectorAll<HTMLDetailsElement>('details.report-record')
+      .forEach((item) => (item.open = open));
   return (
-    <article className="record-report" aria-label="Fixed app-record report">
+    <article className="record-report" aria-label="Fixed app-record report" ref={article}>
       <h2>
-        App-record report <Citation id={report.id} />
+        App-record report <Citation id={report.id} self />
       </h2>
       <p>
-        Captured {date(report.createdAt)} <Citation id={report.id} />
+        Captured {date(report.createdAt)} <Citation id={report.id} self />
       </p>
       <p className="report-hash">
-        SHA-256: {view.hash} <Citation id={report.id} />
+        SHA-256: {view.hash} <Citation id={report.id} self />
       </p>
       {report.records
         .filter((r) => ['boundary', 'run', 'package'].includes(r.kind))
@@ -145,10 +197,20 @@ function Report({ view }: { view: RecordReportView }) {
           Timeline
         </button>
       </div>
+      <div className="report-expand">
+        <button className="secondary" onClick={() => setAll(true)}>
+          <ChevronsUpDown size={16} />
+          Expand all
+        </button>
+        <button className="secondary" onClick={() => setAll(false)}>
+          <ChevronsDownUp size={16} />
+          Collapse all
+        </button>
+      </div>
       {tab === 'timeline' ? (
         <section aria-label="Record timeline">
           <h3>
-            Timeline <Citation id={report.id} />
+            Timeline <Citation id={report.id} self />
           </h3>
           <section aria-label="Exercise event records">
             {report.timeline
@@ -160,7 +222,7 @@ function Report({ view }: { view: RecordReportView }) {
           {report.timeline.some((id) => byId.get(id)!.kind === 'interpretation') && (
             <section aria-label="Post-exercise analysis">
               <h3>
-                Post-exercise analysis <Citation id={report.id} />
+                Post-exercise analysis <Citation id={report.id} self />
               </h3>
               {report.timeline
                 .filter((id) => byId.get(id)!.kind === 'interpretation')
@@ -175,7 +237,7 @@ function Report({ view }: { view: RecordReportView }) {
         <>
           <section aria-label="Preparation record">
             <h3>
-              Step 0 <Citation id={report.id} />
+              Step 0 <Citation id={report.id} self />
             </h3>
             {report.records
               .filter((r) => r.kind === 'step0')
@@ -211,7 +273,7 @@ function Report({ view }: { view: RecordReportView }) {
           ))}
           <section aria-label="Completion and activity">
             <h3>
-              Completion and activity <Citation id={report.id} />
+              Completion and activity <Citation id={report.id} self />
             </h3>
             {report.records
               .filter((r) => ['completion', 'activity'].includes(r.kind))
@@ -225,6 +287,14 @@ function Report({ view }: { view: RecordReportView }) {
     </article>
   );
 }
+
+type Section = 'debrief' | 'records' | 'aar';
+// In working order: debrief first, capture, read the records, then review the AAR.
+const sections = [
+  ['debrief', 'Debrief', MessageSquareText],
+  ['records', 'Records', ScrollText],
+  ['aar', 'After-action review', ClipboardCheck],
+] as const;
 
 export function RecordReportWorkspace({
   runId,
@@ -242,6 +312,18 @@ export function RecordReportWorkspace({
   const [error, setError] = useState('');
   const [pending, setPending] = useState<string | null>(null);
   const generation = useRef(0);
+  const first = useRef(true);
+  const [section, setSection] = useState<Section>('aar');
+  // A citation opens its record in the Records section, wherever it was clicked.
+  const reveal = useCallback((id: string) => {
+    setSection('records');
+    requestAnimationFrame(() => {
+      const target = document.getElementById('record-' + id);
+      if (!target) return;
+      if (target instanceof HTMLDetailsElement) target.open = true;
+      target.scrollIntoView({ block: 'start' });
+    });
+  }, []);
   const aarGuard = useGuardRegistry(setError);
   // Only a capture request whose outcome is unresolved blocks leaving. This view stays mounted
   // while hidden, so treating an ordinary snapshot read as pending blocked unrelated navigation.
@@ -263,6 +345,9 @@ export function RecordReportWorkspace({
       const snapshots = await request(RecordReportListSchema, root);
       if (current !== generation.current) return;
       setList(snapshots);
+      // With nothing captured yet the debrief comes first; otherwise open on the review.
+      if (first.current && !snapshots.length) setSection('debrief');
+      first.current = false;
       const selected = id ?? next?.report.id ?? snapshots.at(-1)?.id;
       next ??= selected ? await request(RecordReportViewSchema, root + '/' + selected) : null;
       if (current === generation.current) setView(next);
@@ -290,11 +375,6 @@ export function RecordReportWorkspace({
 
   return (
     <section className="record-report-workspace" aria-label="Record report workspace">
-      <DebriefWorkspace
-        runId={runId}
-        participants={participants}
-        onSessionExpired={onSessionExpired}
-      />
       <div className="run-actions">
         <button
           className="primary"
@@ -354,19 +434,69 @@ export function RecordReportWorkspace({
           </select>
         </label>
       )}
-      {view && (
-        <>
-          <GuardProvider registry={aarGuard}>
-            <AarWorkspace
-              key={'aar-' + view.report.id}
-              snapshot={view}
-              disabled={busy || !!pending}
-              onSessionExpired={onSessionExpired}
-            />
-          </GuardProvider>
-          <Report key={view.report.id} view={view} />
-        </>
-      )}
+      <div className="workspace-tabs report-sections" role="tablist" aria-label="Report sections">
+        {sections.map(([id, label, Icon]) => (
+          <button
+            key={id}
+            role="tab"
+            id={'report-tab-' + id}
+            aria-selected={section === id}
+            aria-controls={'report-panel-' + id}
+            onClick={() => setSection(id)}
+          >
+            <Icon size={17} />
+            {label}
+          </button>
+        ))}
+      </div>
+      {/* All three stay mounted so unsaved debrief and AAR edits survive switching. */}
+      <RevealRecord.Provider value={reveal}>
+        <div
+          role="tabpanel"
+          id="report-panel-debrief"
+          aria-labelledby="report-tab-debrief"
+          hidden={section !== 'debrief'}
+        >
+          <DebriefWorkspace
+            runId={runId}
+            participants={participants}
+            onSessionExpired={onSessionExpired}
+          />
+        </div>
+        <div
+          role="tabpanel"
+          id="report-panel-records"
+          aria-labelledby="report-tab-records"
+          hidden={section !== 'records'}
+        >
+          {view ? (
+            <Report key={view.report.id} view={view} />
+          ) : (
+            <p className="muted">Capture a record snapshot to list the exercise records here.</p>
+          )}
+        </div>
+        <div
+          role="tabpanel"
+          id="report-panel-aar"
+          aria-labelledby="report-tab-aar"
+          hidden={section !== 'aar'}
+        >
+          {view ? (
+            <GuardProvider registry={aarGuard}>
+              <AarWorkspace
+                key={'aar-' + view.report.id}
+                snapshot={view}
+                disabled={busy || !!pending}
+                onSessionExpired={onSessionExpired}
+              />
+            </GuardProvider>
+          ) : (
+            <p className="muted">
+              The after-action review is drafted from a captured record snapshot.
+            </p>
+          )}
+        </div>
+      </RevealRecord.Provider>
     </section>
   );
 }

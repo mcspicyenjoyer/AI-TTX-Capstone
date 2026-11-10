@@ -54,9 +54,10 @@ test('generate review attach freeze and release a PowerShell image with reload a
     await page.getByRole('button', { name: 'Save edit', exact: true }).click();
     await expect(kind).toHaveValue('powershell-transcript');
     await expect(page.getByLabel('Story message 1 text', { exact: true })).toHaveValue(transcript);
-    await expect(
-      page.locator('.preserve-lines').filter({ hasText: 'PowerShell transcript from' }),
-    ).toContainText(transcript);
+    await page.getByRole('tab', { name: 'Engineering/project operations', exact: true }).click();
+    const saved = page.locator('.role-message .story-message.powershell-transcript');
+    await expect(saved.locator('.story-kind')).toHaveText('PowerShell transcript');
+    await expect(saved.locator('.story-body')).toContainText(transcript);
     await panel.getByRole('button', { name: 'Generate image', exact: true }).click();
     await expect(panel).toContainText('Queued for image worker.');
     const job = images.claim()!;

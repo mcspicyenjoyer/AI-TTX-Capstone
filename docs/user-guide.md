@@ -151,9 +151,9 @@ The existing 3031 demonstration profile is already configured. You do not need t
 
 1. In **Package generation**, select **Generate draft** and confirm subscription use. Wait for the queued/generating state to finish; do not repeatedly request new drafts because generation is taking time.
 2. Alternatively, choose an existing unfrozen **Review** entry from **Package draft**. This is the quickest route for the prepared demonstration.
-3. Read **Scenario and objectives**, **Background shared with players**, **Player roles** and **Threat pathway**. Confirm that the incident, its impact and the decisions make sense for the reviewed organisation.
+3. The review is split into steps under the draft: **Profile**, **Scenario**, **Pathway**, **Preparation** and **Injects**. A new draft leaves you on **Profile**; an existing draft opens on **Injects**. Open **Scenario** and read **Scenario and objectives**, **Background shared with players** and **Player roles**. Then open **Pathway**: it shows the route, the open gaps and, on request, the supporting claims. Confirm that the incident, its impact and the decisions make sense for the reviewed organisation.
 
-**Expected result:** the package is available for **Facilitator review**, with five numbered inject tabs. A new draft initially has zero accepted injects. Nothing has been delivered to participants.
+**Expected result:** the package is available for **Facilitator review**. The **Injects** step shows `0/5` and holds five numbered inject tabs. A new draft initially has zero accepted injects. Nothing has been delivered to participants.
 
 Do not choose the completed reference package expecting to replay it. Its frozen package and completed run are retained evidence. Prepare a different draft for a new play-through; the current interface does not reopen the completed run.
 
@@ -161,24 +161,24 @@ Do not choose the completed reference package expecting to replay it. Its frozen
 
 ### Finish Preparation First
 
-1. In **Preparation**, select **Plan being exercised** and assign the appropriate confirmed people to each role.
+1. Open the **Preparation** step, select **Plan being exercised** and assign the appropriate confirmed people to each role.
 2. Review **Shared Step 0 references**, each role's briefing and the shared background. Shared information should establish the starting situation, not reveal future technical discoveries or the solution.
 3. If you changed anything, select **Save preparation**. If the saved preparation is already correct, continue without saving; the button is disabled when nothing has changed.
 
 Some controls allow several selections. On Windows, use Ctrl-click to add or remove an individual choice without replacing the other selections; check the resulting list before saving.
 
-**Important:** changing preparation clears all inject acceptances and image attachments. Finish this section before generating images or doing the final acceptance pass.
+**Important:** changing preparation clears all inject acceptances and image attachments. Finish this section before generating images or doing the final acceptance pass. A step with unsaved changes is marked **Unsaved**; save or discard them before working in another step, because the other step's controls stay disabled until you do.
 
 ### Review Each Numbered Inject
 
-For each of the five tabs:
+Open the **Injects** step. For each of the five tabs:
 
 1. Read the event and **Decision point**. An information update does not necessarily need a new major decision.
 2. Check **Elapsed minutes**. This is the incident's story clock, not a timer that forces you to wait that long in the room.
 3. Check each role's **Profile evidence** and **Questions**. Give a role what it would reasonably know, rather than every specialist fact.
 4. Review each story message's **Kind**, **From**, **Headline**, **Message** and **Received by**. Check names, dates, timing, claims and recipients against the scenario.
 5. Review **Expected actions**, **Evaluation criteria** and **Facilitator notes**. These guide facilitation and review; they are not participant instructions or proof that an action happened.
-6. Select **Save edit** after making changes. Inspect **Saved role-specific messages** to confirm what was actually saved. An edited inject returns to **Pending**.
+6. Select **Save edit** after making changes. Inspect **Saved role-specific messages** to confirm what was actually saved: choose each role's button to see that role's message as the participant will see it. An edited inject returns to **Pending**.
 
 If an inject is unsuitable, use **Reject inject**, correct it and review it again. Rejection is not deletion. Finish optional images in Step 6 before the final acceptance in Step 7.
 
@@ -199,7 +199,7 @@ For the prepared 3031 example, the separate Review draft has a saved PowerShell 
 ## Step 7: Accept and Freeze the Package
 
 1. Return to each inject and select **Accept inject** only after its saved text, recipients and any attached image have been reviewed.
-2. Check that all five are **Accepted**. Resolve any **Objective coverage must be resolved before freezing** warning; restoring the necessary assessment coverage may require revisiting the injects.
+2. Check that the **Injects** step shows `5/5`. **Package approval** sits below every step. Resolve any **Objective coverage must be resolved before freezing** warning; restoring the necessary assessment coverage may require revisiting the injects.
 3. Select **Approve and freeze package** and confirm.
 4. Note the **Frozen run** identifier, then open **Exercises** and select that run.
 
@@ -223,7 +223,7 @@ Repeat this sequence for all five positions. The facilitator controls the pace; 
 
 ### Release the Update
 
-1. Review the current inject and intended recipients.
+1. Review the current inject and intended recipients. Choose each role's button to see the message that role will receive.
 2. Select **Approve inject**, then **Release to inbox**. These are separate actions.
 3. Ask participants to check their inbox. Different roles may receive different information and images. A missing image is not automatically an error if that role was not selected to receive it.
 
@@ -257,17 +257,17 @@ After all five positions are closed, enter **Completion rationale** and select *
 
 ### Record the Debrief Before Taking the Snapshot
 
-1. In the completed generated exercise, open **Record report**.
+1. In the completed generated exercise, open **Record report**. It has three sections: **Debrief**, **Records** and **After-action review**. Capture and the snapshot picker stay above them.
 2. In **Debrief**, record **Participant feedback (your summary)**, **Facilitator observations** and **Exercise design limitations** as appropriate. Select the participants whose feedback you are summarising. Do not attribute feedback to people who did not give it.
 3. Select **Record debrief**.
 4. Review the saved exercise responses and any interpretations you intend to include, then select **Capture record snapshot**.
 
-**Expected result:** a saved snapshot containing the captured record, with citations to its evidence. It does not update automatically when you add later debrief notes or review another interpretation. Capture a new snapshot if those changes must appear in the report.
+**Expected result:** a saved snapshot containing the captured record, with citations to its evidence. Open **Records** to read it: each record is one line until you select it, **Expand all** opens every record, and a record's IDs and hashes are under **Identifiers**. The snapshot does not update automatically when you add later debrief notes or review another interpretation. Capture a new snapshot if those changes must appear in the report.
 
 ### Draft and Review the Findings
 
-1. Select the intended **Snapshot**, check the remaining attempts, then choose **Draft AAR**. This starts the AI request immediately; there is no separate subscription-use confirmation dialog. **New manual AAR** is available when AI is unavailable or a manual review is preferred.
-2. Treat **Unreviewed draft** as a proposal. Read each finding and follow its evidence links into the captured record. Check that a statement about what someone proposed is not described as something they actually carried out.
+1. Open **After-action review**. Select the intended **Snapshot**, check the remaining attempts, then choose **Draft AAR**. This starts the AI request immediately; there is no separate subscription-use confirmation dialog. **New manual AAR** is available when AI is unavailable or a manual review is preferred.
+2. Treat **Unreviewed draft** as a proposal. Read each finding and follow its evidence links into the captured record: a link such as `[response 1a2b]` opens that record in **Records**, and hovering over it shows the full record ID. Return to **After-action review** to continue; unsaved edits are kept. Check that a statement about what someone proposed is not described as something they actually carried out.
 3. Use **Edit draft** to correct findings or proposed improvements; **Preview draft** returns to the reading view. Manual findings also need supporting snapshot citations, not unsupported free-form conclusions.
 4. In **Proposed Improvement Actions**, leave **Owner** as **Unassigned** unless a person has actually accepted responsibility. The owner list uses people in the confirmed profile. An assigned owner also needs a date in the **Due** column; agree these outside the application before saving them.
 5. Enter **Review rationale**. Use **Accept AAR** for suitable unchanged AI output, **Save AAR edits** for edited output, **Save manual AAR** for a manual report, or **Reject AAR** if the proposal is unsuitable. Assigning an owner changes the output, so save it as an edit.

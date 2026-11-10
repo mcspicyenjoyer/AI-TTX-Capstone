@@ -4,6 +4,7 @@ import type { ExerciseWorkspaceModel } from './use-exercise-workspace.js';
 import { date, labels, exerciseText, optionLabel } from './exercise-format.js';
 import { Step0Form } from './step0-form.js';
 import { EvidenceImages } from './artefact-images.js';
+import { RoleMessages } from './exercise-blocks.js';
 
 export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
   const {
@@ -149,7 +150,11 @@ export function FacilitatorExercise({ vm }: { vm: ExerciseWorkspaceModel }) {
               {inject ? (
                 <>
                   <h3>{inject.title}</h3>
-                  <p className="inject-body">{exerciseText(inject.body)}</p>
+                  {inject.roleBodies ? (
+                    <RoleMessages roles={review.package.roles} bodies={inject.roleBodies} />
+                  ) : (
+                    <p className="inject-body">{exerciseText(inject.body)}</p>
+                  )}
                   <EvidenceImages images={inject.images} />
                   <details className="facilitator-note">
                     <summary>Facilitator notes</summary>

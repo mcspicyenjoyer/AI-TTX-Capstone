@@ -2,6 +2,21 @@
 
 Accepted means a direction for the user's authorised baseline, not organisation deployment or data approval.
 
+## ADR-045 - Shorter facilitator pages: review steps, one-line records and compact citations
+
+10 November 2026: after the participant tabs, the user asked whether the remaining long pages could be improved and approved the first three recommendations on the same branch. Measured from the 6 November full-page screenshots of the 3031 rehearsal data at 1440 px wide, the Package generation page was 10,195 px tall and a completed run's Record report tab 54,721 px. Most of the report's length was the same record ID printed beside every label and line, record plumbing shown as content, and four jobs stacked on one tab.
+
+- **Record report tab.** Capture and the snapshot picker stay at the top. Below them the tab has three sections in working order: Debrief, Records and After-action review. It opens on the review when a snapshot exists and on the debrief when none does. All three stay mounted, so unsaved debrief and AAR edits and their guards behave as before.
+- **Records.** Each captured record is one line (kind, first line of its leading field, recorded time) that opens to the full record; the snapshot-boundary record starts open. Fields whose label ends in an ID, hash, revision or sequence sit behind an Identifiers toggle inside the record. Expand all and Collapse all are provided. Nothing from the snapshot is removed or reworded.
+- **Citations.** QUALITY requires a citation on every report line, so that stays. Each cited line keeps its link, with the full record ID as the link's title and accessible name. Only the visible text shrinks: a line citing its own record shows a mark, and a citation of another record shows the kind and the first four characters. Selecting a citation opens that record in Records, including from the AAR.
+- **Role messages for the facilitator.** Package review and the Run tab's inject review show each role's message in the participant rendering (ADR-044), one role at a time. The Run tab previously showed only the stub line that says messages are role-specific. Inject images stay listed as before.
+- **Package review steps.** Profile, Scenario, Pathway, Preparation and Injects are steps with counts; package approval stays below every step. A draft that is already reviewable opens on Injects, and nothing moves the facilitator between steps afterwards. Every step stays mounted, so unsaved edits, disabled states and guards are unchanged.
+- **Threat pathway.** A route line and the open gaps are on screen; target, service, recovery, authority and supplier claims open on request, so a gap is no longer listed twice. Claim IDs remain beside every claim.
+
+This is display only. No contract, stored record, hash, server route, approval rule, access check or dependency changes, and existing snapshots render without recapture. Maintenance: the identifier-label pattern and preview-field order in `src/ui/record-report-workspace.tsx`, the shared `Citation` in `src/ui/record-citation.tsx`, and the browser tests for the step, section and collapse behaviour.
+
+Alternatives: drop per-line citations (contradicts the recorded per-line check and weakens traceability), paginate or virtualise the records (hides them from find-in-page and needs a dependency), or give each step its own route (unmounts unsaved edits and needs a router). All are rejected for this request. Not addressed here: the Run tab still stacks Step 0, inject review, activity, clarifications and all positions, and the inject editor's form column is still long.
+
 ## ADR-044 - One released inject per participant tab
 
 6 November 2026: the user asked for a participant workspace that needs less scrolling and looks clearer, and approved this layout on a separate branch. Measured on the 3031 rehearsal data at 1440×900, the participant page was 9,471 px tall: the full briefing, then every released inject with full-width images, then every response, so inject 1's response form started about 4,000 px below inject 1.

@@ -105,6 +105,8 @@ ADR-042 removes repeated labels only in UI presentation. The shared `exerciseTex
 
 ADR-044 arranges the [participant view](../src/ui/participant-exercise.tsx) as a Briefing tab plus one tab per released inject, with that inject's team-response panel beside it. `parseExerciseText` reads the generator's existing role-body layout into display blocks for this view only; unrecognised text stays plain. Server projections, hashes, access checks, response rules and the facilitator view are unchanged.
 
+ADR-045 shortens the facilitator's pages the same way, again in presentation only. [Package review](../src/ui/package-workspace.tsx) is split into mounted steps with approval below them; the [Record report tab](../src/ui/record-report-workspace.tsx) has Debrief, Records and After-action review sections, with each record collapsed to one line and its identifiers behind a toggle; the shared [citation link](../src/ui/record-citation.tsx) keeps the full record ID on every cited line while showing a short form; and [role messages](../src/ui/exercise-blocks.tsx) reuse the participant rendering for the facilitator's preview. Snapshots, hashes, approval and access rules are untouched.
+
 The same UI formatting module provides exact display aliases for the four fixture source titles and sentence-case labels for controlled enums with preserved acronyms. Source identifiers, editable title inputs, original quotations, exports and submitted enum values are unchanged. Source lists, filter breadcrumbs, evidence headings and source selectors use the same aliases; semantic `strong` elements emphasise role labels without changing their meaning.
 
 ### Bounded source intake

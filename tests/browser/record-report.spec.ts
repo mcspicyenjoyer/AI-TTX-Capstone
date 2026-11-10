@@ -49,6 +49,12 @@ test('facilitator captures immutable cited reports after review; participant can
     await page.getByRole('tab', { name: 'Record report', exact: true }).click();
     await expect(page.getByText('No captured report.', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Capture record snapshot', exact: true }).click();
+    // Nothing was captured when the tab opened, so it starts on the debrief (ADR-045).
+    await expect(page.getByRole('tab', { name: 'Debrief', exact: true })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    await page.getByRole('tab', { name: 'Records', exact: true }).click();
     const report = page.getByRole('article', { name: 'Fixed app-record report' });
     await expect(report).toBeVisible();
     await expect(
@@ -73,7 +79,23 @@ test('facilitator captures immutable cited reports after review; participant can
     const reviewed = report.locator('[data-record-id="' + draft.record.id + '"]');
     await expect(reviewed).toBeVisible();
     await expect(reviewed.getByRole('heading', { name: /Reviewed interpretation/ })).toBeVisible();
+    // A record is one line until opened; its identifiers sit behind their own toggle.
+    await expect(reviewed).toHaveJSProperty('open', false);
+    await expect(reviewed.getByText(/<script>window.reportInjected/)).toBeHidden();
+    await reviewed.locator(':scope > summary').click();
     await expect(reviewed.getByText(/<script>window.reportInjected/)).toBeVisible();
+    const identifiers = reviewed.locator('.record-identifiers');
+    await expect(identifiers.getByText(context.response.id, { exact: false })).toBeHidden();
+    await identifiers.locator(':scope > summary').click();
+    await expect(identifiers.getByText(context.response.id, { exact: false })).toBeVisible();
+    // The compact citation still carries the full record ID and its link.
+    const own = reviewed.locator(':scope > summary .record-citation');
+    await expect(own).toHaveAttribute('href', '#record-' + draft.record.id);
+    await expect(own).toHaveAttribute('title', draft.record.id);
+    await report.getByRole('button', { name: 'Collapse all', exact: true }).click();
+    await expect(reviewed).toHaveJSProperty('open', false);
+    await report.getByRole('button', { name: 'Expand all', exact: true }).click();
+    await expect(reviewed).toHaveJSProperty('open', true);
     expect(await page.evaluate(() => 'reportInjected' in window)).toBe(false);
     expect(
       await report
@@ -167,8 +189,11 @@ test('facilitator records a debrief that only a later snapshot includes', async 
     await page.getByLabel('Exercise', { exact: true }).selectOption('technical/' + context.runId);
     await page.getByRole('tab', { name: 'Record report', exact: true }).click();
     await page.getByRole('button', { name: 'Capture record snapshot', exact: true }).click();
+    const section = (name: string) => page.getByRole('tab', { name, exact: true }).click();
+    await section('Records');
     const report = page.getByRole('article', { name: 'Fixed app-record report' });
     await expect(report).toBeVisible();
+    await section('Debrief');
     const debrief = page.getByRole('region', { name: 'Debrief', exact: true });
     const record = debrief.getByRole('button', { name: 'Record debrief', exact: true });
     const feedback = debrief.getByLabel('Participant feedback (your summary)', { exact: true });
@@ -185,13 +210,15 @@ test('facilitator records a debrief that only a later snapshot includes', async 
     // The captured snapshot is fixed; the debrief appears only in a new capture.
     await expect(report.getByText(design)).toHaveCount(0);
     await page.getByRole('button', { name: 'Capture record snapshot', exact: true }).click();
-    const section = report.getByRole('region', { name: 'Post-exercise debrief', exact: true });
-    await expect(section).toContainText(design);
+    await section('Records');
+    const recorded = report.getByRole('region', { name: 'Post-exercise debrief', exact: true });
+    await expect(recorded).toContainText(design);
     await report.getByRole('tab', { name: 'Timeline', exact: true }).click();
     await expect(
       report.getByRole('region', { name: 'Exercise event records', exact: true }),
     ).not.toContainText(design);
-    await expect(section).toContainText(design);
+    await expect(recorded).toContainText(design);
+    await section('Debrief');
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 960 });
       await debrief.scrollIntoViewIfNeeded();
@@ -234,6 +261,7 @@ test('lost snapshot response retries the exact capture without creating a duplic
       page.getByRole('button', { name: 'Capture record snapshot', exact: true }),
     ).toBeDisabled();
     await page.getByRole('button', { name: 'Retry snapshot request', exact: true }).click();
+    await page.getByRole('tab', { name: 'Records', exact: true }).click();
     await expect(page.getByRole('article', { name: 'Fixed app-record report' })).toBeVisible();
     expect(commands).toHaveLength(2);
     expect(commands[0]).toBe(commands[1]);
